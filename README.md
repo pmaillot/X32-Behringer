@@ -4,11 +4,12 @@ This README would normally document whatever steps are necessary to get your app
 
 ### What is this repository for? ###
 
-* Quick summary
+* Quick summary:
 This is a repository for X32 OSC program files. I will try to push/commit most of the utilities I have been writing since 2013 for the X32 Standard console I bought then.
 The first one I committed is X32_Command, a simple yet very useful and powerful command line tool for interacting with the X32 digital console.
  
-* Demos and documentation
+### Demos and documentation ###
+
 These can be found at https://sites.google.com/site/patrickmaillot/x32
 
 ### How do I get set up? ###
