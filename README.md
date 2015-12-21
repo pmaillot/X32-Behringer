@@ -28,9 +28,12 @@ usage: X32_command [-i X32 console ipv4 address]
                    [-f file, sets batch mode on, getting input data from 'file']
                      default IP is 192.168.0.64
 
-If option -f is used, the program runs in batch mode, taking data from the provided file until EOF has been reached, or 'exit' or 'kill' entered. If not killed or no -f option, the program runs in standard mode, taking data from the keyboard or <stdin> on linux systems.
+If option -f is used, the program runs in batch mode, taking data from the provided file until 
+EOF has been reached, or 'exit' or 'kill' entered. If not killed or no -f option, the program 
+runs in standard mode, taking data from the keyboard or <stdin> on linux systems.
 
-Note: make sure the batch file is respecting unix standards (i.e. use notepad++ to create the file under Windows so EOL are made of only "\n" and not "\r\n").
+Note: make sure the batch file is respecting unix standards (i.e. use notepad++ to create the 
+file under Windows so EOL are made of only "\n" and not "\r\n").
 
  While executing, the following commands can be used (without the quotes):
    '#line of text.....': will print out the input line as a comment line
