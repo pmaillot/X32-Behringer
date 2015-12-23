@@ -112,7 +112,7 @@ do {																			\
 //
 //
 #define TESTINPUT()																						\
-	else if (strcmp(input_line, "exit") == 0) keep_on = 0;												\
+	if (strcmp(input_line, "exit") == 0) keep_on = 0;													\
 	else if (strcmp(input_line, "quit") == 0) keep_on = 0;												\
 	else if (strcmp(input_line, "xremote") == 0) printf(":: xremote is %s\n",((xremote_on)?"on":"off"));\
 	else if (strcmp(input_line, "xremote off") == 0) 	xremote_on = 0;									\
@@ -147,7 +147,6 @@ struct timeval		timeout;
 #ifdef __WIN32__
 WSADATA 			wsa;
 int					Xip_len = sizeof(Xip);	// length of addresses
-unsigned long 		mode;
 #else
 socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 #endif
@@ -235,24 +234,24 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 	Xip.sin_addr.s_addr = inet_addr(Xip_str);	// IP address
 	Xip.sin_port = htons(atoi(Xport_str));		// server port/
 //
-//register for receiving X32 console updates
-// Non blocking mode
+// Set receiving from X32 to non blocking mode
+// The 500ms timeout is used for delaying the printing of '.' at startup.
 	timeout.tv_sec = 0;
-	timeout.tv_usec = 10000; //Set timeout for non blocking recvfrom(): 10ms
+	timeout.tv_usec = 500000; //Set timeout for non blocking recvfrom(): 500ms
 	FD_ZERO(&ufds);
 	FD_SET(Xfd, &ufds);
-#ifdef __WIN32__
-	mode = 1;
-	p_status = ioctlsocket(Xfd, FIONBIO, &mode); // make X32 socket non blocking
-
-#else
-	// make stdin (fd = 0) I/O nonblocking
-	fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) | O_NONBLOCK);
-#endif
+//#ifdef __WIN32__
+//	mode = 1;
+//	p_status = ioctlsocket(0, FIONBIO, &mode); // make X32 socket non blocking
+//
+//#else
+//	// make stdin (fd = 0) I/O nonblocking
+//	fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) | O_NONBLOCK);
+//#endif
 //
 // All done. Let's send and receive messages
 // Establish logical connection with X32 server
-	printf(" X32_Command - v1.24 - (c)2014-15 Patrick-Gilles Maillot\n\n");
+	printf(" X32_Command - v1.25 - (c)2014-15 Patrick-Gilles Maillot\n\n");
 //
 	keep_on = 1;
 	xremote_on = X32verbose;	// Momentarily save X32verbose
@@ -271,10 +270,11 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 				break;		// Connected!
 		}					// ... else timeout
 		printf("."); fflush(stdout);
-		millisleep(500);	// wait a little before asking again
 	}
 	printf(" Done!\n");
 //
+// Set 1ms timeout to get faster response from X32 (when testing for /xremote data).
+	timeout.tv_usec = 1000; //Set timeout for non blocking recvfrom(): 1ms
 	X32verbose = xremote_on;	// Restore X32verbose
 	xremote_on = 0;
 	l_index = 0;
@@ -289,14 +289,17 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			if (fgets(input_line, 128, fdk)) {
 				input_line[strlen(input_line) - 1] = 0;
 				// Check for program batch mode commands
-				if (input_line[0] == '#') printf("---comment: %s\n", input_line);
-				TESTINPUT()			// Test for input data checks
-				// Additional batch-mode input data checks
-				else if (strcmp(input_line, "kill") == 0) {keep_on = 0; do_keyboard = 0;}
-				else if (strncmp(input_line, "time", 4) != 0) {sscanf(input_line+5, "%d", &s_delay); printf(":: delay is: %d\n", s_delay);}
-				else if (strlen(input_line) > 1) { // X32 command line
-					s_len = Xcparse(s_buf, input_line);
-					SEND			// send batch command
+				if (input_line[0] == '#') {
+					printf("---comment: %s\n", input_line);
+				} else {
+					TESTINPUT()			// Test for input data checks
+					// Additional batch-mode input data checks
+					else if (strcmp(input_line, "kill") == 0) {keep_on = 0; do_keyboard = 0;}
+					else if (strncmp(input_line, "time", 4) == 0) {sscanf(input_line+5, "%d", &s_delay); printf(":: delay is: %d\n", s_delay);}
+					else if (strlen(input_line) > 1) { // X32 command line
+						s_len = Xcparse(s_buf, input_line);
+						SEND			// send batch command
+					}
 				}
 				CHECKX32()			// Check if X32 sent something back
 			} else {
@@ -328,10 +331,14 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 #endif
 						// Check for program interactive mode commands
 						input_line[l_index] = 0;
-						if (input_line[0] == '#') printf("---comment: %s\n", input_line);
-						TESTINPUT()			// Test for input data checks
-						else { 				// new line/command
-							s_len = Xcparse(s_buf, input_line);
+						if (input_line[0] == '#') {
+							printf("---comment: %s\n", input_line);
+						} else {
+							TESTINPUT()			// Test for input data checks
+							else { 				// new line/command
+								s_len = Xcparse(s_buf, input_line);
+							}
+							if (keep_on == 0) break;
 						}
 					}
 					SEND // Either data or empty line (send previous data)
