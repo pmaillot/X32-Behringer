@@ -1,8 +1,24 @@
 # X32 / OSC utilities #
+![X32-pic.jpg](https://bitbucket.org/repo/K9Ae7b/images/3905851088-X32-pic.jpg)
 ## What is this repository for? ##
 
 This is a repository for Behringer X32 OSC program files. I will try to push/commit most of the utilities I have been writing since 2013 for the X32 Standard console I bought then.
 The first one I committed is X32_Command, a simple yet very useful and powerful command line tool for interacting with the X32 digital audio console.
+
+## Demos and documentation ##
+The latest version of the unofficial X32 OSC Protocol documentation, and compiled/built versions of the tools, demos, examples and snapshots can be found at 
+https://sites.google.com/site/patrickmaillot/x32
+
+## How do I get set up? ##
+The tools are generally simple C programs, static linked applications; 
+
+Source code is set for 4-space tabs in Eclipse. Some utilities are just command line tools, others (to come on this git repo) are Windows applications using Windows MSC, or GTK3 for some of them.
+
+### Contribution guidelines ###
+Feel free to use :-). If you find bugs, please report them; if you fix some bugs, please propose you code so everyone can benefit.
+
+### Who do I talk to? ###
+patrick.maillot@gmail.com
 
 ## Utilities ##
 
@@ -76,21 +92,3 @@ usage: X32Tap [-i X32 console ipv4 address]
 ```
 
  
-## Demos and documentation ##
-
-The latest version of the unofficial X32 OSC Protocol documentation, and compiled/built versions of the tools, demos, examples and snapshots can be found at 
-https://sites.google.com/site/patrickmaillot/x32
-
-## How do I get set up? ##
-
-The tools are generally simple C programs, static linked applications; 
-
-Source code is set for 4-space tabs in Eclipse. Some utilities are just command line tools, others (to come on this git repo) are Windows applications using Windows MSC, or GTK3 for some of them.
-
-### Contribution guidelines ###
-
-Feel free to use :-). If you find bugs, please report them; if you fix some bugs, please propose you code so everyone can benefit.
-
-### Who do I talk to? ###
-
-patrick.maillot@gmail.com
