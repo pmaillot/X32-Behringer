@@ -28,6 +28,7 @@ Before downloading, building or using the following utilities, please read the X
 ### X32_Command ###
 
 ![X32_Commad.jpg](https://bitbucket.org/repo/K9Ae7b/images/703636108-X32_Commad.jpg)
+
 X32_Command: Sends OSC commands to X32, allows listening to X32 too...
 
 This command line Windows tool enables sending and receiving OSC data in many ways.
@@ -77,6 +78,7 @@ Examples:
 
 ### X32Tap ###
 ![X32Tap.jpg](https://bitbucket.org/repo/K9Ae7b/images/3888357480-X32Tap.jpg)
+
 A small utility to set tap tempo on X32. It checks for DLY type effect to be on FX slots 1 to 4. If a DLY effect is found, entering <cr> will set tempo; i.e. the actual tempo will be set for any two consecutive <cr> hits on the keyboard. On X32, tempo tap can be set between 0 and 3000ms.
 
 
@@ -90,5 +92,3 @@ usage: X32Tap [-i X32 console ipv4 address]
  'q' <cr> to exit,
  <cr> to set tempo
 ```
-
- 
