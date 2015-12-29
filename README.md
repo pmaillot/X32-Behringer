@@ -1,8 +1,24 @@
 # X32 / OSC utilities #
+![X32-pic.jpg](https://bitbucket.org/repo/K9Ae7b/images/3905851088-X32-pic.jpg)
 ## What is this repository for? ##
 
 This is a repository for Behringer X32 OSC program files. I will try to push/commit most of the utilities I have been writing since 2013 for the X32 Standard console I bought then.
 The first one I committed is X32_Command, a simple yet very useful and powerful command line tool for interacting with the X32 digital audio console.
+
+## Demos and documentation ##
+The latest version of the unofficial X32 OSC Protocol documentation, and compiled/built versions of the tools, demos, examples and snapshots can be found at 
+https://sites.google.com/site/patrickmaillot/x32
+
+## How do I get set up? ##
+The tools are generally simple C programs, static linked applications; 
+
+Source code is set for 4-space tabs in Eclipse. Some utilities are just command line tools, others (to come on this git repo) are Windows applications using Windows MSC, or GTK3 for some of them.
+
+### Contribution guidelines ###
+Feel free to use :-). If you find bugs, please report them; if you fix some bugs, please propose you code so everyone can benefit.
+
+### Who do I talk to? ###
+patrick.maillot@gmail.com
 
 ## Utilities ##
 
@@ -12,6 +28,7 @@ Before downloading, building or using the following utilities, please read the X
 ### X32_Command ###
 
 ![X32_Commad.jpg](https://bitbucket.org/repo/K9Ae7b/images/703636108-X32_Commad.jpg)
+
 X32_Command: Sends OSC commands to X32, allows listening to X32 too...
 
 This command line Windows tool enables sending and receiving OSC data in many ways.
@@ -59,22 +76,19 @@ Examples:
 ```
 
 
- 
-## Demos and documentation ##
+### X32Tap ###
+![X32Tap.jpg](https://bitbucket.org/repo/K9Ae7b/images/3888357480-X32Tap.jpg)
 
-The latest version of the unofficial X32 OSC Protocol documentation, and compiled/built versions of the tools, demos, examples and snapshots can be found at 
-https://sites.google.com/site/patrickmaillot/x32
+A small utility to set tap tempo on X32. It checks for DLY type effect to be on FX slots 1 to 4. If a DLY effect is found, entering <cr> will set tempo; i.e. the actual tempo will be set for any two consecutive <cr> hits on the keyboard. On X32, tempo tap can be set between 0 and 3000ms.
 
-## How do I get set up? ##
 
-The tools are generally simple C programs, static linked applications; 
 
-Source code is set for 4-space tabs in Eclipse. Some utilities are just command line tools, others (to come on this git repo) are Windows applications using Windows MSC, or GTK3 for some of them.
+```
+#!bash
 
-### Contribution guidelines ###
-
-Feel free to use :-). If you find bugs, please report them; if you fix some bugs, please propose you code so everyone can benefit.
-
-### Who do I talk to? ###
-
-patrick.maillot@gmail.com
+usage: X32Tap [-i X32 console ipv4 address]
+ then:
+ '1'...'4' <cr> to select FX slot with DLY,
+ 'q' <cr> to exit,
+ <cr> to set tempo
+```
