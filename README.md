@@ -92,3 +92,45 @@ usage: X32Tap [-i X32 console ipv4 address]
  'q' <cr> to exit,
  <cr> to set tempo
 ```
+
+### X32 ###
+![x32.jpg](https://bitbucket.org/repo/K9Ae7b/images/2501773304-x32.jpg)
+
+X32 is... an X32 emulator. This tool parses and manages X32 commands (as a real X32 would), keeps up to 4 xremote clients updated - Of course no sound, and even if all 32 Channels, 16 Sends, 8 FXreturns, 8 Aux, 6 Matrix, 8 DCA, Main and all FX parameters are fully implemented along with multi-client xremote update and many more, not all X32 commands are supported (and that's not the goal), but the emulator is handy for developing X32 applications.
+
+```
+#!bash
+
+usage: X32 [-d 0/1, debug option] -default: 0
+           [-v 0/1, verbose option] -default: 1
+       The options below apply in conjunction with -v 1
+           [-x 0/1, echoes incoming verbose for /xremote] -default: 0
+           [-b 0/1, echoes incoming verbose for /batchsubscribe] -default: 0
+           [-f 0/1, echoes incoming verbose for /formatsubscribe] -default: 0
+           [-r 0/1, echoes incoming verbose for /renew] -default: 0
+           [-m 0/1, echoes incoming verbose for /meters] -default: 0
+
+   The (non-Behringer) command "/shutdown" will save data and quit
+```
+
+
+In the above example of use, the following commands were sent from an X32_Command window (the -> lines show dialog data going to and from the X32 emulator):
+
+```
+#!bash
+
+/ch/01/mix/fader
+->X,   20 B: /ch/01/mix/fader~~~~
+X->,   28 B: /ch/01/mix/fader~~~~,f~~[1.0000]
+/ch/01/mix/fader ,f .5
+->X,   28 B: /ch/01/mix/fader~~~~,f~~[0.5000]
+/node ,s ch/01/config
+->X,   28 B: /node~~~,s~~ch/01/config~~~~
+X->,   40 B: node~~~~,s~~/ch/01/config "" 0 OFF 0~~~~
+/shutdown
+->X,   12 B: /shutdown~~~
+```
+
+Please note: You should run the X32 a first time and issue a "/shutdown" command from a connected client; this will create a file preserving all X32 parameters, that will be read at next start. Make sure you end your client sessions with "/shutdown" to update the file with the changes made to X32.
+
+Some X32 commands are not implemented (lack of time mostly), some are also not present as this program was developed before FW2.14 was released. You are welcome to dive in the code and add them :-)
