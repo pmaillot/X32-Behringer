@@ -2,7 +2,10 @@
  * X32.c
  *
  *  Created on: 16 janv. 2015
- *      Author: patrick
+ *      Author: Patrick-Gilles Maillot
+ *
+ * Changelog:
+ * v 0.27: removed incorrect use of (FD_ISSET()) when receiving data
  */
 #ifdef __WIN32__
 #include <winsock2.h>
@@ -430,14 +433,14 @@ main(int argc, char **argv)
 // Wait for messages from client
 	i = 0;
 	r_len = 0;
-	printf("X32 - v0.26 - An X32 Emulator - (c)2014-2015 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.27 - An X32 Emulator - (c)2014-2015 Patrick-Gilles Maillot\n");
 	getmyIP(); // Try to get our IP...
 	if (Xverbose) printf("Listening to port %s, X32 IP = %s\n", Xport_str, r_buf);
 	while(keep_on) {			// Main, receiving loop (active as long as keep_on is 1)
 		FD_ZERO (&readfds);
 		FD_SET (Xfd, &readfds);
 		p_status = select(Xfd+1,&readfds,NULL,NULL,&timeout);
-		if ((p_status = FD_ISSET(Xfd, &readfds)) < 0) {
+		if (p_status < 0) {
 			printf("Error while receiving\n");
 			exit(1);
 		}
