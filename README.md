@@ -94,7 +94,7 @@ usage: X32Tap [-i X32 console ipv4 address]
 ```
 
 ### X32 ###
-![x32.jpg](https://bitbucket.org/repo/K9Ae7b/images/2501773304-x32.jpg)
+![x32.jpg](https://bitbucket.org/repo/K9Ae7b/images/3945386401-x32.jpg)
 
 X32 is... an X32 emulator. This tool parses and manages X32 commands (as a real X32 would), keeps up to 4 xremote clients updated - Of course no sound, and even if all 32 Channels, 16 Sends, 8 FXreturns, 8 Aux, 6 Matrix, 8 DCA, Main and all FX parameters are fully implemented along with multi-client xremote update and many more, not all X32 commands are supported (and that's not the goal), but the emulator is handy for developing X32 applications.
 
