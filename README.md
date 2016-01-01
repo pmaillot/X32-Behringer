@@ -137,3 +137,30 @@ Some X32 commands are not implemented (lack of time mostly), some are also not p
 
 ### X32UDP ###
 This is a set of 3 functions to connect to X32, send and receive data (non-blocking IO). I use these functions to interface with Pascal (Lazarus) code I use when writing or porting my apps to Raspberry Pi. Lazarus enables writing GUI apps very easily (and quickly). The interfacing with C is quite simple too and works great.
+
+### X32TCP ###
+![X32TCP.jpg](https://bitbucket.org/repo/K9Ae7b/images/2597724007-X32TCP.jpg)
+
+A multi threaded TCP server to serve X32 commands. This program starts a TCP server and handles requests for X32 (changing to UDP to manage dialog with X32) from multiple clients. The goal is to provide a basis for people who want to access X32 via TCP protocol, rather than UDP. 
+It will be slower than UDP, and may suffer from data volume back from the X32, but will offer the possibility to access (with some modifications) an X32 via HTTP protocol for example.
+
+
+```
+#!bash
+
+usage: X32TCP [-b [10] server max connections backlog]
+              [-i X32 console ipv4 address]
+              [-d 0/1, [0], debug option]
+              [-v 0/1  [1], verbose option]
+              [-p [10041] server port]
+
+   After starting, the server waits for clients to connect and send X32_command
+   format like commands, sent as character strings to the TCP server.
+   All commands from connected clients are parsed and formatted to X32 OSC standard
+   before being sent to X32. If X32 answers, the X32 OSC data is formatted to readable
+   format before being returned to the connected client as a string (null characters
+   are replaced with '~' to ease printing or parsing).
+   If no answer after a timeout of 10ms from X32, the string 'no data' is returned.
+
+   The command 'exit' from a connected client input closes the respective client stream.
+```
