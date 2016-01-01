@@ -5,6 +5,8 @@
 //
 //      Author: Patrick-Gilles Maillot
 //
+// Changelog:
+// v 1.21: removed incorrect use of FD_ISSET(Xfd, &ufds)) in receiving data
 //
 
 #include <stdlib.h>
@@ -179,7 +181,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with X32 server
-	printf(" X32Tap - v1.2 - (c)2015 Patrick-Gilles Maillot\n\n");
+	printf(" X32Tap - v1.21 - (c)2015 Patrick-Gilles Maillot\n\n");
 	printf(" '1'...'4' <cr> to select FX slot with DLY,\n");
 	printf(" 'q' <cr> to exit,\n");
 	printf(" <cr> to set tempo\n");
@@ -190,7 +192,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 	while (keep_on) {
 		SEND  // command /info sent; read data if available
 		RPOLL // poll for data in
-		if ((p_status = FD_ISSET(Xfd, &ufds)) < 0) {
+		if (p_status < 0) {
 			printf("Polling for data failed\n");
 			return 1;		// exit on receive error
 		} else if (p_status > 0) {
@@ -231,7 +233,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 						s_len = Xsprint(s_buf, 0, 's', tmpstr);
 						SEND		// send command
 						RPOLL		// read UDP status
-						if ((p_status = FD_ISSET(Xfd, &ufds)) > 0) {
+						if (p_status  > 0) {
 							RECV
 							if ((strcmp(r_buf, tmpstr)) == 0) {
 								// FX type number starts at index 16
