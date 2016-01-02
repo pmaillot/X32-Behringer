@@ -2,7 +2,7 @@
  * X32port.h
  *
  *  Created on: Sep 19, 2014
- *      Author: patrick
+ *      Author: Patrick-Gilles Maillot
  */
 
 #ifndef X32PORT_H_
