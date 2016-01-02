@@ -2,7 +2,7 @@
  * Xcparse.c
  *
  *  Created on: Oct 8, 2014
- *      Author: patrick
+ *      Author: Patrick-Gilles Maillot
  */
 
 #include <string.h>
@@ -61,7 +61,7 @@ union littlebig {
 		}
 		i = Xsprint(buf, i, 's', input_line+start_comma);
 //
-// k point at the first value
+// k points at the first value
 // start_values points to first value, too
 // process formatters (between start_comma and end_comma)
 		start_comma += 1;
