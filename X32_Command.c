@@ -8,7 +8,8 @@
 //      Author: Patrick-Gilles Maillot
 //
 // Changelog:
-// v 1.27: remove incorrect use of macro FD_ISSET(Xfd, &ufds)) in receiving IO.
+// v 1.27: remove incorrect use of macro FD_ISSET(Xfd, &ufds) in receiving IO.
+// v 1.28: remove incorrect use of FD_ISSET() in buffer check.
 //
 
 #include <stdlib.h>
@@ -104,12 +105,12 @@ do {																			\
 	}																			\
 } while (0);
 //
-#define CHECKX32()										\
-	do {												\
-		RPOLL 											\
-		if ((p_status = FD_ISSET(Xfd, &ufds)) > 0) {	\
-			RECV										\
-		}												\
+#define CHECKX32()				\
+	do {						\
+		RPOLL 					\
+		if (p_status  > 0) {	\
+			RECV				\
+		}						\
 	} while (p_status > 0);
 //
 //
@@ -254,7 +255,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with X32 server
-	printf(" X32_Command - v1.27 - (c)2014-15 Patrick-Gilles Maillot\n\n");
+	printf(" X32_Command - v1.28 - (c)2014-15 Patrick-Gilles Maillot\n\n");
 //
 	keep_on = 1;
 	xremote_on = X32verbose;	// Momentarily save X32verbose
