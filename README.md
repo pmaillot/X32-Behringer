@@ -164,3 +164,11 @@ usage: X32TCP [-b [10] server max connections backlog]
 
    The command 'exit' from a connected client input closes the respective client stream.
 ```
+
+### X32Ssaver ###
+![X32Ssave.jpg](https://bitbucket.org/repo/K9Ae7b/images/793849478-X32Ssave.jpg)
+
+X32SsaverGW.c - This is the Windows GUI version; the Linux and windows command line versions are in the "Unofficial OSC Protocol" document.
+
+Set the X32 IP address and hit the "Connect" button  to connect to X32. 
+Set the utility to "ON"; After the number of seconds set in the "Delay before low light" box, the X32 LCD bright and LED intensity values will be lowered to their minimum, unless and as long as no action takes place on the X32. As soon as a fader is moved, or a button is changing, LCD and LED will take their initial brightness values, and will return to low after a new delay with no action on the X32 deck.
