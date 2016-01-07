@@ -172,3 +172,11 @@ X32SsaverGW.c - This is the Windows GUI version; the Linux and windows command l
 
 Set the X32 IP address and hit the "Connect" button  to connect to X32. 
 Set the utility to "ON"; After the number of seconds set in the "Delay before low light" box, the X32 LCD bright and LED intensity values will be lowered to their minimum, unless an / as long as no action takes place on the X32. As soon as a fader is moved, or a button is changing, LCD and LED will take their initial brightness values, and will return to low after a new delay with no action on the X32 deck.]
+
+
+### X32Fade ###
+![X32Fade.jpg](https://bitbucket.org/repo/K9Ae7b/images/1406574191-X32Fade.jpg)
+
+X32Fade.c - A Windows GUI version of a time and #steps controlled Fade_in/Fade_out for all 80 X32 faders (all banks, Levels, Aux, FX, Bus, DCA, Mtx, L/R).
+
+Set the X32 IP address and hit the "Connect" button  to connect to X32. Select which faders should be controlled by the program. Set time IN, OUT, # of steps, or use Check_in/out to restore or save settings. FADE_IN will raise levels and FADE_OUT will bring them down, according to settings. STOP aborts the operation if needed.
