@@ -171,7 +171,7 @@ usage: X32TCP [-b [10] server max connections backlog]
 X32SsaverGW.c - This is the Windows GUI version; the Linux and windows command line versions are in the "Unofficial OSC Protocol" document [http://www.academia.edu/9709659/UNOFFICIAL_X32_OSC_REMOTE_PROTOCOL].
 
 Set the X32 IP address and hit the "Connect" button  to connect to X32. 
-Set the utility to "ON"; After the number of seconds set in the "Delay before low light" box, the X32 LCD bright and LED intensity values will be lowered to their minimum, unless an / as long as no action takes place on the X32. As soon as a fader is moved, or a button is changing, LCD and LED will take their initial brightness values, and will return to low after a new delay with no action on the X32 deck.]
+Set the utility to "ON"; After the number of seconds set in the "Delay before low light" box, the X32 LCD bright and LED intensity values will be lowered to their minimum, unless an / as long as no action takes place on the X32. As soon as an X32 control (fader, button, control) is changing, LCD and LED will take their initial brightness values, and will return to low after a new delay with no action on the X32 deck.]
 
 
 ### X32Fade ###
@@ -179,4 +179,8 @@ Set the utility to "ON"; After the number of seconds set in the "Delay before lo
 
 X32Fade.c - A Windows GUI version of a time and #steps controlled Fade_in/Fade_out for all 80 X32 faders (all banks, Levels, Aux, FX, Bus, DCA, Mtx, L/R).
 
-Set the X32 IP address and hit the "Connect" button  to connect to X32. Select which faders should be controlled by the program. Set time IN, OUT, # of steps, or use Check_in/out to restore or save settings. FADE_IN will raise levels and FADE_OUT will bring them down, according to settings. STOP aborts the operation if needed.
+Set the X32 IP address and hit the "Connect" button to access your X32. 
+Select which faders or levels should be controlled by the program. 
+Set time IN, OUT, # of steps, or use CHECK IN/OUT to restore or save settings. 
+FADE IN will raise levels and FADE OUT will bring them down, according to current settings. 
+STOP aborts the operation if needed.
