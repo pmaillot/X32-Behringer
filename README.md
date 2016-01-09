@@ -188,7 +188,7 @@ STOP aborts the operation if needed.
 ### X32Automix ###
 ![X32Automix.jpg](https://bitbucket.org/repo/K9Ae7b/images/3013211763-X32Automix.jpg)
 
-This X32 Utility (Windows GUI based using MFC) is aiming at providing Automixing functionality;
+This X32 Utility (Windows GUI based, using MFC) is aiming at providing Automixing functionality;
 After connecting, Ch 01..32 meters are read to validate if data is incoming on a given channel (meter level is converted and compared to a threshold value). A timer enables setting a delay for reacting to a channel level change If above the threshold level, the fader level for that channel is activated towards
 its pre-recoded high value, a timer is set to remember the time at which the last high level was recorded.
 
