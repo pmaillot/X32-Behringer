@@ -189,13 +189,17 @@ STOP aborts the operation if needed.
 ![X32Automix.jpg](https://bitbucket.org/repo/K9Ae7b/images/3013211763-X32Automix.jpg)
 
 This X32 Utility (Windows GUI based using MFC) is aiming at providing Automixing functionality;
-After connecting, Ch 01..32 meters are read to validate if data is incoming on a given channel (meter level is converted and compared to a threshold value) A timer enables setting a delay for reacting to a channel level change If above the threshold level, the fader level for that channel is activated towards
+After connecting, Ch 01..32 meters are read to validate if data is incoming on a given channel (meter level is converted and compared to a threshold value). A timer enables setting a delay for reacting to a channel level change If above the threshold level, the fader level for that channel is activated towards
 its pre-recoded high value, a timer is set to remember the time at which the last high level was recorded.
+
 If below the threshold level, and time expired (time - last_high_level time), the fader for that channel will be lowered to its pre-recorded low value.
 Pre-recorded values can be set at anytime, as "equivalent" to the current setting for a given channel; i.e. changing a fader while in its low position (no sound) will set the new pre-recorded low value, and same for high values.
+
 NOM (Number Of Mixes) is a feature that will change the Overall Mix (-3dB or +3dB) each time the number of active (i.e. high value sound) inputs will double (or be divided by 2) to try to keep the Overall Mix to a reasonable value.
+
 Similarly to channels, pre-recorded high and low values for bus (or L/R) Overall Mix can be set at anytime.
-Overall Mix can be the L/R bus or an X32 selected mixBus
+
+Overall Mix can be the L/R bus or an X32 selected mixBus.
            
 Note: This is not trying to be a Duncan-like automix system, but sure can help in Studios, Theaters, or situations where several speakers will participate to a talk.
 
