@@ -22,7 +22,7 @@ patrick.maillot@gmail.com
 
 ## Utilities ##
 
-Before downloading, building or using the following utilities, please read the X32 manual(s) associated with your X32 system. The X32 OSC protocol document available on my website (see above in Demos and Documentation) is also quite useful, especially when using the X32_Command tool (you have to know at least a few commands, and their syntax).
+Before downloading, building or using the following utilities, please read the X32 manual(s) associated with your X32 system. The X32 OSC protocol document available on my website (see above in Demos and documentation) is also quite useful, especially when using the X32_Command tool (you have to know at least a few commands, and their syntax).
 
 The Unofficial X32 OSC Protocol document can also be found at [http://www.academia.edu/9709659/UNOFFICIAL_X32_OSC_REMOTE_PROTOCOL].
 
