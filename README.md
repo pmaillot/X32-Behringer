@@ -1,4 +1,4 @@
-[# X32 / OSC utilities #
+# X32 / OSC utilities #
 ![X32-pic.jpg](https://bitbucket.org/repo/K9Ae7b/images/3905851088-X32-pic.jpg)
 ## What is this repository for? ##
 
