@@ -209,3 +209,44 @@ Set the X32 IP address and hit the "Connect" button to access your X32. The OFF/
 The delay [in seconds] before faders are lowered (in case of no sound) and the delay [in milliseconds] for the channel faders to react to a high level sound can be changed, as well as the sensitivity (the sound level threshold).
 The Overall Mix is L/R channels or can be a selectable X32 mixBus.
 The tool will act on a list of contiguous channels, settable from an arbitrary channel number to a higher one. If both number are equal, only one channel will be active.
+
+### X32GEQ2Cpy ###
+![X32GEQ2cpy.jpg](https://bitbucket.org/repo/K9Ae7b/images/3698274436-X32GEQ2cpy.jpg)
+
+An X32 GEQ, GEQ2, TEQ, TEQ2 copy utility. This is used to copy settings of side A to side B (or vice-verse) of a GEQ2 or TEQ2 X32 equalizer, or copy the settings of an EQ slot to another one, or reset an EQ to its default "0dB" positions. In all operations, master can be included or not.
+
+In the example in the window above, the X32 console has a GEQ2 at FX slot 1 and a TEQ2 at FX slot 2; It will receive (->X) and send (X->) the following:
+
+```
+#!bash
+
+->X,   20 B: /node~~~,s~~fx/1~~~~              #inquire FX type at slot 1
+X->,   24 B: node~~~~,s~~/fx/1 GEQ2~~          #X32 answer
+->X,   20 B: /node~~~,s~~fx/2~~~~              #inquire FX type at slot 2
+X->,   24 B: node~~~~,s~~/fx/2 TEQ2~~          #X32 answer
+                                               #copy request is C: copy from 1 to 2
+->X,   16 B: /fx/1/par/01~~~~                  #request value of FX par 1 at FX slot 1
+X->,   24 B: /fx/1/par/01~~~~,f~~[0.0000]      #X32 answer
+->X,   24 B: /fx/2/par/01~~~~,f~~[0.0000]      #request value of FX par 1 at FX slot 2
+->X,   16 B: /fx/1/par/02~~~~
+X->,   24 B: /fx/1/par/02~~~~,f~~[0.0000]      #      ... etc.
+...
+->X,   24 B: /fx/2/par/62~~~~,f~~[0.0000]      #      ... etc.
+->X,   16 B: /fx/1/par/63~~~~
+X->,   24 B: /fx/1/par/63~~~~,f~~[0.0000]
+->X,   24 B: /fx/2/par/63~~~~,f~~[0.0000]      #until paramater 63
+```
+
+```
+#!bash
+
+usage: X32GEQ2cpy [-i X32 console ipv4 address] default 192.168.0.64
+                  [-f FX slot#] default: 1
+                  [-g FX slot#] default: 1
+                  [-d A>B | B>A | R | C] default: A>B
+                      A>B, B>A: copy FX# f sides
+                      R: Reset FX# f
+                      C: copy FX# f to FX# g
+                  [-m 0/1 for copying master] default: 1/yes
+                  [-v 0/1 verbose] default: 0
+```
