@@ -250,3 +250,73 @@ usage: X32GEQ2cpy [-i X32 console ipv4 address] default 192.168.0.64
                   [-m 0/1 for copying master] default: 1/yes
                   [-v 0/1 verbose] default: 0
 ```
+
+### X32GetScene ###
+
+X32GetScene: Get a Scene/Snippet file directly out of your X32 - compatible with FW 2.08, 2.10, and 2.12.
+
+The utility connects to the X32 (default IP is 192.168.0.64 and can be changed with option 
+-i) reads <stdin> to read the elements you want to get from the X32, and saves the result to <stdout>.
+The elements to get from the X32 are described/coded as they are in a typical .scn file. As a facility, you can provide an existing (partial or complete) scene file to get the elements from your X32. The values from the input scene file will be ignored.
+example:
+
+```
+#!bash
+
+X32GetScene -i 192.168.1.32 -s name1 -n note1 <Default.scn >myscene.scn
+```
+Will take all lines from Default.scn as requests to the X32, and generate a scene file with the current X32 values respective of the requests into a file called myscene.scn, with name and note values name1 and note1 respectively.
+
+When not providing a file as input, one has to type in requests one line at a time. Typing "exit" will terminate the program. For example (without -s or -n, the utility will ask for a name an notes):
+
+
+```
+#!bash
+
+X32GetScene -i 192.168.1.32 -s name1 -n note1 >myscene.scn  
+
+typing in:
+/ch/01/config
+/ch/01/delay
+exit
+
+creates a file myscene.scn contaning (actual values will depend on the state of your X32):
+
+#2.1# "name1" "note1" %000000000 1 X32GetScene V1.3 ©2014 Patrick-Gilles Maillot
+
+/ch/01/config "" 1 YE 1
+/ch/01/delay OFF   0.3
+```
+
+### X32SetScene ###
+
+X32SetScene: Interprets a Scene/Snippet file and set your X32 accordingly - compatible with FW 2.08, 2.10, and 2.12
+
+The utility connects to the X32 (default IP is 192.168.0.64 and can be changed with option -i) reads <stdin> to read the scene file elements and transform them into OSC commands to the X32.
+The elements to send to the X32 are described/coded as in typical .scn files.
+example:
+
+```
+#!bash
+
+X32SetScene -i 192.168.1.32 < myscene.scn
+```
+Will take all lines from myscene.scn, interpret them and set the X32 state accordingly.
+
+When not providing a file as input, one has to type in requests one line at a time. Typing "exit" will terminate the program. For example:
+
+```
+#!bash
+
+X32SetScene -i 192.168.1.32
+
+with typing in:
+
+/ch/01/mix OFF   0 ON +0 OFF -oo
+/ch/01/config "MyVox" 1 GN 1
+exit
+
+will set Channel 1 to: muted, fader to position 0db, pan to center, mono OFF and mono 
+level to -infinity, channel 1 scribble screen will light in green, display "MyVox", with 
+icon 1 selected (i.e. blank), and channel 1 will have "IN 1" as source. 
+```
