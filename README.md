@@ -269,24 +269,32 @@ Will take all lines from Default.scn as requests to the X32, and generate a scen
 
 When not providing a file as input, one has to type in requests one line at a time. Typing "exit" will terminate the program. For example (without -s or -n, the utility will ask for a name an notes):
 
-
 ```
 #!bash
 
 X32GetScene -i 192.168.1.32 -s name1 -n note1 >myscene.scn  
-
+```
 typing in:
+```
+#!bash
+
 /ch/01/config
 /ch/01/delay
 exit
-
+```
 creates a file myscene.scn contaning (actual values will depend on the state of your X32):
+
+
+```
+#!txt
 
 #2.1# "name1" "note1" %000000000 1 X32GetScene V1.3 ©2014 Patrick-Gilles Maillot
 
 /ch/01/config "" 1 YE 1
 /ch/01/delay OFF   0.3
 ```
+
+
 
 ### X32SetScene ###
 
@@ -309,14 +317,15 @@ When not providing a file as input, one has to type in requests one line at a ti
 #!bash
 
 X32SetScene -i 192.168.1.32
-
+```
 with typing in:
+```
+#!bash
 
 /ch/01/mix OFF   0 ON +0 OFF -oo
 /ch/01/config "MyVox" 1 GN 1
 exit
-
+```
 will set Channel 1 to: muted, fader to position 0db, pan to center, mono OFF and mono 
 level to -infinity, channel 1 scribble screen will light in green, display "MyVox", with 
 icon 1 selected (i.e. blank), and channel 1 will have "IN 1" as source. 
-```
