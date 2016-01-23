@@ -5,14 +5,25 @@
 This is a repository for Behringer X32 OSC program files. I will try to push/commit most of the utilities I have been writing since 2014 for the X32 Standard console I bought then.
 The first one I committed is X32_Command, a simple yet very useful and powerful command line tool for interacting with the X32 digital audio console.
 
+
+## COPYRIGHT ##
+Copyright (C) 2013, 2016 Patrick-Gilles Maillot
+
+All software in this repository is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
+
+This software is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+
 ## Demos and documentation ##
-The latest version of the unofficial X32 OSC Protocol documentation, and compiled/built versions of the tools, demos, examples and snapshots can be found at 
+The software in this repository heavily relies on OSC commands sent or received to/from an X32 digital mixer, using UDP communication protocol. The latest version of the unofficial X32 OSC Protocol documentation, and compiled/built versions of the tools, demos, examples and snapshots can be found at 
 https://sites.google.com/site/patrickmaillot/x32
 
 ## How do I get set up? ##
-The tools are generally simple C programs, static linked applications; 
+The tools and programs proposed here are generally simple C programs, static linked applications. They will work in a Linux, OS X, or Windows terminal. Some programs are  Windows applications and rely on Windows MSC and work in a Windows XP to Windows 10 environment.
 
-Source code is set for 4-space tabs in Eclipse. Some utilities are just command line tools, others (to come on this git repo) are Windows applications using Windows MSC, or GTK3 for some of them.
+Source code is set for 4-space tabs in Eclipse.
 
 ### Contribution guidelines ###
 Feel free to use :-). If you find bugs, please report them; if you fix some bugs, please propose you code so everyone can benefit.
@@ -21,14 +32,12 @@ Feel free to use :-). If you find bugs, please report them; if you fix some bugs
 patrick.maillot@gmail.com
 
 ## Utilities ##
-
 Before downloading, building or using the following utilities, please read the X32 manual(s) associated with your X32 system. The X32 OSC protocol document available on my website (see above in Demos and documentation) is also quite useful, especially when using the X32_Command tool (you have to know at least a few commands, and their syntax).
 
 The Unofficial X32 OSC Protocol document can also be found at [http://www.academia.edu/9709659/UNOFFICIAL_X32_OSC_REMOTE_PROTOCOL].
 
 
 ### X32_Command ###
-
 ![X32_Commad.jpg](https://bitbucket.org/repo/K9Ae7b/images/703636108-X32_Commad.jpg)
 
 X32_Command: Sends OSC commands to X32, allows listening to X32 too...
@@ -82,8 +91,6 @@ Examples:
 ![X32Tap.jpg](https://bitbucket.org/repo/K9Ae7b/images/3888357480-X32Tap.jpg)
 
 A small utility to set tap tempo on X32. It checks for DLY type effect to be on FX slots 1 to 4. If a DLY effect is found, entering <cr> will set tempo; i.e. the actual tempo will be set for any two consecutive <cr> hits on the keyboard. On X32, tempo tap can be set between 0 and 3000ms.
-
-
 
 ```
 #!bash
@@ -218,7 +225,7 @@ An X32 GEQ, GEQ2, TEQ, TEQ2 copy utility. This is used to copy settings of side 
 In the example in the window above, the X32 console has a GEQ2 at FX slot 1 and a TEQ2 at FX slot 2; It will receive (->X) and send (X->) the following:
 
 ```
-#!bash
+#!text
 
 ->X,   20 B: /node~~~,s~~fx/1~~~~              #inquire FX type at slot 1
 X->,   24 B: node~~~~,s~~/fx/1 GEQ2~~          #X32 answer
@@ -252,7 +259,6 @@ usage: X32GEQ2cpy [-i X32 console ipv4 address] default 192.168.0.64
 ```
 
 ### X32GetScene ###
-
 X32GetScene: Get a Scene/Snippet file directly out of your X32 - compatible with FW 2.08, 2.10, and 2.12.
 
 The utility connects to the X32 (default IP is 192.168.0.64 and can be changed with option 
@@ -294,10 +300,7 @@ creates a file myscene.scn contaning (actual values will depend on the state of 
 /ch/01/delay OFF   0.3
 ```
 
-
-
 ### X32SetScene ###
-
 X32SetScene: Interprets a Scene/Snippet file and set your X32 accordingly - compatible with FW 2.08, 2.10, and 2.12
 
 The utility connects to the X32 (default IP is 192.168.0.64 and can be changed with option -i) reads <stdin> to read the scene file elements and transform them into OSC commands to the X32.
@@ -328,4 +331,4 @@ exit
 ```
 will set Channel 1 to: muted, fader to position 0db, pan to center, mono OFF and mono 
 level to -infinity, channel 1 scribble screen will light in green, display "MyVox", with 
-icon 1 selected (i.e. blank), and channel 1 will have "IN 1" as source. 
+icon 1 selected (i.e. blank), and channel 1 will have "IN 1" as source.
