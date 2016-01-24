@@ -7,7 +7,7 @@ The first one I committed is X32_Command, a simple yet very useful and powerful 
 
 
 ## COPYRIGHT ##
-Copyright (C) 2013, 2016 Patrick-Gilles Maillot
+All software, pictures & documentation Copyright (C) 2013-2016 Patrick-Gilles Maillot
 
 All software in this repository is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
