@@ -332,3 +332,13 @@ exit
 will set Channel 1 to: muted, fader to position 0db, pan to center, mono OFF and mono 
 level to -infinity, channel 1 scribble screen will light in green, display "MyVox", with 
 icon 1 selected (i.e. blank), and channel 1 will have "IN 1" as source.
+
+### X32SetPreset ###
+
+![X32setpresetw.jpg](https://bitbucket.org/repo/K9Ae7b/images/1259302833-X32setpresetw.jpg)
+
+X32SetPreset: Manage your Presets (Channel, Effect, Routing) on your PC and set them to X32 from there! No more limits and a lot of flexibility to change settings and values for your preset files.
+Connect to X32, select the channel or effect slot the preset will apply to if needed.
+
+Browse your PC for Preset files (Channel, Effect or Routing) and chose a file to send to X32. Channel Presets features are displayed as a preview with icons showing if a preset section is present, and active. Before sending to X32, safes can be applied to prevent some preset sections to interact with the X32. Master levels can also automatically be lowered to avoid unwanted pops or larsen arising when a new preset is loading.
+Hit the "Set Preset" button and you're done. A status will display when your preset file is complete.
