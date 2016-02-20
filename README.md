@@ -342,3 +342,33 @@ Connect to X32, select the channel or effect slot the preset will apply to if ne
 
 Browse your PC for Preset files (Channel, Effect or Routing) and chose a file to send to X32. Channel Presets features are displayed as a preview with icons showing if a preset section is present, and active. Before sending to X32, safes can be applied to prevent some preset sections to interact with the X32. Master levels can also automatically be lowered to avoid unwanted pops or larsen arising when a new preset is loading.
 Hit the "Set Preset" button and you're done. A status will display when your preset file is complete.
+
+### X32USB ###
+
+![X32USB.jpg](https://bitbucket.org/repo/K9Ae7b/images/2613082418-X32USB.jpg)
+
+A simple command-line tool to list and play/execute/load the contents of the USB drive.
+Files can be directories, wave files,snippets, scenes, presets, etc.
+
+```
+#!bash
+
+usage: X32USB [-i X32 console ipv4 address]
+              [-d 0/1, [0], debug option]
+              [-v 0/1  [1], verbose option]
+              [-t <delay>, delay in ms between commands]
+                   default IP: 192.168.0.64
+
+Launch shell to accept the following commands applied to the X32 USB drive:
+  ls:                 List directory contents (with id and type)
+  cd <id> | <name>    Change directory (prompt is updated)
+  load <id> | <name>  Load or Run file (scene, snippet, etc.)
+  run <id> | <name>   Load or Run file (scene, snippet, etc.)
+  umount              Unmount the USB drive (no longer accessible)
+
+  play <id> | <name>  Play WAV file
+  stop                Stops a currently playing wav
+  pause               Pauses a wav file currently playing
+  resume              Resumes playing the current wav file
+  exit | quit         Exists program
+```
