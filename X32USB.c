@@ -296,6 +296,7 @@ type fParse(char *name) {
 				return ROUT;
 			if (strcasecmp(name + i, "chn") == 0)
 				return CHAN;
+			return NIL;
 		}
 	}
 	return NIL;
