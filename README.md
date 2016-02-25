@@ -46,8 +46,6 @@ This command line Windows tool enables sending and receiving OSC data in many wa
 
 
 ```
-#!bash
-
 usage: X32_command [-i X32 console ipv4 address]
                    [-d 0/1, [0], debug option]
                    [-v 0/1  [1], verbose option]
@@ -93,8 +91,6 @@ Examples:
 A small utility to set tap tempo on X32. It checks for DLY type effect to be on FX slots 1 to 4. If a DLY effect is found, entering <cr> will set tempo; i.e. the actual tempo will be set for any two consecutive <cr> hits on the keyboard. On X32, tempo tap can be set between 0 and 3000ms.
 
 ```
-#!bash
-
 usage: X32Tap [-i X32 console ipv4 address]
  then:
  '1'...'4' <cr> to select FX slot with DLY,
@@ -108,8 +104,6 @@ usage: X32Tap [-i X32 console ipv4 address]
 X32 is... an X32 emulator. This tool parses and manages X32 commands (as a real X32 would), keeps up to 4 xremote clients updated - Of course no sound, and even if all 32 Channels, 16 Sends, 8 FXreturns, 8 Aux, 6 Matrix, 8 DCA, Main and all FX parameters are fully implemented along with multi-client xremote update and many more, not all X32 commands are supported (and that's not the goal), but the emulator is handy for developing X32 applications.
 
 ```
-#!bash
-
 usage: X32 [-d 0/1, debug option] -default: 0
            [-v 0/1, verbose option] -default: 1
        The options below apply in conjunction with -v 1
@@ -126,8 +120,6 @@ usage: X32 [-d 0/1, debug option] -default: 0
 In the above example of use, the following commands were sent from an X32_Command window (the -> lines show dialog data going to and from the X32 emulator):
 
 ```
-#!bash
-
 /ch/01/mix/fader
 ->X,   20 B: /ch/01/mix/fader~~~~
 X->,   28 B: /ch/01/mix/fader~~~~,f~~[1.0000]
@@ -155,8 +147,6 @@ It will be slower than UDP, and may suffer from data volume back from the X32, b
 
 
 ```
-#!bash
-
 usage: X32TCP [-b [10] server max connections backlog]
               [-i X32 console ipv4 address]
               [-d 0/1, [0], debug option]
@@ -225,8 +215,6 @@ An X32 GEQ, GEQ2, TEQ, TEQ2 copy utility. This is used to copy settings of side 
 In the example in the window above, the X32 console has a GEQ2 at FX slot 1 and a TEQ2 at FX slot 2; It will receive (->X) and send (X->) the following:
 
 ```
-#!text
-
 ->X,   20 B: /node~~~,s~~fx/1~~~~              #inquire FX type at slot 1
 X->,   24 B: node~~~~,s~~/fx/1 GEQ2~~          #X32 answer
 ->X,   20 B: /node~~~,s~~fx/2~~~~              #inquire FX type at slot 2
@@ -245,8 +233,6 @@ X->,   24 B: /fx/1/par/63~~~~,f~~[0.0000]
 ```
 
 ```
-#!bash
-
 usage: X32GEQ2cpy [-i X32 console ipv4 address] default 192.168.0.64
                   [-f FX slot#] default: 1
                   [-g FX slot#] default: 1
@@ -267,8 +253,6 @@ The elements to get from the X32 are described/coded as they are in a typical .s
 example:
 
 ```
-#!bash
-
 X32GetScene -i 192.168.1.32 -s name1 -n note1 <Default.scn >myscene.scn
 ```
 Will take all lines from Default.scn as requests to the X32, and generate a scene file with the current X32 values respective of the requests into a file called myscene.scn, with name and note values name1 and note1 respectively.
@@ -276,14 +260,10 @@ Will take all lines from Default.scn as requests to the X32, and generate a scen
 When not providing a file as input, one has to type in requests one line at a time. Typing "exit" will terminate the program. For example (without -s or -n, the utility will ask for a name an notes):
 
 ```
-#!bash
-
 X32GetScene -i 192.168.1.32 -s name1 -n note1 >myscene.scn  
 ```
 typing in:
 ```
-#!bash
-
 /ch/01/config
 /ch/01/delay
 exit
@@ -292,8 +272,6 @@ creates a file myscene.scn contaning (actual values will depend on the state of 
 
 
 ```
-#!txt
-
 #2.1# "name1" "note1" %000000000 1 X32GetScene V1.3 ©2014 Patrick-Gilles Maillot
 
 /ch/01/config "" 1 YE 1
@@ -308,8 +286,6 @@ The elements to send to the X32 are described/coded as in typical .scn files.
 example:
 
 ```
-#!bash
-
 X32SetScene -i 192.168.1.32 < myscene.scn
 ```
 Will take all lines from myscene.scn, interpret them and set the X32 state accordingly.
@@ -317,14 +293,10 @@ Will take all lines from myscene.scn, interpret them and set the X32 state accor
 When not providing a file as input, one has to type in requests one line at a time. Typing "exit" will terminate the program. For example:
 
 ```
-#!bash
-
 X32SetScene -i 192.168.1.32
 ```
 with typing in:
 ```
-#!bash
-
 /ch/01/mix OFF   0 ON +0 OFF -oo
 /ch/01/config "MyVox" 1 GN 1
 exit
@@ -351,8 +323,6 @@ A simple command-line tool to list and play/execute/load the contents of the USB
 Files can be directories, wave files,snippets, scenes, presets, etc.
 
 ```
-#!bash
-
 usage: X32USB [-i X32 console ipv4 address]
               [-d 0/1, [0], debug option]
               [-v 0/1  [1], verbose option]
