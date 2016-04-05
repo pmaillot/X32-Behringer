@@ -342,3 +342,13 @@ Launch shell to accept the following commands applied to the X32 USB drive:
   resume              Resumes playing the current wav file
   exit | quit         Exists program
 ```
+
+### X32CustomLayer ###
+
+![X32USB.jpg](https://bitbucket.org/repo/K9Ae7b/images/4097545432-X32CustomLayer.jpg)
+
+X32CustomLayer: A simple utility to create and manage custom channel layers easily. Starting from a standard or current X32 setup (that is Input channels 01 to 32 and Aux inputs 01 to 08), X32CustomLayer enables you to reorganize the way “channels” are set (or layered).
+
+Basically this enables you to virtually move a “channel” to a different position, keeping the actual input assigned to that “channel”; For example, say you have your singer microphone set at “channel” 01 and using XLR input 01. For ease of use, you need or would prefer to have this microphone handled by fader 25, and no time to unplug everything, and change all “channel” 25 settings to values that were used for “channel” 01. You enter 01 in the box under “channel” 25, and viola! the program does the rest in copying config, eq, dyn,…, sends sections and in reassigning the input source, in a snap!
+
+X32CustomLayer offers a full set of functions you can use to rearrange your X32 channel strips layout. Please check out the documentation for a complete list of functions.
