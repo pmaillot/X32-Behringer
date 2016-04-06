@@ -345,7 +345,7 @@ Launch shell to accept the following commands applied to the X32 USB drive:
 
 ### X32CustomLayer ###
 
-![X32USB.jpg](https://bitbucket.org/repo/K9Ae7b/images/4097545432-X32CustomLayer.jpg)
+![X32USB.jpg](https://bitbucket.org/repo/K9Ae7b/images/3241437789-X32CustomLayer.jpg)
 
 X32CustomLayer: A simple utility to create and manage custom channel layers easily. Starting from a standard or current X32 setup (that is Input channels 01 to 32 and Aux inputs 01 to 08), X32CustomLayer enables you to reorganize the way “channels” are set (or layered).
 
