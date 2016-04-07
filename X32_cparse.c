@@ -11,6 +11,7 @@
 
 #define COMMA ','
 #define SPACE ' '
+#define QUOTE '"'
 
 
 int
@@ -76,14 +77,26 @@ union littlebig {
 					// for ex. in file names. In that case one may have to ask for "\" as a
 					// end of string char to be replaced by \0
 					k = start_values;
-					while(k < input_len) {
-						if (input_line[k] == SPACE) {
-							input_line[k] = 0;
-							break;
-						}
+					if (input_line[k] == QUOTE) {
 						k += 1;
+						while(k < input_len) {
+							if (input_line[k] == QUOTE) {
+								input_line[k] = 0;
+								break;
+							}
+							k += 1;
+						}
+						i = Xsprint(buf, i, 's', input_line+start_values+1);
+					} else {
+						while(k < input_len) {
+							if (input_line[k] == SPACE) {
+								input_line[k] = 0;
+								break;
+							}
+							k += 1;
+						}
+						i = Xsprint(buf, i, 's', input_line+start_values);
 					}
-					i = Xsprint(buf, i, 's', input_line+start_values);
 					start_values = k + 1;
 					break;
 				case 'i':
