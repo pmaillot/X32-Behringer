@@ -80,8 +80,11 @@ All other commands are parsed and sent to X32.
       data: a list of int, float or string types separated by a space char...
 
 Examples:
-/ch/01/mix/fader ,f 0.5    - set mixing fader of channel 01 to mid-position
-/node ,s fx/01/par         - retrieve the 64 parameters of effect at FX slot 1
+/ch/01/mix/fader ,f 0.5             - set mixing fader of channel 01 to mid-position
+/ch/01/config/name ,s "My Channel"  - change channel 01 name
+/ch/01/config/name ,s NoSpaceName   - change channel 01 name
+/ch/01/config/name ,s ""            - reset channel 01 name
+/node ,s fx/01/par                  - retrieve the 64 parameters of effect at FX slot 1
 ```
 
 
