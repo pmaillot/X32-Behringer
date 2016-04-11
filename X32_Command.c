@@ -10,6 +10,7 @@
 // Changelog:
 // v 1.27: remove incorrect use of macro FD_ISSET(Xfd, &ufds) in receiving IO.
 // v 1.28: remove incorrect use of FD_ISSET() in buffer check.
+// v 1.29: Change to X32_cparse.c to accept strings with space chars.
 //
 
 #include <stdlib.h>
@@ -255,7 +256,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with X32 server
-	printf(" X32_Command - v1.28 - (c)2014-15 Patrick-Gilles Maillot\n\n");
+	printf(" X32_Command - v1.29 - (c)2014-16 Patrick-Gilles Maillot\n\n");
 //
 	keep_on = 1;
 	xremote_on = X32verbose;	// Momentarily save X32verbose
