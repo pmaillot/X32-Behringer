@@ -1,7 +1,7 @@
 /*
  * X32PrefStat.h
  *
- *  Created on: 4 févr. 2015
+ *  Created on: 4 fÃ©vr. 2015
  *      Author: patrick
  */
 
@@ -197,8 +197,8 @@ X32command Xstat[] = {
 		{"/-stat/chfaderbank",		{I32}, F_XET, {0}},
 		{"/-stat/grpfaderbank",		{I32}, F_XET, {0}},
 		{"/-stat/sendsonfader",		{I32}, F_XET, {0}},
-		{"/-stat/u1",				{I32}, F_XET, {0}}, // unknown
-		{"/-stat/u2",				{I32}, F_XET, {0}}, // unknown
+		{"/-stat/bussendbank",		{I32}, F_XET, {0}},
+		{"/-stat/eqband",			{I32}, F_XET, {0}},
 		{"/-stat/solo",				{I32}, F_XET, {0}},
 		{"/-stat/keysolo",			{I32}, F_XET, {0}},
 		{"/-stat/userbank",			{I32}, F_XET, {0}},
@@ -206,9 +206,9 @@ X32command Xstat[] = {
 		{"/-stat/lock",				{I32}, F_XET, {0}},
 		{"/-stat/usbmounted",		{I32}, F_XET, {0}},
 		{"/-stat/remote",			{I32}, F_XET, {0}},
-		{"/-stat/u3",				{I32}, F_XET, {0}}, // unknown
+		{"/-stat/rtamodeeq",		{I32}, F_XET, {0}},
 		{"/-stat/rtamodegeq",		{I32}, F_XET, {0}},
-		{"/-stat/u4",				{I32}, F_XET, {0}}, // unknown
+		{"/-stat/rtaeqpre",			{I32}, F_XET, {0}},
 		{"/-stat/rtageqpost",		{I32}, F_XET, {0}},
 		{"/-stat/rtasource",		{I32}, F_XET, {0}},
 		{"/-stat/xcardtype",		{I32}, F_XET, {0}},
