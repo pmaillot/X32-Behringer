@@ -438,7 +438,7 @@ main(int argc, char **argv)
 // Wait for messages from client
     i = 0;
     r_len = 0;
-    printf("X32 - v0.30 - An X32 Emulator - (c)2014-2016 Patrick-Gilles Maillot\n");
+    printf("X32 - v0.31 - An X32 Emulator - (c)2014-2016 Patrick-Gilles Maillot\n");
     getmyIP(); // Try to get our IP...
     if (Xverbose) printf("Listening to port %s, X32 IP = %s\n", Xport_str, r_buf);
     while(keep_on) {            // Main, receiving loop (active as long as keep_on is 1)
