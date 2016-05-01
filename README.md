@@ -355,3 +355,41 @@ X32CustomLayer: A simple utility to create and manage custom channel layers easi
 Basically this enables you to virtually move a “channel” to a different position, keeping the actual input assigned to that “channel”; For example, say you have your singer microphone set at “channel” 01 and using XLR input 01. For ease of use, you need or would prefer to have this microphone handled by fader 25, and no time to unplug everything, and change all “channel” 25 settings to values that were used for “channel” 01. You enter 01 in the box under “channel” 25, and viola! the program does the rest in copying config, eq, dyn,…, sends sections and in reassigning the input source, in a snap!
 
 X32CustomLayer offers a full set of functions you can use to rearrange your X32 channel strips layout. Please check out the documentation for a complete list of functions.
+
+
+
+### X32Replay ###
+
+X32Replay: Record and play back a show
+
+![X32Replay.jpg](https://bitbucket.org/repo/K9Ae7b/images/1690589389-X32Replay.jpg)
+
+Start the utility... When record is on, all commands and modifications made on the X32 are time stamped (with a precision close to 10µs) and recorded to a file. if needed, recording can be paused, and started again.
+
+When recoding ends, the file is closed.
+
+The file can then be played back, time stamps associated with each recorded command ensure the commands will be played back at correct times, relative to the start of the play command.
+
+The utility runs in a terminal window (Windows cmd); Example,  assuming your X32 is at IP 192.168.1.32:
+    X32Replay -i 192.168.1.32
+
+Additional option is-v 0/1; Attention, this option will display a lot of additional data and this can impact the responsiveness of the tool.
+
+
+```
+Usage: X32Replay [-i X32 console ipv4 address] -default: 192.168.0.64
+                 [-v 0/1, verbose option] -default: 0
+                 [-f file name] -default: X32ReplayFile.txt
+
+  known commands:
+    stop:         stops recording or playing and closes file
+    record:       reports recording state
+    record off:   stops recording
+    record on:    starts or resumes recording
+    record pause: pauses recording and keeps file opened
+    pause:        pauses recording and keeps file opened
+    play:         reports playing state
+    play off:     stops playing
+    play on:      starts playing
+    # typed line: during recording, records the typed line as a user tag
+```
