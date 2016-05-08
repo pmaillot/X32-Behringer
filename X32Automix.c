@@ -91,6 +91,7 @@ HWND		hwndstart, hwndstop, hwnduseb, hwndbnum, hwndNOM;
 
 HFONT		hfont, htmp;
 HDC			hdc, hdcMem;
+RECT		Rect;
 PAINTSTRUCT ps;
 HBITMAP		hBmp;
 BITMAP		bmp;
@@ -270,7 +271,7 @@ char str1[32];
 		ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
 		TextOut(hdc, 150, 25, str1, wsprintf(str1, "Enter X32 IP below:"));
-		TextOut(hdc, 325, 18, str1, wsprintf(str1, "ver. 0.12"));
+		TextOut(hdc, 325, 18, str1, wsprintf(str1, "ver. 0.20"));
 		DeleteObject(htmp);
 		DeleteObject(hfont);
 //
@@ -433,11 +434,13 @@ char str1[32];
 	case WM_DESTROY:
 		// read panel data
 		GetPanelData();
+		// Read window and panel data
+		GetWindowRect(hwnd, &Rect);
 		// update .ini file
 		if((res_file = fopen(Fullfilename, "wb")) > 0) {
-			fprintf(res_file, "%d %d %d %d %d %d %d %d %f\n", wWidth, wHeight, X32o_delay,
-														X32i_delay, chstart, chstop,
-														usebus, NOM, X32sensitivity);
+			fprintf(res_file, "%d %d %d %d %d %d %d %d %f\n",
+					(int)(Rect.right - Rect.left), (int)(Rect.bottom - Rect.top), X32o_delay,
+					X32i_delay, chstart, chstop, usebus, NOM, X32sensitivity);
 			fprintf(res_file, "%s\n", X32_busnum);
 			fprintf(res_file, "%s\n", Xip_str);
 			fclose(res_file);
