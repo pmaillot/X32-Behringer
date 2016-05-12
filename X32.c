@@ -9,6 +9,7 @@
 //                   /save for 'scene' is a ,siss type function, not ,sissi
 //                   and "channel" to "libchan" in /copy
 //                   added a status being sent after /copy
+//               0.40: Accepts OSC empty Tag Strings to better conform to OSC standard
 //
 #ifdef __WIN32__
 #include <winsock2.h>
@@ -438,7 +439,7 @@ main(int argc, char **argv)
 // Wait for messages from client
     i = 0;
     r_len = 0;
-    printf("X32 - v0.31 - An X32 Emulator - (c)2014-2016 Patrick-Gilles Maillot\n");
+    printf("X32 - v0.40 - An X32 Emulator - (c)2014-2016 Patrick-Gilles Maillot\n");
     getmyIP(); // Try to get our IP...
     if (Xverbose) printf("Listening to port %s, X32 IP = %s\n", Xport_str, r_buf);
     while(keep_on) {            // Main, receiving loop (active as long as keep_on is 1)
@@ -1547,7 +1548,7 @@ char*    s_fmt;
 // (so says Behringer).
     f_len = f_num = c_type = 0;
     c_len = strlen(command[i].command);
-    if (r_len - 4 > c_len) {
+    if ((r_len - 4 > c_len) && (r_buf[r_len - 3] != 0)){
         // First of a list command gives the first of next data
         if (command[i].flags & F_FND) ++i;
         // command has parameter(s) (set)
@@ -1665,10 +1666,10 @@ int function_shutdown() {
 int function_info() {
     s_len = Xsprint(s_buf, 0, 's', "/info");
     s_len = Xsprint(s_buf, s_len, 's', ",ssss");
-    s_len = Xsprint(s_buf, s_len, 's', "V2.05");
+    s_len = Xsprint(s_buf, s_len, 's', "V2.06");
     s_len = Xsprint(s_buf, s_len, 's', "osc-server");
     s_len = Xsprint(s_buf, s_len, 's', "X32");
-    s_len = Xsprint(s_buf, s_len, 's', "2.10");
+    s_len = Xsprint(s_buf, s_len, 's', "2.16");
     return S_SND;        // send reply only to requesting client
 }
 
