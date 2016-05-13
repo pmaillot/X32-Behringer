@@ -9,7 +9,7 @@
 //                   /save for 'scene' is a ,siss type function, not ,sissi
 //                   and "channel" to "libchan" in /copy
 //                   added a status being sent after /copy
-//               0.40: Accepts OSC empty Tag Strings to better conform to OSC standard
+//               0.40 & 0.41: Accepts OSC empty Tag Strings to better conform to OSC standard
 //
 #ifdef __WIN32__
 #include <winsock2.h>
@@ -439,7 +439,7 @@ main(int argc, char **argv)
 // Wait for messages from client
     i = 0;
     r_len = 0;
-    printf("X32 - v0.40 - An X32 Emulator - (c)2014-2016 Patrick-Gilles Maillot\n");
+    printf("X32 - v0.41 - An X32 Emulator - (c)2014-2016 Patrick-Gilles Maillot\n");
     getmyIP(); // Try to get our IP...
     if (Xverbose) printf("Listening to port %s, X32 IP = %s\n", Xport_str, r_buf);
     while(keep_on) {            // Main, receiving loop (active as long as keep_on is 1)
@@ -1548,15 +1548,16 @@ char*    s_fmt;
 // (so says Behringer).
     f_len = f_num = c_type = 0;
     c_len = strlen(command[i].command);
-    if ((r_len - 4 > c_len) && (r_buf[r_len - 3] != 0)){
+    f_len = (((c_len + 4) & ~3) + 1);    // pointing at first format char after ',' if there's a ','
+    if ((r_len - 4 > c_len) && (r_buf[f_len] != 0)){ // there's a ',' and at least one type tag
         // First of a list command gives the first of next data
         if (command[i].flags & F_FND) ++i;
         // command has parameter(s) (set)
         if (command[i].flags & F_SET) {
-            f_len = c_len = (((c_len + 4) & ~3) + 1);    // now pointing at first format char after ','
+            c_len = f_len;    // now pointing at first format char after ','
             f_num = 0;
-            while (r_buf[c_len++]) ++f_num;    // count number of format characters
-            c_len = (c_len + 4) & ~3;          // now pointing at first value
+            while (r_buf[c_len++]) ++f_num;    // count number of type tag characters
+            c_len = (c_len + 4) & ~3;          // now pointing at first argument value
             while (f_num--) {
                 switch (r_buf[f_len++]) {
                 case 'i':
