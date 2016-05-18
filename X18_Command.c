@@ -105,7 +105,7 @@ do {																			\
 #define CHECKX32()										\
 	do {												\
 		RPOLL 											\
-		if ((p_status > 0) {	\
+		if (p_status > 0) {								\
 			RECV										\
 		}												\
 	} while (p_status > 0);
@@ -262,7 +262,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 	while (keep_on) {
 		SEND  				// command /info sent;
 		RPOLL 				// read data if available
-		if ((p_status < 0) {
+		if (p_status < 0) {
 			printf("Polling for data failed\n");
 			return 1;		// exit on receive error
 		} else if (p_status > 0) {
