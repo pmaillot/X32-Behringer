@@ -11,6 +11,7 @@
 // v 1.27: remove incorrect use of macro FD_ISSET(Xfd, &ufds) in receiving IO.
 // v 1.28: remove incorrect use of FD_ISSET() in buffer check.
 // v 1.29: Change to X32_cparse.c to accept strings with space chars.
+// v 1.30: Change line_size to 512 chars
 //
 
 #include <stdlib.h>
@@ -59,7 +60,7 @@ extern int Xcparse(char *buf, char *line);
 #endif
 
 //
-#define LINEMAX				128		// input line buffer size
+#define LINEMAX				512		// input line buffer size
 #define BSIZE				512		// send/receive buffer sizes
 #define XREMOTE_TIMEOUT		9		// timeout set to 9 seconds
 //
