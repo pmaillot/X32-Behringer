@@ -55,7 +55,7 @@ extern int Xcparse(char *buf, char *line);
 #endif
 
 //
-#define LINEMAX				128		// input line buffer size
+#define LINEMAX				512		// input line buffer size
 #define BSIZE				512		// send/receive buffer sizes
 #define XREMOTE_TIMEOUT		9		// timeout set to 9 seconds
 //
