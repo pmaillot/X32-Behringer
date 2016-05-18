@@ -20,7 +20,7 @@ int
 Xcparse(char* buf, char* input) {
 
 int     start_comma, end_comma, start_values, i, k, input_len;
-char    input_line[128], ccase, ccend;
+char    input_line[512], ccase, ccend;
 
 union littlebig {
     char    c1[4];
