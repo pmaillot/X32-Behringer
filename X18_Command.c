@@ -7,6 +7,12 @@
 //
 //      Author: Patrick-Gilles Maillot
 //
+// Changelog:
+// v 1.27: remove incorrect use of macro FD_ISSET(Xfd, &ufds) in receiving IO.
+// v 1.28: remove incorrect use of FD_ISSET() in buffer check.
+// v 1.29: Change to X32_cparse.c to accept strings with space chars.
+// v 1.30: Change line_size to 512 chars
+// v 1.31: added 's' flag to read/send scene/snippets/tidbits/X32node lines from file
 //
 
 #include <stdlib.h>
@@ -102,12 +108,12 @@ do {																			\
 	}																			\
 } while (0);
 //
-#define CHECKX32()										\
-	do {												\
-		RPOLL 											\
-		if (p_status > 0) {								\
-			RECV										\
-		}												\
+#define CHECKX32()				\
+	do {						\
+		RPOLL 					\
+		if (p_status > 0) {		\
+			RECV				\
+		}						\
 	} while (p_status > 0);
 //
 //
@@ -161,7 +167,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 	filein = 0;
 	do_keyboard = 1;
 	s_delay = 10;
-	while ((input_ch = getopt(argc, argv, "i:d:k:f:t:v:h")) != (char)0xff) {
+	while ((input_ch = getopt(argc, argv, "i:d:k:f:s:t:v:h")) != (char)0xff) {
 		switch (input_ch) {
 		case 'i':
 			strcpy(Xip_str, optarg );
@@ -176,6 +182,10 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 		case 'k':
 			sscanf(optarg, "%d", &do_keyboard);
 			break;
+		case 's':
+			filein = 2;
+			sscanf(optarg, "%s", input_line);
+			break;
 		case 't':
 			sscanf(optarg, "%d", &s_delay);
 			break;
@@ -184,15 +194,18 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			break;
 		default:
 		case 'h':
-			printf("usage: XR18_command [-i X18 console ipv4 address]\n");
+			printf("usage: XR18_command [-i X32 console ipv4 address]\n");
 			printf("                    [-d 0/1, [0], debug option]\n");
 			printf("                    [-v 0/1  [1], verbose option]\n");
 			printf("                    [-k 0/1  [1], keyboard mode on]\n");
 			printf("                    [-t int  [10], delay between batch commands in ms]\n");
+			printf("                    [-s file, reads X32node formatted data lines from 'file']\n");
 			printf("                    [-f file, sets batch mode on, getting input data from 'file']\n");
 			printf("                     default IP is 192.168.0.64\n\n");
+			printf(" If option -s file is used, the program reads data from the provided file \n");
+			printf(" until EOF has been reached, and exits after that.\n\n");
 			printf(" If option -f file is used, the program runs in batch mode, taking data from\n");
-			printf(" the provided file until EOF has been reached, or 'exit' or 'kill' entered.\n");
+			printf(" the provided file until EOF has been reached, or 'exit' or 'kill' entered.\n\n");
 			printf(" If not killed or no -f option, the program runs in standard mode, taking data\n");
 			printf(" from the keyboard or <stdin> on linux systems.\n");
 			printf(" While executing, the following commands can be used:\n");
@@ -208,7 +221,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			printf(" All other commands are parsed and sent to XR18.\n");
 			printf(" Typical XR18 command structure:\n");
 			printf("   <command> [<format> [<data> [<data> [...]]]], where for example:\n");
-			printf("      command: /xinfo, /status, /ch/00/mix/fader, ...\n");
+			printf("      command: /info, /status, /ch/00/mix/fader, ...\n");
 			printf("      format: ',i' ',f' ',s' or a combination: ',siss' ',ffiss' ...\n");
 			printf("      data: a list of int, float or string types separated by a space char...\n\n");
 			return(0);
@@ -252,12 +265,11 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with XR18 server
-	printf(" XR18_Command - v1.26 - (c)2014-15 Patrick-Gilles Maillot\n\n");
+	printf(" XR18_Command - v1.31 - (c)2014-15 Patrick-Gilles Maillot\n\nConnecting to XR18.");
 //
 	keep_on = 1;
-	xremote_on = X32verbose;	// Momentarily save XR18verbose
+	xremote_on = X32verbose;	// Momentarily save X32verbose
 	X32verbose = 0;
-	printf("Connecting to XR18.");
 	s_len = Xsprint(s_buf, 0, 's', "/xinfo");
 	while (keep_on) {
 		SEND  				// command /info sent;
@@ -276,7 +288,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // Set 1ms timeout to get faster response from XR18 (when testing for /xremote data).
 	timeout.tv_usec = 1000; //Set timeout for non blocking recvfrom(): 1ms
-	X32verbose = xremote_on;	// Restore XR18verbose
+	X32verbose = xremote_on;	// Restore X32verbose
 	xremote_on = 0;
 	l_index = 0;
 	before = 0;
@@ -285,28 +297,46 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			printf ("Cannot read file: %s\n", input_line);
 			exit(EXIT_FAILURE);
 		}
-		while (keep_on) {
-			XREMOTE()
-			if (fgets(input_line, 128, fdk)) {
-				input_line[strlen(input_line) - 1] = 0;
-				// Check for program batch mode commands
-				if (input_line[0] == '#') printf("---comment: %s\n", input_line);
-				TESTINPUT()			// Test for input data checks
-				// Additional batch-mode input data checks
-				else if (strcmp(input_line, "kill") == 0) {keep_on = 0; do_keyboard = 0;}
-				else if (strncmp(input_line, "time", 4) == 0) {sscanf(input_line+5, "%d", &s_delay); printf(":: delay is: %d\n", s_delay);}
-				else if (strlen(input_line) > 1) { // XR18 command line
-					s_len = Xcparse(s_buf, input_line);
-					SEND			// send batch command
+		if (filein == 1) {
+			while (keep_on) {
+				XREMOTE()
+				if (fgets(input_line, LINEMAX, fdk)) {
+					input_line[strlen(input_line) - 1] = 0;
+					// Check for program batch mode commands
+					if (input_line[0] == '#') printf("---comment: %s\n", input_line);
+					TESTINPUT()			// Test for input data checks
+					// Additional batch-mode input data checks
+					else if (strcmp(input_line, "kill") == 0) {keep_on = 0; do_keyboard = 0;}
+					else if (strncmp(input_line, "time", 4) == 0) {sscanf(input_line+5, "%d", &s_delay); printf(":: delay is: %d\n", s_delay);}
+					else if (strlen(input_line) > 1) { // XR18 command line
+						s_len = Xcparse(s_buf, input_line);
+						SEND			// send batch command
+					}
+					CHECKX32()			// Check if XR18 sent something back
+				} else {
+					keep_on = 0;
 				}
-				CHECKX32()			// Check if XR18 sent something back
-			} else {
-				keep_on = 0;
 			}
+			printf ("---end of batch mode file\n");
+			fflush (stdout);
+			if (fdk) fclose(fdk);
+		} else {	// filein = 2 ('s' option)
+			do_keyboard = 0;	// force exit after end-of-file
+			while (fgets(input_line, LINEMAX, fdk) != NULL) {
+				// skip comment lines
+				if (input_line[0] != '#') {
+					input_line[strlen(input_line) - 1] = 0;	// avoid trailing '\n'
+					s_len = Xsprint(s_buf, 0, 's', "/");
+					s_len = Xsprint(s_buf, s_len, 's', ",s");
+					s_len = Xsprint(s_buf, s_len, 's', input_line);
+					SEND			// send data to XR18
+					CHECKX32()		// XR18 will echo back the line
+				}
+			}
+            printf ("---end of file\n");
+            fflush (stdout);
+            if (fdk) fclose(fdk);
 		}
-		printf ("---end of batch file\n");
-		fflush (stdout);
-		if (fdk) fclose(fdk);
 	}
 // Done with the file (if there was one)
 // revert to keyboard/interactive mode if enabled
