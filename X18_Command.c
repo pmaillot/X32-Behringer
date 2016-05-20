@@ -13,6 +13,7 @@
 // v 1.29: Change to X32_cparse.c to accept strings with space chars.
 // v 1.30: Change line_size to 512 chars
 // v 1.31: added 's' flag to read/send scene/snippets/tidbits/X32node lines from file
+// v 1.32: longer timeout when read/send scene/snippets/tidbits/X32node lines from file
 //
 
 #include <stdlib.h>
@@ -265,7 +266,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with XR18 server
-	printf(" XR18_Command - v1.31 - (c)2014-15 Patrick-Gilles Maillot\n\nConnecting to XR18.");
+	printf(" XR18_Command - v1.32 - (c)2014-15 Patrick-Gilles Maillot\n\nConnecting to XR18.");
 //
 	keep_on = 1;
 	xremote_on = X32verbose;	// Momentarily save X32verbose
@@ -287,7 +288,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 	printf(" Done!\n");
 //
 // Set 1ms timeout to get faster response from XR18 (when testing for /xremote data).
-	timeout.tv_usec = 1000; //Set timeout for non blocking recvfrom(): 1ms
+	timeout.tv_usec = 1000; 	//Set timeout for non blocking recvfrom(): 1ms
 	X32verbose = xremote_on;	// Restore X32verbose
 	xremote_on = 0;
 	l_index = 0;
@@ -321,6 +322,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			fflush (stdout);
 			if (fdk) fclose(fdk);
 		} else {	// filein = 2 ('s' option)
+			timeout.tv_usec = 10000; // Set timeout to 10ms
 			do_keyboard = 0;	// force exit after end-of-file
 			while (fgets(input_line, LINEMAX, fdk) != NULL) {
 				// skip comment lines
