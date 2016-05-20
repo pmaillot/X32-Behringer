@@ -13,6 +13,7 @@
 // v 1.29: Change to X32_cparse.c to accept strings with space chars.
 // v 1.30: Change line_size to 512 chars
 // v 1.31: added 's' flag to read/send scene/snippets/tidbits/X32node lines from file
+// v 1.32: longer timeout when read/send scene/snippets/tidbits/X32node lines from file
 //
 
 #include <stdlib.h>
@@ -265,7 +266,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with X32 server
-	printf(" X32_Command - v1.31 - (c)2014-15 Patrick-Gilles Maillot\n\nConnecting to X32.");
+	printf(" X32_Command - v1.32 - (c)2014-15 Patrick-Gilles Maillot\n\nConnecting to X32.");
 //
 	keep_on = 1;
 	xremote_on = X32verbose;	// Momentarily save X32verbose
@@ -321,6 +322,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			fflush (stdout);
 			if (fdk) fclose(fdk);
 		} else {	// filein = 2 ('s' option)
+			timeout.tv_usec = 10000; // Set timeout to 10ms
 			do_keyboard = 0;	// force exit after end-of-file
 			while (fgets(input_line, LINEMAX, fdk) != NULL) {
 				// skip comment lines
