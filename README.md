@@ -50,16 +50,18 @@ usage: X32_command [-i X32 console ipv4 address]
                    [-d 0/1, [0], debug option]
                    [-v 0/1  [1], verbose option]
                    [-k 0/1  [1], keyboard mode on]
-                   [-t int  [10], sets delay between batch commands in ms]
+                   [-t int  [10], delay between batch commands in ms]
+                   [-s file, reads X32node (scene, snippet, presets) formatted data lines from 'file']
                    [-f file, sets batch mode on, getting input data from 'file']
                      default IP is 192.168.0.64
 
-If option -f is used, the program runs in batch mode, taking data from the provided file until 
-EOF has been reached, or 'exit' or 'kill' entered. If not killed or no -f option, the program 
-runs in standard mode, taking data from the keyboard or <stdin> on linux systems.
+ If option -s file is used, the program reads data from the provided file
+ until EOF has been reached, and exits after that.
 
-Note: make sure the batch file is respecting unix standards (i.e. use notepad++ to create the 
-file under Windows so EOL are made of only "\n" and not "\r\n").
+ If option -f file is used, the program runs in batch mode, taking data from
+ the provided file until EOF has been reached, or 'exit' or 'kill' entered.
+
+Note: make sure the batch file is respecting unix standards (i.e. use notepad++ to create the file under Windows so EOL are made of only "\n" and not "\r\n").
 
  While executing, the following commands can be used (without the quotes):
    '#line of text.....': will print out the input line as a comment line
@@ -74,18 +76,28 @@ file under Windows so EOL are made of only "\n" and not "\r\n").
 
 All other commands are parsed and sent to X32.
  Typical X32 OSC command structure:
-   <command> [<format> [<data> [<data> [...]]]], where for example:
-      command: /info, /status, /ch/04/mix/fader, ...
-      format: ',i' ',f' ',s' or a combination: ',siss' ',ffiss' ...
+   <command> <format> [<data> [<data> [...]]], where for example:
+      command: /info, /status, /ch/00/mix/fader, ...
+      format: ',' ',i' ',f' ',s' or a combination: ',siss' ',ffiss' ...
       data: a list of int, float or string types separated by a space char...
 
+Note: Per OSC spec and in the format above OSC Type Tag String is "mandatory", therefore one should always provide at least a ',' to compete the OSC Address Pattern. This is nevertheless not necessary for X32 as the system accepts "older" notations where empty OSC Type Tag Strings are not present (see examples below)
+
+
 Examples:
-/ch/01/mix/fader ,f 0.5             - set mixing fader of channel 01 to mid-position
-/ch/01/config/name ,s "My Channel"  - change channel 01 name
-/ch/01/config/name ,s NoSpaceName   - change channel 01 name
-/ch/01/config/name ,s ""            - reset channel 01 name
-/node ,s fx/01/par                  - retrieve the 64 parameters of effect at FX slot 1
-```
+/info        - "old" notation sending an info request to X32
+/info ,      - "correct" (i.e. OSC compliant) notation sending an info request to X32
+
+/ch/01/config/name ,s "My Guitar" - set name of channel 01 to My Guitar (note: space in the name)
+/ch/01/config/name ,s MyGuitar    - set name of channel 01 to MyGuitar (note: no space)
+
+/ ,s 'ch/01/config "" 1 YE 1'     - erase channel 01 name, set icon to index 1,
+                                    color to Yellow and source to IN01
+
+/ch/01/mix/fader ,f 0.5    - set mixing fader of channel 01 to mid-position
+/node ,s fx/01/par         - retrieve the 64 parameters of effect at FX slot 1
+---
+
 
 
 ### X32Tap ###
