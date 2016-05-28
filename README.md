@@ -96,8 +96,7 @@ Examples:
 
 /ch/01/mix/fader ,f 0.5    - set mixing fader of channel 01 to mid-position
 /node ,s fx/01/par         - retrieve the 64 parameters of effect at FX slot 1
----
-
+```
 
 
 ### X32Tap ###
