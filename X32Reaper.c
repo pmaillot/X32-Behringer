@@ -4,6 +4,13 @@
  *  Created on: 20 mars 2015
  *      Author: Patrick-Gilles Maillot
  *
+ *
+ * Ver 1.7: first version being published
+ * Ver 1.8: added variable bus_offset and associated code to deal with REAPER increasing the
+ *          logical Track Send values when one also assigns a HW output to a REAPER track
+ * Ver 1.9: A user correctly reported a pb with several track being simultaneously selected... System
+ *          behaves badly. This was due to my code trying to align the REAPER slider values to X32
+ *          fader values. I don't send the X32 values back to REAPER anymore (code is commented, for now)
  */
 #include <stdlib.h>
 #include <stdio.h>
@@ -114,6 +121,7 @@ int Xconnected = 0;		// 1 when communication is running
 int Xverbose, Xdelay;	// verbose, List of Action and delay
 int Xtransport_on = 1;	// whether transport is enabled or not (bank C)
 int Xmaster_on = 1;		// whether master is enabled or not
+int bus_offset = 0;		// offset to manage REAPER track sends logical numbering
 //
 int Xtrk_min = 0;		// Input min track number for Reaper/X32
 int Xtrk_max = 0;		// Input max track number for Reaper/X32
@@ -174,7 +182,7 @@ int main(int argc, char **argv) {
 	// load resource file
 	if ((res_file = fopen("./.X32Reaper.ini", "r")) != NULL) { // ignore Width and Height
 		fscanf(res_file, "%d %d %d %d %d %d\n", &temp, &temp, &Xverbose, &Xdelay, &Xtransport_on, &Xmaster_on);
-		fscanf(res_file, "%d %d %d %d %d %d %d %d %d %d\n", &Xtrk_min, &Xtrk_max, &Xaux_min, &Xaux_max, &Xfxr_min, &Xfxr_max, &Xbus_min, &Xbus_max, &Xdca_min, &Xdca_max);
+		fscanf(res_file, "%d %d %d %d %d %d %d %d %d %d %d\n", &Xtrk_min, &Xtrk_max, &Xaux_min, &Xaux_max, &Xfxr_min, &Xfxr_max, &Xbus_min, &Xbus_max, &Xdca_min, &Xdca_max, &bus_offset);
 		fgets(S_X32_IP, sizeof(S_X32_IP), res_file);
 		S_X32_IP[strlen(S_X32_IP) - 1] = 0;
 		fgets(S_Hst_IP, sizeof(S_Hst_IP), res_file);
@@ -187,7 +195,7 @@ int main(int argc, char **argv) {
 	}
 	printf("X32Reaper - v1.7 - (c)2015 Patrick-Gilles Maillot\n\n");
 	printf("X32 at IP %s\n", S_X32_IP);
-	printf("REAPER at IP %s, receives on port %s,sends to port %s\n", S_Hst_IP, S_RecPort, S_SndPort);
+	printf("REAPER at IP %s, receives on port %s, sends to port %s\n", S_Hst_IP, S_RecPort, S_SndPort);
 	printf("Flags: verbose: %1d, delay: %dms, Transport: %1d, Master: %1d\n", Xverbose, Xdelay, Xtransport_on, Xmaster_on);
 	printf("Map (min/max): Ch %d/%d, Aux %d/%d, FxR %d/%d, DCA %d/%d, Bus %d/%d\n",
 			Xtrk_min, Xtrk_max, Xaux_min, Xaux_max, Xfxr_min, Xfxr_max, Xbus_min, Xbus_max, Xdca_min, Xdca_max);
@@ -523,6 +531,10 @@ void X32UsrCtrlC() {
 
 	return;
 }
+//--------------------------------------------------------------------
+// X32 Messages data parsing
+//
+//
 int X32ParseX32Message() {
 
 	int Xb_i = 0;
@@ -610,6 +622,7 @@ int X32ParseX32Message() {
 					// get bus number
 					bus = (int) Xb_r[Xb_i++] - (int) '0';
 					bus = bus * 10 + (int) Xb_r[Xb_i++] - (int) '0';
+					bus += bus_offset;
 					Xb_i += 1; // skip '/'
 					if (Xb_r[Xb_i] == 'l') {
 						//	/ch/%02d/mix/%02d/level....,f..[float]
@@ -666,6 +679,7 @@ int X32ParseX32Message() {
 					// get bus number
 					bus = (int) Xb_r[Xb_i++] - (int) '0';
 					bus = bus * 10 + (int) Xb_r[Xb_i++] - (int) '0';
+					bus += bus_offset;
 					Xb_i += 1; // skip '/'
 					if (Xb_r[Xb_i] == 'l') {
 						//	/auxin/%02d/mix/%02d/level....,f..[float]
@@ -722,6 +736,7 @@ int X32ParseX32Message() {
 					// get bus number
 					bus = (int) Xb_r[Xb_i++] - (int) '0';
 					bus = bus * 10 + (int) Xb_r[Xb_i++] - (int) '0';
+					bus += bus_offset;
 					Xb_i += 1; // skip '/'
 					if (Xb_r[Xb_i] == 'l') {
 						//	/fxrtn/%02d/mix/%02d/level....,f..[float]
@@ -1136,10 +1151,14 @@ int X32ParseReaperMessage() {
 				for (i = 4; i > 0; endian.cc[--i] = Rb_r[Rb_i++]);
 // 				Make REAPER stick to X32 known values to avoid fader kick-backs
 				endian.ff = roundf(endian.ff * 1023.) / 1023.;
-				sprintf(tmp, "/track/%d/volume", tnum);
-				Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
-				SEND_TOR(Rb_s, Rb_ls)
-				Rb_ls = 0; // REAPER message has been sent
+//				sprintf(tmp, "/track/%d/volume", tnum);
+//				Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
+//				SEND_TOR(Rb_s, Rb_ls)
+//				Rb_ls = 0; // REAPER message has been sent
+//
+// !! take this back. Doing the above creates issues when several REAPER tracks are simultaneously selected.
+// REAPER buffers the changes for the other tracks and applies them after the changes on one of the Tracks
+// are done. This results in an infinite loop. :(
 //
 //					/xxxx/[01-32]/mix/fader ,f 0..1
 				if ((tnum >= Xtrk_min) && (tnum <= Xtrk_max))		sprintf(tmp, "/ch/%02d/mix/fader", tnum - Xtrk_min + 1);
@@ -1190,12 +1209,13 @@ int X32ParseReaperMessage() {
 					// X32: selecting one track automatically unselects others
 					if (((int) endian.ff == 1) && (tnum >= 0)) Xb_ls = Xfprint(Xb_s, 0, "/-stat/selidx", 'i', &tnum);
 				} else if ((Rb_r[Rb_i] == 'e') && (Rb_r[Rb_i + 1] == 'n')) { // /track/send
-					// example: /track/6/send/2/volume\0\0,f\0\0?7K� (track 6 sending to 2nd bus)
+					// example: /track/6/send/2/volume\0\0,f\0\0?7KÇ (track 6 sending to 2nd bus)
 					Rb_i += 4;	// skip "....send/"
 					// build bus track number
 					bus = (int) Rb_r[Rb_i++] - (int) '0';
 					while (Rb_r[Rb_i] != '/')
 						bus = bus * 10 + (int) Rb_r[Rb_i++] - (int) '0';
+					bus -= bus_offset;
 					Rb_i++; // skip '/'
 					if (Rb_r[Rb_i] == 'v') { // volume <float>
 						while (Rb_r[Rb_i] != ',') Rb_i += 1;
@@ -1284,3 +1304,6 @@ int X32ParseReaperMessage() {
 	} while (bundle);
 	return (Xb_ls);
 }
+
+
+
