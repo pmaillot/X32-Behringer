@@ -193,12 +193,12 @@ int main(int argc, char **argv) {
 		S_RecPort[strlen(S_RecPort) - 1] = 0;
 		fclose(res_file);
 	}
-	printf("X32Reaper - v1.7 - (c)2015 Patrick-Gilles Maillot\n\n");
+	printf("X32Reaper - v1.9 - (c)2015 Patrick-Gilles Maillot\n\n");
 	printf("X32 at IP %s\n", S_X32_IP);
 	printf("REAPER at IP %s, receives on port %s, sends to port %s\n", S_Hst_IP, S_RecPort, S_SndPort);
 	printf("Flags: verbose: %1d, delay: %dms, Transport: %1d, Master: %1d\n", Xverbose, Xdelay, Xtransport_on, Xmaster_on);
-	printf("Map (min/max): Ch %d/%d, Aux %d/%d, FxR %d/%d, DCA %d/%d, Bus %d/%d\n",
-			Xtrk_min, Xtrk_max, Xaux_min, Xaux_max, Xfxr_min, Xfxr_max, Xbus_min, Xbus_max, Xdca_min, Xdca_max);
+	printf("Map (min/max): Ch %d/%d, Aux %d/%d, FxR %d/%d, Bus %d/%d, DCA %d/%d, Bus Offset %d\n",
+			Xtrk_min, Xtrk_max, Xaux_min, Xaux_max, Xfxr_min, Xfxr_max, Xbus_min, Xbus_max, Xdca_min, Xdca_max, bus_offset);
 	fflush(stdout);
 	if ((log_file = fopen(".X32Reaper.log", "w")) != NULL) {
 		fprintf(log_file, "*\n*\n");
