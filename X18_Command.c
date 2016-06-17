@@ -14,6 +14,7 @@
 // v 1.30: Change line_size to 512 chars
 // v 1.31: added 's' flag to read/send scene/snippets/tidbits/X32node lines from file
 // v 1.32: longer timeout when read/send scene/snippets/tidbits/X32node lines from file
+// v 1.33: added netinet/in.h include (freeBSD support)
 //
 
 #include <stdlib.h>
@@ -29,6 +30,7 @@
 #else
 #include <sys/socket.h>
 #include <sys/select.h>
+#include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/fcntl.h>
 #define closesocket(s) 	close(s)
