@@ -15,6 +15,7 @@
 // v 1.31: added 's' flag to read/send scene/snippets/tidbits/X32node lines from file
 // v 1.32: longer timeout when read/send scene/snippets/tidbits/X32node lines from file
 // v 1.33: added netinet/in.h include (freeBSD support)
+// v 1.34: fixed comparison with wrong text
 //
 
 #include <stdlib.h>
@@ -268,7 +269,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with XR18 server
-	printf(" XR18_Command - v1.32 - (c)2014-15 Patrick-Gilles Maillot\n\nConnecting to XR18.");
+	printf(" XR18_Command - v1.34 - (c)2014-15 Patrick-Gilles Maillot\n\nConnecting to XR18.");
 //
 	keep_on = 1;
 	xremote_on = X32verbose;	// Momentarily save X32verbose
@@ -282,7 +283,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			return 1;		// exit on receive error
 		} else if (p_status > 0) {
 			RECV 			// We have received data - process it!
-			if (strcmp(r_buf, "/info") == 0)
+			if (strcmp(r_buf, "/xinfo") == 0)
 				break;		// Connected!
 		}					// ... else timeout
 		printf("."); fflush(stdout);
