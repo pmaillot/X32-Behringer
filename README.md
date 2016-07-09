@@ -26,7 +26,7 @@ The tools and programs proposed here are generally simple C programs, static lin
 Source code is set for 4-space tabs in Eclipse.
 
 ### Contribution guidelines ###
-Feel free to use :-). If you find bugs, please report them; if you fix some bugs, please propose you code so everyone can benefit.
+Feel free to use :-). If you find bugs, please report them; if you fix some bugs, please propose your code so everyone can benefit.
 
 ### Who do I talk to? ###
 patrick.maillot@gmail.com
