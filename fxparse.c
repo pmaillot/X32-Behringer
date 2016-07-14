@@ -9,6 +9,7 @@
 //		They are common to fparse1.c and fparse5.c
 //
 //
+// change Log: July 14, 2016 - line 203, test should be done against PQ5S, not PQ5
 //
 #include <stdio.h>
 #include <string.h>
@@ -200,7 +201,7 @@ int XPQ5_PQ5S(char* buf, int k, int ifx, int PQ5S, int PQ5) {
 	list2int(l_qhlfreq, ll_qhlfreq);	// hi freq [1k5, 2k, 3k, 4k, 5k]
 	ratio2float(10.);					// hi boost [0, 10]
 	toggle2int("OFF");					// transformer [OFF / ON]
-	if (ifx == PQ5) {
+	if (ifx == PQ5S) {
 		toggle2int("OFF");					// active [OFF / ON]
 		afine2float(-12., 24.);				// gain [-12, 12]
 		list2int(l_qllfreq, ll_qllfreq);	// lo freq [200, 300, 500, 700, 1000]
