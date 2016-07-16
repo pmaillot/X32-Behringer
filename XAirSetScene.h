@@ -1518,7 +1518,11 @@ int ll_srange = (sizeof (l_srange) / sizeof (char*));
 char* l_pattern[] = {"1/4", "1/3", "3/8", "1/2", "2/3", "3/4", "1", "1/4X", "1/3X", "3/8X", "1/2X", "2/3X", "3/4X","1X"};
 int ll_pattern = (sizeof(l_pattern) / sizeof (char*));
 
-char* l_dtype[] = {"AMB", "CLUB", "HALL"};
+// Per OSC Spec 1.09
+// char* l_dtype[] = {"AMB", "CLUB", "HALL"};
+
+// What the /node OSC command actually returns with firmware 1.12
+char* l_dtype[] = {"AMB", "SML", "LRG"};
 int ll_dtype = (sizeof (l_dtype) / sizeof (char*));
 
 char* l_ddelay[] = {"1", "1/2", "2/3", "3/2"};
