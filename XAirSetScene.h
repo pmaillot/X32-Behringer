@@ -1518,12 +1518,13 @@ int ll_srange = (sizeof (l_srange) / sizeof (char*));
 char* l_pattern[] = {"1/4", "1/3", "3/8", "1/2", "2/3", "3/4", "1", "1/4X", "1/3X", "3/8X", "1/2X", "2/3X", "3/4X","1X"};
 int ll_pattern = (sizeof(l_pattern) / sizeof (char*));
 
-// Per OSC Spec 1.09
-// char* l_dtype[] = {"AMB", "CLUB", "HALL"};
+// Per XAir OSC Spec 1.09
+char* l_dtype[] = {"AMB", "CLUB", "HALL"};
+int ll_dtype = (sizeof (l_dtype) / sizeof (char*));
 
 // What the /node OSC command actually returns with firmware 1.12
-char* l_dtype[] = {"AMB", "SML", "LRG"};
-int ll_dtype = (sizeof (l_dtype) / sizeof (char*));
+char* l_rtype[] = {"AMB", "SML", "LRG"};
+int ll_rtype = (sizeof (l_rtype) / sizeof (char*));
 
 char* l_ddelay[] = {"1", "1/2", "2/3", "3/2"};
 int ll_ddelay = (sizeof (l_ddelay) / sizeof (char*));
@@ -1552,8 +1553,13 @@ int ll_bcmb = (sizeof (l_bcmb) / sizeof (char*));
 char* l_rcmb[] = {"1.1", "1.2", "1.3", "1.5", "1.7", "2", "2.5", "3", "3.5", "4", "5", "7", "10", "LIM"};
 int ll_rcmb = (sizeof (l_rcmb) / sizeof (char*));
 
+// What /node OSC Command returns
 char* 	l_mcmb[] = {"GR", "SBC", "PEAK"};
 int ll_mcmb = (sizeof (l_mcmb) / sizeof (char*));
+
+// What XAir Edit saves in a scene file
+char* 	l_mcmb2[] = {"GRA", "GRB", "PEAKA"};
+int ll_mcmb2 = (sizeof (l_mcmb2) / sizeof (char*));
 
 char* l_rulc[] = {"4", "8", "12", "20", "ALL"};
 int	ll_rulc = (sizeof (l_rulc) / sizeof (char*));
