@@ -10,10 +10,12 @@
 //                   and "channel" to "libchan" in /copy
 //                   added a status being sent after /copy
 //               0.40 & 0.41: Accepts OSC empty Tag Strings to better conform to OSC standard
+//               0.50: updated parameters accepted for -stat, prefs, -action commands
+//               0.60: better handling of /node commands (/node ,s ch), (/node ,s fxrtn), etc...
 //
 #ifdef __WIN32__
-#include <winsock2.h>
 #include <windows.h>
+#include <winsock2.h>
 #else
 #include <net/if.h>
 #include <ifaddrs.h>
@@ -36,7 +38,7 @@
 #include <time.h>
 
 
-
+#define XVERSION       "2.16"            // FW version
 #define BSIZE             512            // Buffer sizes
 #define X32DEBUG            0            // default debug mode
 #define X32VERBOSE          1            // default verbose mode
@@ -50,9 +52,9 @@
 
 #define F_GET       0x0001                // Get parameter(s) command
 #define F_SET       0x0002                // Set parameter(s) command
-#define    F_NPR    0x0004                // Do not propagate to other clients
 #define F_XET       F_GET | F_SET
-#define F_FND       0x0008                // first of a series or node header
+#define F_NPR       0x0004                // Do not propagate to other clients
+#define F_FND       0x0008                // first of a series or node data header
 
 #define S_SND       0x0001                // Update current client needed
 #define S_REM       0x0002                // Update remote clients needed
@@ -69,8 +71,10 @@ enum        types {NIL, I32, F32, S32, B32, A32, RES1, RES2, RES3, RES4, FX32,
                 CROUTOT, CCTRL, CENC, CTAPE, CHCO, CHDE, CHPR, CHGA, CHGF, CHDY,
                 CHDF,CHIN, CHEQ, CHMX, CHMO, CHME, CHGRP, AXPR, BSCO, MXPR,
                 MXDY, MSMX, FXTYP1, FXSRC, FXPAR1, FXTYP2, FXPAR2, OMAIN, OMAIND,
-                HAMP,
-                };
+                HAMP, PREFS, PIR, PIQ, PCARD, PRTA, PIP, PADDR, PMASK, PGWAY,
+				STAT, SSCREEN, SCHA, SMET, SROU, SSET, SLIB, SFX, SMON, SUSB, SSCE, SASS,
+				SSOLOSW, SAES, STAPE, SOSC, USB, SNAM, SCUE, SSCN, SSNP, HA
+};
 
 
 typedef struct X32header {          // The Header structure is used to quickly scan through
@@ -98,17 +102,17 @@ typedef struct X32command {         // The Command structure describes ALL X32 c
 
 typedef struct X32node {            // The Node header structure is used to directly
     char*        command;           // parse a node command on a limited number of characters and
-    int            nchars;          // "jump" to the associated node entry function to manage
-    X32command*    cmd_ptr;         // the "node ,s" appropriate answer
-    int            cmd_max;         //
+    int          nchars;            // "jump" to the associated node entry function to manage
+    X32command*  cmd_ptr;           // the appropriate "node ,s ..." answer
+    int          cmd_max;           //
 } X32node; 
 
 
 
 struct {                            // The Client structure
-    int                    vlid;    // - Valid entry
-    struct sockaddr        sock;    // - Client identification data (based on IP/Port)
-    time_t                xrem;     // - /xremote time when initiated
+    int                  vlid;      // - Valid entry
+    struct sockaddr      sock;      // - Client identification data (based on IP/Port)
+    time_t               xrem;      // - /xremote time when initiated
 } X32Client[MAX_SIM_CLIENTS];
 
 
@@ -131,6 +135,7 @@ int     function_shutdown();
 int     function_info();
 int     function_status();
 int     function_xremote();
+int     function_slash();
 int     function_node();
 int     function_config();
 int     function_main();
@@ -153,6 +158,7 @@ int     function_load();
 int     function_save();
 int     function_delete();
 int     function_unsubscribe();
+int     function_action();
 int     function_misc();
 int     function();
 
@@ -179,6 +185,7 @@ X32header Xheader[] = {                       // X32 Headers, the data used for 
         {{"/sta"},    &function_status},
         {{"/xre"},    &function_xremote},
         {{"/nod"},    &function_node},
+        {{"/\0\0\0"}, &function_slash},
         {{"/con"},    &function_config},
         {{"/mai"},    &function_main},
         {{"/-pr"},    &function_prefs},
@@ -202,11 +209,9 @@ X32header Xheader[] = {                       // X32 Headers, the data used for 
         {{"/sav"},    &function_save},
         {{"/del"},    &function_delete},
         {{"/uns"},    &function_unsubscribe},
-
         {{"/-us"},    &function_misc},
         {{"/und"},    &function},
-
-        {{"/-ac"},    &function},
+        {{"/-ac"},    &function_action},
 };
 int Xheader_max = sizeof(Xheader) / sizeof(X32header);
 
@@ -214,95 +219,98 @@ X32command Xdummy[] = {};
 int     Xdummy_max = sizeof(Xdummy) / sizeof(X32command);
 
 X32node Xnode[] = {            // /node Command Headers (see structure definition above
-        {"conf", 4, Xconfig,   sizeof(Xconfig)    / sizeof(X32command)},
-        {"main", 4, Xmain,     sizeof(Xmain)      / sizeof(X32command)},
-        {"-pre", 4, Xdummy,    sizeof(Xdummy)     / sizeof(X32command)},
-        {"-sta", 4, Xdummy,    sizeof(Xdummy)     / sizeof(X32command)},
-        {"ch/01", 5, Xchannel01, sizeof(Xchannel01)    / sizeof(X32command)},
-        {"ch/02", 5, Xchannel02, sizeof(Xchannel02)    / sizeof(X32command)},
-        {"ch/03", 5, Xchannel03, sizeof(Xchannel03)    / sizeof(X32command)},
-        {"ch/04", 5, Xchannel04, sizeof(Xchannel04)    / sizeof(X32command)},
-        {"ch/05", 5, Xchannel05, sizeof(Xchannel05)    / sizeof(X32command)},
-        {"ch/06", 5, Xchannel06, sizeof(Xchannel06)    / sizeof(X32command)},
-        {"ch/07", 5, Xchannel07, sizeof(Xchannel07)    / sizeof(X32command)},
-        {"ch/08", 5, Xchannel08, sizeof(Xchannel08)    / sizeof(X32command)},
-        {"ch/09", 5, Xchannel09, sizeof(Xchannel09)    / sizeof(X32command)},
-        {"ch/10", 5, Xchannel10, sizeof(Xchannel10)    / sizeof(X32command)},
-        {"ch/11", 5, Xchannel11, sizeof(Xchannel11)    / sizeof(X32command)},
-        {"ch/12", 5, Xchannel12, sizeof(Xchannel12)    / sizeof(X32command)},
-        {"ch/13", 5, Xchannel13, sizeof(Xchannel13)    / sizeof(X32command)},
-        {"ch/14", 5, Xchannel14, sizeof(Xchannel14)    / sizeof(X32command)},
-        {"ch/15", 5, Xchannel15, sizeof(Xchannel15)    / sizeof(X32command)},
-        {"ch/16", 5, Xchannel16, sizeof(Xchannel16)    / sizeof(X32command)},
-        {"ch/17", 5, Xchannel17, sizeof(Xchannel17)    / sizeof(X32command)},
-        {"ch/18", 5, Xchannel18, sizeof(Xchannel18)    / sizeof(X32command)},
-        {"ch/19", 5, Xchannel19, sizeof(Xchannel19)    / sizeof(X32command)},
-        {"ch/20", 5, Xchannel20, sizeof(Xchannel20)    / sizeof(X32command)},
-        {"ch/21", 5, Xchannel21, sizeof(Xchannel21)    / sizeof(X32command)},
-        {"ch/22", 5, Xchannel22, sizeof(Xchannel22)    / sizeof(X32command)},
-        {"ch/23", 5, Xchannel23, sizeof(Xchannel23)    / sizeof(X32command)},
-        {"ch/24", 5, Xchannel24, sizeof(Xchannel24)    / sizeof(X32command)},
-        {"ch/25", 5, Xchannel25, sizeof(Xchannel25)    / sizeof(X32command)},
-        {"ch/26", 5, Xchannel26, sizeof(Xchannel26)    / sizeof(X32command)},
-        {"ch/27", 5, Xchannel27, sizeof(Xchannel27)    / sizeof(X32command)},
-        {"ch/28", 5, Xchannel28, sizeof(Xchannel28)    / sizeof(X32command)},
-        {"ch/29", 5, Xchannel29, sizeof(Xchannel29)    / sizeof(X32command)},
-        {"ch/30", 5, Xchannel30, sizeof(Xchannel30)    / sizeof(X32command)},
-        {"ch/31", 5, Xchannel31, sizeof(Xchannel31)    / sizeof(X32command)},
-        {"ch/32", 5, Xchannel32, sizeof(Xchannel32)    / sizeof(X32command)},
-        {"auxin/01", 8, Xauxin01, sizeof(Xauxin01)    / sizeof(X32command)},
-        {"auxin/02", 8, Xauxin02, sizeof(Xauxin02)    / sizeof(X32command)},
-        {"auxin/03", 8, Xauxin03, sizeof(Xauxin03)    / sizeof(X32command)},
-        {"auxin/04", 8, Xauxin04, sizeof(Xauxin04)    / sizeof(X32command)},
-        {"auxin/05", 8, Xauxin05, sizeof(Xauxin05)    / sizeof(X32command)},
-        {"auxin/06", 8, Xauxin06, sizeof(Xauxin06)    / sizeof(X32command)},
-        {"auxin/07", 8, Xauxin07, sizeof(Xauxin07)    / sizeof(X32command)},
-        {"auxin/08", 8, Xauxin08, sizeof(Xauxin08)    / sizeof(X32command)},
-        {"fxrtn/01", 8, Xfxrtn01, sizeof(Xfxrtn01)    / sizeof(X32command)},
-        {"fxrtn/02", 8, Xfxrtn02, sizeof(Xfxrtn02)    / sizeof(X32command)},
-        {"fxrtn/03", 8, Xfxrtn03, sizeof(Xfxrtn03)    / sizeof(X32command)},
-        {"fxrtn/04", 8, Xfxrtn04, sizeof(Xfxrtn04)    / sizeof(X32command)},
-        {"fxrtn/05", 8, Xfxrtn05, sizeof(Xfxrtn05)    / sizeof(X32command)},
-        {"fxrtn/06", 8, Xfxrtn06, sizeof(Xfxrtn06)    / sizeof(X32command)},
-        {"fxrtn/07", 8, Xfxrtn07, sizeof(Xfxrtn07)    / sizeof(X32command)},
-        {"fxrtn/08", 8, Xfxrtn08, sizeof(Xfxrtn08)    / sizeof(X32command)},
-        {"bus/01", 6, Xbus01, sizeof(Xbus01)    / sizeof(X32command)},
-        {"bus/02", 6, Xbus02, sizeof(Xbus02)    / sizeof(X32command)},
-        {"bus/03", 6, Xbus03, sizeof(Xbus03)    / sizeof(X32command)},
-        {"bus/04", 6, Xbus04, sizeof(Xbus04)    / sizeof(X32command)},
-        {"bus/05", 6, Xbus05, sizeof(Xbus05)    / sizeof(X32command)},
-        {"bus/06", 6, Xbus06, sizeof(Xbus06)    / sizeof(X32command)},
-        {"bus/07", 6, Xbus07, sizeof(Xbus07)    / sizeof(X32command)},
-        {"bus/08", 6, Xbus08, sizeof(Xbus08)    / sizeof(X32command)},
-        {"bus/09", 6, Xbus09, sizeof(Xbus09)    / sizeof(X32command)},
-        {"bus/10", 6, Xbus10, sizeof(Xbus10)    / sizeof(X32command)},
-        {"bus/11", 6, Xbus11, sizeof(Xbus11)    / sizeof(X32command)},
-        {"bus/12", 6, Xbus12, sizeof(Xbus12)    / sizeof(X32command)},
-        {"bus/13", 6, Xbus13, sizeof(Xbus13)    / sizeof(X32command)},
-        {"bus/14", 6, Xbus14, sizeof(Xbus14)    / sizeof(X32command)},
-        {"bus/15", 6, Xbus15, sizeof(Xbus15)    / sizeof(X32command)},
-        {"bus/16", 6, Xbus16, sizeof(Xbus16)    / sizeof(X32command)},
-        {"mtx/01", 6, Xmtx01, sizeof(Xmtx01)    / sizeof(X32command)},
-        {"mtx/02", 6, Xmtx02, sizeof(Xmtx02)    / sizeof(X32command)},
-        {"mtx/03", 6, Xmtx03, sizeof(Xmtx03)    / sizeof(X32command)},
-        {"mtx/04", 6, Xmtx04, sizeof(Xmtx04)    / sizeof(X32command)},
-        {"mtx/05", 6, Xmtx05, sizeof(Xmtx05)    / sizeof(X32command)},
-        {"mtx/06", 6, Xmtx06, sizeof(Xmtx06)    / sizeof(X32command)},
-        {"dca/", 4, Xdca, sizeof(Xdca)          / sizeof(X32command)},
-        {"fx/",  3, Xfx, sizeof(Xfx)            / sizeof(X32command)},
-        {"outp", 4, Xoutput, sizeof(Xoutput)    / sizeof(X32command)},
-        {"head", 4, Xheadamp, sizeof(Xheadamp)  / sizeof(X32command)},
-        {"-ha/", 4, Xmisc, sizeof(Xmisc)        / sizeof(X32command)},
-        {"inse", 4, Xmisc, sizeof(Xmisc)        / sizeof(X32command)},
-        {"-sho", 4, Xmisc, sizeof(Xmisc)        / sizeof(X32command)},
-        {"rene", 4, Xmisc, sizeof(Xmisc)        / sizeof(X32command)},
-        {"-usb", 4, Xdummy, sizeof(Xdummy)      / sizeof(X32command)},
+        {"conf",     4, Xconfig,    sizeof(Xconfig)    / sizeof(X32command)},
+        {"main",     4, Xmain,      sizeof(Xmain)      / sizeof(X32command)},
+        {"-pre",     4, Xprefs,     sizeof(Xprefs)     / sizeof(X32command)},
+        {"-sta",     4, Xstat,      sizeof(Xstat)      / sizeof(X32command)},
+        {"ch",       2, Xchannel01, sizeof(Xchannel01) / sizeof(X32command)},
+        {"ch/01",    5, Xchannel01, sizeof(Xchannel01) / sizeof(X32command)},
+        {"ch/02",    5, Xchannel02, sizeof(Xchannel02) / sizeof(X32command)},
+        {"ch/03",    5, Xchannel03, sizeof(Xchannel03) / sizeof(X32command)},
+        {"ch/04",    5, Xchannel04, sizeof(Xchannel04) / sizeof(X32command)},
+        {"ch/05",    5, Xchannel05, sizeof(Xchannel05) / sizeof(X32command)},
+        {"ch/06",    5, Xchannel06, sizeof(Xchannel06) / sizeof(X32command)},
+        {"ch/07",    5, Xchannel07, sizeof(Xchannel07) / sizeof(X32command)},
+        {"ch/08",    5, Xchannel08, sizeof(Xchannel08) / sizeof(X32command)},
+        {"ch/09",    5, Xchannel09, sizeof(Xchannel09) / sizeof(X32command)},
+        {"ch/10",    5, Xchannel10, sizeof(Xchannel10) / sizeof(X32command)},
+        {"ch/11",    5, Xchannel11, sizeof(Xchannel11) / sizeof(X32command)},
+        {"ch/12",    5, Xchannel12, sizeof(Xchannel12) / sizeof(X32command)},
+        {"ch/13",    5, Xchannel13, sizeof(Xchannel13) / sizeof(X32command)},
+        {"ch/14",    5, Xchannel14, sizeof(Xchannel14) / sizeof(X32command)},
+        {"ch/15",    5, Xchannel15, sizeof(Xchannel15) / sizeof(X32command)},
+        {"ch/16",    5, Xchannel16, sizeof(Xchannel16) / sizeof(X32command)},
+        {"ch/17",    5, Xchannel17, sizeof(Xchannel17) / sizeof(X32command)},
+        {"ch/18",    5, Xchannel18, sizeof(Xchannel18) / sizeof(X32command)},
+        {"ch/19",    5, Xchannel19, sizeof(Xchannel19) / sizeof(X32command)},
+        {"ch/20",    5, Xchannel20, sizeof(Xchannel20) / sizeof(X32command)},
+        {"ch/21",    5, Xchannel21, sizeof(Xchannel21) / sizeof(X32command)},
+        {"ch/22",    5, Xchannel22, sizeof(Xchannel22) / sizeof(X32command)},
+        {"ch/23",    5, Xchannel23, sizeof(Xchannel23) / sizeof(X32command)},
+        {"ch/24",    5, Xchannel24, sizeof(Xchannel24) / sizeof(X32command)},
+        {"ch/25",    5, Xchannel25, sizeof(Xchannel25) / sizeof(X32command)},
+        {"ch/26",    5, Xchannel26, sizeof(Xchannel26) / sizeof(X32command)},
+        {"ch/27",    5, Xchannel27, sizeof(Xchannel27) / sizeof(X32command)},
+        {"ch/28",    5, Xchannel28, sizeof(Xchannel28) / sizeof(X32command)},
+        {"ch/29",    5, Xchannel29, sizeof(Xchannel29) / sizeof(X32command)},
+        {"ch/30",    5, Xchannel30, sizeof(Xchannel30) / sizeof(X32command)},
+        {"ch/31",    5, Xchannel31, sizeof(Xchannel31) / sizeof(X32command)},
+        {"ch/32",    5, Xchannel32, sizeof(Xchannel32) / sizeof(X32command)},
+        {"auxin",    5, Xauxin01,   sizeof(Xauxin01)   / sizeof(X32command)},
+        {"auxin/01", 8, Xauxin01,   sizeof(Xauxin01)   / sizeof(X32command)},
+        {"auxin/02", 8, Xauxin02,   sizeof(Xauxin02)   / sizeof(X32command)},
+        {"auxin/03", 8, Xauxin03,   sizeof(Xauxin03)   / sizeof(X32command)},
+        {"auxin/04", 8, Xauxin04,   sizeof(Xauxin04)   / sizeof(X32command)},
+        {"auxin/05", 8, Xauxin05,   sizeof(Xauxin05)   / sizeof(X32command)},
+        {"auxin/06", 8, Xauxin06,   sizeof(Xauxin06)   / sizeof(X32command)},
+        {"auxin/07", 8, Xauxin07,   sizeof(Xauxin07)   / sizeof(X32command)},
+        {"auxin/08", 8, Xauxin08,   sizeof(Xauxin08)   / sizeof(X32command)},
+        {"fx",       2, Xfx,        sizeof(Xfx)        / sizeof(X32command)},
+        {"fxrtn",    5, Xfxrtn01,   sizeof(Xfxrtn01)   / sizeof(X32command)},
+        {"fxrtn/01", 8, Xfxrtn01,   sizeof(Xfxrtn01)   / sizeof(X32command)},
+        {"fxrtn/02", 8, Xfxrtn02,   sizeof(Xfxrtn02)   / sizeof(X32command)},
+        {"fxrtn/03", 8, Xfxrtn03,   sizeof(Xfxrtn03)   / sizeof(X32command)},
+        {"fxrtn/04", 8, Xfxrtn04,   sizeof(Xfxrtn04)   / sizeof(X32command)},
+        {"fxrtn/05", 8, Xfxrtn05,   sizeof(Xfxrtn05)   / sizeof(X32command)},
+        {"fxrtn/06", 8, Xfxrtn06,   sizeof(Xfxrtn06)   / sizeof(X32command)},
+        {"fxrtn/07", 8, Xfxrtn07,   sizeof(Xfxrtn07)   / sizeof(X32command)},
+        {"fxrtn/08", 8, Xfxrtn08,   sizeof(Xfxrtn08)   / sizeof(X32command)},
+        {"bus",      3, Xbus01,     sizeof(Xbus01)     / sizeof(X32command)},
+        {"bus/01",   6, Xbus01,     sizeof(Xbus01)     / sizeof(X32command)},
+        {"bus/02",   6, Xbus02,     sizeof(Xbus02)     / sizeof(X32command)},
+        {"bus/03",   6, Xbus03,     sizeof(Xbus03)     / sizeof(X32command)},
+        {"bus/04",   6, Xbus04,     sizeof(Xbus04)     / sizeof(X32command)},
+        {"bus/05",   6, Xbus05,     sizeof(Xbus05)     / sizeof(X32command)},
+        {"bus/06",   6, Xbus06,     sizeof(Xbus06)     / sizeof(X32command)},
+        {"bus/07",   6, Xbus07,     sizeof(Xbus07)     / sizeof(X32command)},
+        {"bus/08",   6, Xbus08,     sizeof(Xbus08)     / sizeof(X32command)},
+        {"bus/09",   6, Xbus09,     sizeof(Xbus09)     / sizeof(X32command)},
+        {"bus/10",   6, Xbus10,     sizeof(Xbus10)     / sizeof(X32command)},
+        {"bus/11",   6, Xbus11,     sizeof(Xbus11)     / sizeof(X32command)},
+        {"bus/12",   6, Xbus12,     sizeof(Xbus12)     / sizeof(X32command)},
+        {"bus/13",   6, Xbus13,     sizeof(Xbus13)     / sizeof(X32command)},
+        {"bus/14",   6, Xbus14,     sizeof(Xbus14)     / sizeof(X32command)},
+        {"bus/15",   6, Xbus15,     sizeof(Xbus15)     / sizeof(X32command)},
+        {"bus/16",   6, Xbus16,     sizeof(Xbus16)     / sizeof(X32command)},
+        {"mtx",      3, Xmtx01,     sizeof(Xmtx01)     / sizeof(X32command)},
+        {"mtx/01",   6, Xmtx01,     sizeof(Xmtx01)     / sizeof(X32command)},
+        {"mtx/02",   6, Xmtx02,     sizeof(Xmtx02)     / sizeof(X32command)},
+        {"mtx/03",   6, Xmtx03,     sizeof(Xmtx03)     / sizeof(X32command)},
+        {"mtx/04",   6, Xmtx04,     sizeof(Xmtx04)     / sizeof(X32command)},
+        {"mtx/05",   6, Xmtx05,     sizeof(Xmtx05)     / sizeof(X32command)},
+        {"mtx/06",   6, Xmtx06,     sizeof(Xmtx06)     / sizeof(X32command)},
+        {"dca",      3, Xdca,       sizeof(Xdca)       / sizeof(X32command)},
+        {"outputs",  8, Xoutput,    sizeof(Xoutput)    / sizeof(X32command)},
+        {"headamp",  8, Xheadamp,   sizeof(Xheadamp)   / sizeof(X32command)},
+        {"-ha",      3, Xmisc,      sizeof(Xmisc)      / sizeof(X32command)},
+        {"-usb",     4, Xmisc,      sizeof(Xmisc)      / sizeof(X32command)},
+        {"undo",     4, Xdummy,     sizeof(Xdummy)     / sizeof(X32command)},
+        {"-action",  7, Xdummy,     sizeof(Xdummy)     / sizeof(X32command)},
+        {"-show/showfile/snippet", 22, Xsnippet,    sizeof(Xsnippet)    / sizeof(X32command)}, // !! keep
+        {"-show/showfile/scene",   20, Xscene,      sizeof(Xscene)      / sizeof(X32command)}, // in this
+        {"-show",                   5, Xshow,       sizeof(Xshow)       / sizeof(X32command)}, // order !!
 
-        {"/und", 4, Xdummy, sizeof(Xdummy)    / sizeof(X32command)},
-        {"/sav", 4, Xdummy, sizeof(Xdummy)    / sizeof(X32command)},
-        {"/cop", 4, Xdummy, sizeof(Xdummy)    / sizeof(X32command)},
-        {"/del", 4, Xdummy, sizeof(Xdummy)    / sizeof(X32command)},
-        {"/-ac", 4, Xdummy, sizeof(Xdummy)    / sizeof(X32command)},
+
 };
 int Xnode_max = sizeof(Xnode) / sizeof(X32node);
 
@@ -426,8 +434,7 @@ main(int argc, char **argv)
     Server_ip.sin_port = htons(atoi(Xport_str));   // server port
 //
 // Bind IP & port information
-    if( bind(Xfd ,Server_ip_pt , sizeof(Server_ip)) == SOCKET_ERROR)
-    {
+    if(bind(Xfd, Server_ip_pt, sizeof(Server_ip)) == SOCKET_ERROR) {
         perror("Bind failed");
         exit(EXIT_FAILURE);
     }
@@ -439,7 +446,7 @@ main(int argc, char **argv)
 // Wait for messages from client
     i = 0;
     r_len = 0;
-    printf("X32 - v0.41 - An X32 Emulator - (c)2014-2016 Patrick-Gilles Maillot\n");
+    printf("X32 - v0.60 - An X32 Emulator - (c)2014-2016 Patrick-Gilles Maillot\n");
     getmyIP(); // Try to get our IP...
     if (Xverbose) printf("Listening to port %s, X32 IP = %s\n", Xport_str, r_buf);
     while(keep_on) {            // Main, receiving loop (active as long as keep_on is 1)
@@ -509,12 +516,24 @@ main(int argc, char **argv)
 
 #ifdef __WIN32__
 void getmyIP() {
+	int i;
     char **pp = NULL;
     struct hostent *host = NULL;
 
     if(!gethostname(r_buf, 256) && (host = gethostbyname(r_buf)) != NULL) {
         for(pp = host->h_addr_list ; *pp != NULL ; pp++) {
             strcpy (r_buf, (inet_ntoa(*(struct in_addr *)*pp))); // copy IP (string) address to r_buf
+            // set IP address in local structure
+            // search for /-prefs/ip/addr dataset
+            for (i = 0; i < Xprefs_max; i++) {
+            	if (strcmp("/-prefs/ip/addr/0", Xprefs[i].command) == 0) {
+            		Xprefs[i++].value.ii = (int)((struct in_addr *)*pp)->S_un.S_un_b.s_b1;
+            		Xprefs[i++].value.ii = (int)((struct in_addr *)*pp)->S_un.S_un_b.s_b2;
+            		Xprefs[i++].value.ii = (int)((struct in_addr *)*pp)->S_un.S_un_b.s_b3;
+            		Xprefs[i++].value.ii = (int)((struct in_addr *)*pp)->S_un.S_un_b.s_b4;
+            		return;
+            	}
+            }
             return;
         }
     }
@@ -1670,7 +1689,7 @@ int function_info() {
     s_len = Xsprint(s_buf, s_len, 's', "V2.06");
     s_len = Xsprint(s_buf, s_len, 's', "osc-server");
     s_len = Xsprint(s_buf, s_len, 's', "X32");
-    s_len = Xsprint(s_buf, s_len, 's', "2.16");
+    s_len = Xsprint(s_buf, s_len, 's', XVERSION);
     return S_SND;        // send reply only to requesting client
 }
 
@@ -1731,6 +1750,46 @@ int function_xremote() {
     return 0; // no room for new clients! (todo; another return status?)
 }
 
+int function_slash() {
+	char*        str_pt_in;
+	int          i, cmd_max;
+	X32command*  command;
+    // received a /~~~,s~~[string] [[data]...]
+    // parse [string]
+    // set internal variable according to [[data]...] contents
+	// return the command we received to sender
+	//
+	// prepare data to be sent back
+	s_len = r_len;
+	memcpy(s_buf, r_buf, s_len);
+	{
+		// Main work goes here
+	    cmd_max = 0;
+	    str_pt_in = r_buf + 8;				// data block starts at index 8
+	    if (*str_pt_in == '/') str_pt_in++; // ignore leading '/' if there's one
+	    for (i = 0; i < Xnode_max; i++) {
+	        if (strncmp(Xnode[i].command, str_pt_in, Xnode[i].nchars) == 0) {
+	            cmd_max = Xnode[i].cmd_max;
+	            command = Xnode[i].cmd_ptr;
+	            break;
+	        }
+	    }
+	    if (i < Xnode_max) {
+	    	for (i = 0; i < cmd_max; i++) {
+	    		if (command[i].flags != F_FND) {	// we're only interested in non node header commands
+	    			if (strncmp(str_pt_in, command[i].command + 1, strlen(command[i].command + 1)) == 0) {
+	    				str_pt_in += strlen(command[i].command); // point at [[data]...]
+	    				// we now are at the right command, parse the alphanumeric data following the command
+	    				// to set parameter values one bye one
+	    				// TODO ...
+	    			}
+	    		}
+	        }
+	    }
+	}
+    return S_SND;        // send reply only to requesting client
+}
+
 int function_node() {
 char*        str_pt_in;
 int          i, j, cmd_max;
@@ -1739,7 +1798,7 @@ X32command*  command;
     // parse [string]
     // reply with node~~~~,s~~/[string] <data>...\n
     cmd_max = 0;
-    str_pt_in = r_buf + 12;
+    str_pt_in = r_buf + 12;				// data block starts at index 12
     for (i = 0; i < Xnode_max; i++) {
         if (strncmp(Xnode[i].command, str_pt_in, Xnode[i].nchars) == 0) {
             cmd_max = Xnode[i].cmd_max;
@@ -1750,15 +1809,19 @@ X32command*  command;
     if (i == Xnode_max) return 0;
     for (i = 0; i < cmd_max; i++) {
         if (command[i].flags == F_FND) {
-            if (strcmp(str_pt_in, command[i].command + 1) == 0) {
+        	printf("%s\n", command[i].command);
+            if (strncmp(str_pt_in, command[i].command + 1, strlen(str_pt_in)) == 0) {
                 s_len = Xsprint(s_buf, 0, 's', "node");
                 s_len = Xsprint(s_buf, s_len, 's',",s");
                 s_buf[s_len] = 0;
+                // manage head of nodes (two of more consecutive F_FND types)
+                while (command[i+1].flags == F_FND) i++;
+                // we're now pointitng at the first data command (with parameters) of the node pack
                 strcat (s_buf + s_len, command[i].command);
                 switch (command[i].format.typ) {
                 case OFFON:
                     for (j = 1; j < command[i].value.ii + 1; j++) {
-                        strcat(s_buf + s_len, command[i + j].value.ii? " ON": " OFF");
+                    	strcat(s_buf + s_len, command[i + j].value.ii? " ON": " OFF");
                     }
                     break;
                 case CMONO:
@@ -1829,8 +1892,7 @@ X32command*  command;
                             strcat(s_buf + s_len, " \"");
                             strcat(s_buf + s_len, command[i + j].value.str);
                             strcat(s_buf + s_len, "\"");
-                        }
-                        else strcat(s_buf + s_len, " \"-\"");
+                        } else strcat(s_buf + s_len, " \"-\"");
                     }
                     break;
                 case CTAPE:
@@ -1843,8 +1905,7 @@ X32command*  command;
                         strcat(s_buf + s_len, " \"");
                         strcat(s_buf + s_len, command[i + 1].value.str);
                         strcat(s_buf + s_len, "\"");
-                    }
-                    else strcat(s_buf + s_len, " \"\"");
+                    } else strcat(s_buf + s_len, " \"\"");
                     strcat(s_buf + s_len, Sint(command[i + 2].value.ii));
                     strcat(s_buf + s_len, Scolor[command[i + 3].value.ii]);
                     strcat(s_buf + s_len, Sint(command[i + 4].value.ii));
@@ -1933,8 +1994,7 @@ X32command*  command;
                     if (command[i + 1].value.str) {
                         strcat(s_buf + s_len, " ");
                         strcat(s_buf + s_len, command[i + 1].value.str);
-                    }
-                    else strcat(s_buf + s_len, " \"\"");
+                    } else strcat(s_buf + s_len, " \"\"");
                     strcat(s_buf + s_len, Sint(command[i + 2].value.ii));
                     strcat(s_buf + s_len, Scolor[command[i + 3].value.ii]);
                     break;
@@ -1990,6 +2050,242 @@ X32command*  command;
                     strcat(s_buf + s_len, Slinf(command[i + 1].value.ff, -12., 60., 1));
                     strcat(s_buf + s_len, command[i + 2].value.ii? " ON": " OFF");
                     break;
+                case PREFS:
+                    if (command[i + 1].value.str) {
+                    	strcat(s_buf + s_len, " \"");
+                    	strcat(s_buf + s_len, command[i + 1].value.str);
+                     	strcat(s_buf + s_len, "\"");
+                    } else strcat(s_buf + s_len, " \"\"");
+                    strcat(s_buf + s_len, Slinf(command[i + 2].value.ff, 10., 100., 0));
+                    strcat(s_buf + s_len, Slinf(command[i + 3].value.ff, 0., 100., 0));
+                    strcat(s_buf + s_len, Slinf(command[i + 4].value.ff, 10., 100., 0));
+                    strcat(s_buf + s_len, Slinf(command[i + 5].value.ff, 10., 100., 0));
+                    strcat(s_buf + s_len, command[i + 6].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 7].value.ii? " 44k1": " 48k");
+                	strcat(s_buf + s_len, PCsource[command[i + 8].value.ii]);
+                    strcat(s_buf + s_len, command[i + 9].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 10].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 11].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 12].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 13].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 14].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 15].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, Sbitmp(command[i + 16].value.ii, 4));
+                    strcat(s_buf + s_len, command[i + 17].value.ii? " ON": " OFF");
+                	strcat(s_buf + s_len, PSCont[command[i + 18].value.ii]);
+                    strcat(s_buf + s_len, command[i + 19].value.ii? " 12h": " 24h");
+                    strcat(s_buf + s_len, command[i + 20].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 21].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 22].value.ii? " INV": " NORM");
+                    if (command[i + 23].value.str) {
+                        strcat(s_buf + s_len, " \"");
+                        strcat(s_buf + s_len, command[i + 23].value.str);
+                        strcat(s_buf + s_len, "\"");
+                    } else strcat(s_buf + s_len, " \"\"");
+                	break;
+                case PIR:
+                    strcat(s_buf + s_len, command[i + 1].value.ii? " ON": " OFF");
+                 	strcat(s_buf + s_len, PRpro[command[i + 2].value.ii]);
+                 	strcat(s_buf + s_len, PRport[command[i + 3].value.ii]);
+                    strcat(s_buf + s_len, Sbitmp(command[i + 4].value.ii, 12));
+                 	break;
+                case PIQ:
+                	strcat(s_buf + s_len, PiQmodel[command[i + 1].value.ii]);
+                	strcat(s_buf + s_len, PiQeqset[command[i + 2].value.ii]);
+                    strcat(s_buf + s_len, Sint(command[i + 3].value.ii));
+                	break;
+                case PCARD:
+                	strcat(s_buf + s_len, Pctype[command[i + 1].value.ii]);
+                	strcat(s_buf + s_len, Pcmode[command[i + 2].value.ii]);
+                	strcat(s_buf + s_len, Pcmode[command[i + 3].value.ii]);
+                    strcat(s_buf + s_len, command[i + 4].value.ii? " OUT": " IN");
+                	strcat(s_buf + s_len, Pcas[command[i + 5].value.ii]);
+                    strcat(s_buf + s_len, command[i + 6].value.ii? " 64": " 56");
+                	strcat(s_buf + s_len, Pcmadio[command[i + 7].value.ii]);
+                	strcat(s_buf + s_len, Pcmadio[command[i + 8].value.ii]);
+                	strcat(s_buf + s_len, Pcmadsrc[command[i + 9].value.ii]);
+                	break;
+                case PRTA:
+                	strcat(s_buf + s_len, Prtavis[command[i + 1].value.ii]);
+                    strcat(s_buf + s_len, Slinf(command[i + 2].value.ff, 0., 60., 0));
+                    strcat(s_buf + s_len, command[i + 3].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, Sint(command[i + 4].value.ii));
+                    strcat(s_buf + s_len, command[i + 5].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 6].value.ii? " SPEC": " BAR");
+                    strcat(s_buf + s_len, Sbitmp(command[i + 7].value.ii, 6));
+                    strcat(s_buf + s_len, command[i + 8].value.ii? " PEAK": " RMS");
+                    strcat(s_buf + s_len, Slogf(command[i + 9].value.ff, 0.25, 16., 2));
+                	strcat(s_buf + s_len, Prtaph[command[i + 10].value.ii]);
+                	break;
+                case PIP:
+                    strcat(s_buf + s_len, command[i + 1].value.ii? " ON": " OFF");
+                	break;
+                case PADDR: case PMASK: case PGWAY:
+                    strcat(s_buf + s_len, Sint(command[i + 1].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 2].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 3].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 4].value.ii));
+                	break;
+                case STAT:
+                	strcat(s_buf + s_len, Sselidx[command[i + 1].value.ii]);
+                    strcat(s_buf + s_len, Sint(command[i + 2].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 3].value.ii));
+                    strcat(s_buf + s_len, command[i + 4].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, Sint(command[i + 5].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 6].value.ii));
+                    strcat(s_buf + s_len, command[i + 7].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 8].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, Sint(command[i + 9].value.ii));
+                    strcat(s_buf + s_len, command[i + 10].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 11].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 12].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 13].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 14].value.ii? " SPEC": " BAR");
+                    strcat(s_buf + s_len, command[i + 15].value.ii? " SPEC": " BAR");
+                    strcat(s_buf + s_len, command[i + 16].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 17].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, Sint(command[i + 18].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 19].value.ii));
+                    strcat(s_buf + s_len, command[i + 20].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 21].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, Sint(command[i + 22].value.ii));
+                	break;
+                case SSCREEN:
+                    strcat(s_buf + s_len, Sscrn[command[i + 1].value.ii]);
+                    strcat(s_buf + s_len, command[i + 2].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 3].value.ii? " ON": " OFF");
+                    break;
+                case SCHA:
+                    strcat(s_buf + s_len, Schal[command[i + 1].value.ii]);
+                    break;
+                case SMET:
+                    strcat(s_buf + s_len, Smetl[command[i + 1].value.ii]);
+                	break;
+                case SROU:
+                    strcat(s_buf + s_len, Sroul[command[i + 1].value.ii]);
+                	break;
+                case SSET:
+                    strcat(s_buf + s_len, Ssetl[command[i + 1].value.ii]);
+                	break;
+                case SLIB:
+                    strcat(s_buf + s_len, Slibl[command[i + 1].value.ii]);
+                	break;
+                case SFX:
+                    strcat(s_buf + s_len, Sfxl[command[i + 1].value.ii]);
+                	break;
+                case SMON:
+                    strcat(s_buf + s_len, Smonl[command[i + 1].value.ii]);
+                	break;
+                case SUSB:
+                    strcat(s_buf + s_len, Susbl[command[i + 1].value.ii]);
+                	break;
+                case SSCE:
+                    strcat(s_buf + s_len, Sscel[command[i + 1].value.ii]);
+					break;
+                case SASS:
+                    strcat(s_buf + s_len, Sassl[command[i + 1].value.ii]);
+                	break;
+                case SAES:
+                    if (command[i + 1].value.str) {
+                        strcat(s_buf + s_len, " \"");
+                        strcat(s_buf + s_len, command[i + 1].value.str);
+                        strcat(s_buf + s_len, "\"");
+                    }
+                    else strcat(s_buf + s_len, " \"         \"");
+                    if (command[i + 2].value.str) {
+                        strcat(s_buf + s_len, " \"");
+                        strcat(s_buf + s_len, command[i + 2].value.str);
+                        strcat(s_buf + s_len, "\"");
+                    } else strcat(s_buf + s_len, " \"         \"");
+                    strcat(s_buf + s_len, Sint(command[i + 3].value.ii));
+                    break;
+                case STAPE:
+                    strcat(s_buf + s_len, Stapl[command[i + 1].value.ii]);
+                    if (command[i + 2].value.str) {
+                        strcat(s_buf + s_len, " \"");
+                        strcat(s_buf + s_len, command[i + 2].value.str);
+                        strcat(s_buf + s_len, "\"");
+                    } else strcat(s_buf + s_len, " \"\"");
+                    strcat(s_buf + s_len, Sint(command[i + 3].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 4].value.ii));
+                	break;
+                case SOSC:
+                    strcat(s_buf + s_len, command[i + 1].value.ii? " ON": " OFF");
+                	break;
+                case USB:
+                    if (command[i + 1].value.str) {
+                         strcat(s_buf + s_len, " \"");
+                         strcat(s_buf + s_len, command[i + 1].value.str);
+                         strcat(s_buf + s_len, "\"");
+                    } else strcat(s_buf + s_len, " \"\"");
+                    if (command[i + 2].value.str) {
+                        strcat(s_buf + s_len, " \"");
+                        strcat(s_buf + s_len, command[i + 2].value.str);
+                        strcat(s_buf + s_len, "\"");
+                    } else strcat(s_buf + s_len, " \"\"");
+                    break;
+                case SNAM:
+                    if (command[i + 1].value.str) {
+                        strcat(s_buf + s_len, " \"");
+                        strcat(s_buf + s_len, command[i + 1].value.str);
+                        strcat(s_buf + s_len, "\"");
+                    } else strcat(s_buf + s_len, " \"\"");
+                    strcat(s_buf + s_len, Sint(command[i + 2].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 3].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 4].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 5].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 6].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 7].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 8].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 9].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 10].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 11].value.ii));
+                    strcat(s_buf + s_len, " \"");
+                    strcat(s_buf + s_len, XVERSION);
+                    strcat(s_buf + s_len, "\"");
+                    break;
+                case SCUE:
+                    strcat(s_buf + s_len, Sint(command[i + 1].value.ii));
+                    if (command[i + 2].value.str) {
+                        strcat(s_buf + s_len, " \"");
+                        strcat(s_buf + s_len, command[i + 2].value.str);
+                        strcat(s_buf + s_len, "\"");
+                    } else strcat(s_buf + s_len, " \"\"");
+                    strcat(s_buf + s_len, Sint(command[i + 3].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 4].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 5].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 6].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 7].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 8].value.ii));
+                    strcat(s_buf + s_len, Sint(command[i + 9].value.ii));
+                    break;
+                case SSCN:
+                    if (command[i + 1].value.str) {
+                        strcat(s_buf + s_len, " \"");
+                        strcat(s_buf + s_len, command[i + 1].value.str);
+                        strcat(s_buf + s_len, "\"");
+                    } else strcat(s_buf + s_len, " \"\"");
+                    if (command[i + 2].value.str) {
+                        strcat(s_buf + s_len, " \"");
+                        strcat(s_buf + s_len, command[i + 2].value.str);
+                        strcat(s_buf + s_len, "\"");
+                    } else strcat(s_buf + s_len, " \"\"");
+                    strcat(s_buf + s_len, Sbitmp(command[i + 3].value.ii, 9));
+                    strcat(s_buf + s_len, Sint(command[i + 4].value.ii));
+                    break;
+                case SSNP:
+                    if (command[i + 1].value.str) {
+                         strcat(s_buf + s_len, " \"");
+                         strcat(s_buf + s_len, command[i + 1].value.str);
+                         strcat(s_buf + s_len, "\"");
+                     } else strcat(s_buf + s_len, " \"\"");
+                     strcat(s_buf + s_len, Sint(command[i + 2].value.ii));
+                     strcat(s_buf + s_len, Sint(command[i + 3].value.ii));
+                     strcat(s_buf + s_len, Sint(command[i + 4].value.ii));
+                     strcat(s_buf + s_len, Sint(command[i + 5].value.ii));
+                     strcat(s_buf + s_len, Sint(command[i + 6].value.ii));
+                     break;
+                case HA:
                 default:
                     return 0;
                     break;
@@ -2000,6 +2296,14 @@ X32command*  command;
                 while (s_len & 3) s_buf[s_len++] = 0;
                 return S_SND;        // send reply only to requesting client
             }
+        } else {
+        	// should treat the command as a standard, single parameter command
+        	// TODO: The current Xnode structure for commands is not right,
+        	//       it should rather identify all commands in their correct order with a
+        	//       set of flags & parameters to tell what to do with the command, whether
+        	//       it's a node entry, a single command or else, and how to manage
+        	//       (i.e. encode and decode) its parameter(s)
+        	//       :( that can be a major rewrite, not worth it for the moment
         }
     }
     return 0;  // no reply if error detected
@@ -2234,6 +2538,22 @@ int        i;
         if (strcmp(r_buf, Xmisc[i].command) == 0) {
             // found command at index i
             return(funct_params(Xmisc, i));
+        }
+        i += 1;
+    }
+    return 0;
+}
+
+
+int function_action() {
+int        i;
+//
+// check for actual command
+    i = 0;
+    while (i < Xaction_max) {
+        if (strcmp(r_buf, Xaction[i].command) == 0) {
+            // found command at index i
+            return(funct_params(Xaction, i));
         }
         i += 1;
     }
