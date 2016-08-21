@@ -1,7 +1,7 @@
 /*
  * X32CfgMain.h
  *
- *  Created on: 4 févr. 2015
+ *  Created on: 4 fÃ©vr. 2015
  *      Author: patrick
  */
 
@@ -10,6 +10,7 @@
 
 
 X32command Xconfig[] = {
+		{"/config",							{OFFON}, F_FND, {16}},
 		{"/config/chlink",					{OFFON}, F_FND, {16}},
 		{"/config/chlink/1-2",			{I32}, F_XET, {0}},
 		{"/config/chlink/3-4",			{I32}, F_XET, {0}},
@@ -189,6 +190,8 @@ X32command Xconfig[] = {
 int 	Xconfig_max = sizeof(Xconfig) / sizeof(X32command);
 
 X32command Xmain[] = {
+		{"/main",							{BSCO}, F_FND, {0}},
+		{"/main/st",						{BSCO}, F_FND, {0}},
 		{"/main/st/config",					{BSCO}, F_FND, {0}},
 		{"/main/st/config/name",		{S32}, F_XET, {0}},
 		{"/main/st/config/icon",		{I32}, F_XET, {0}},
@@ -277,6 +280,7 @@ X32command Xmain[] = {
 		{"/main/st/mix/06/on",			{I32}, F_XET, {0}},
 		{"/main/st/mix/06/level",		{F32}, F_XET, {0}},
 
+		{"/main/m",							{BSCO}, F_FND, {0}},
 		{"/main/m/config",					{BSCO}, F_FND, {0}},
 		{"/main/m/config/name",			{S32}, F_XET, {0}},
 		{"/main/m/config/icon",			{I32}, F_XET, {0}},
