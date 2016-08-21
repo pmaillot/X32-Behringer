@@ -1,7 +1,7 @@
 /*
  * X32Auxin.h
  *
- *  Created on: 4 févr. 2015
+ *  Created on: 4 fÃ©vr. 2015
  *      Author: patrick
  */
 
@@ -9,6 +9,7 @@
 #define X32AUXIN_H_
 
 X32command Xauxin01[] = {
+		{"/auxin/01",						{CHCO}, F_FND, {0}},
 		{"/auxin/01/config",				{CHCO}, F_FND, {0}},
 		{"/auxin/01/config/name",		{S32}, F_XET, {0}},
 		{"/auxin/01/config/icon",		{I32}, F_XET, {0}},
@@ -118,6 +119,7 @@ int Xauxin01_max = sizeof(Xauxin01) / sizeof(X32command);
 
 
 X32command Xauxin02[] = {
+		{"/auxin/02",						{CHCO}, F_FND, {0}},
 		{"/auxin/02/config",				{CHCO}, F_FND, {0}},
 		{"/auxin/02/config/name",		{S32}, F_XET, {0}},
 		{"/auxin/02/config/icon",		{I32}, F_XET, {0}},
@@ -227,6 +229,7 @@ int Xauxin02_max = sizeof(Xauxin02) / sizeof(X32command);
 
 
 X32command Xauxin03[] = {
+		{"/auxin/03",						{CHCO}, F_FND, {0}},
 		{"/auxin/03/config",				{CHCO}, F_FND, {0}},
 		{"/auxin/03/config/name",		{S32}, F_XET, {0}},
 		{"/auxin/03/config/icon",		{I32}, F_XET, {0}},
@@ -336,6 +339,7 @@ int Xauxin03_max = sizeof(Xauxin03) / sizeof(X32command);
 
 
 X32command Xauxin04[] = {
+		{"/auxin/04",						{CHCO}, F_FND, {0}},
 		{"/auxin/04/config",				{CHCO}, F_FND, {0}},
 		{"/auxin/04/config/name",		{S32}, F_XET, {0}},
 		{"/auxin/04/config/icon",		{I32}, F_XET, {0}},
@@ -445,6 +449,7 @@ int Xauxin04_max = sizeof(Xauxin04) / sizeof(X32command);
 
 
 X32command Xauxin05[] = {
+		{"/auxin/05",						{CHCO}, F_FND, {0}},
 		{"/auxin/05/config",				{CHCO}, F_FND, {0}},
 		{"/auxin/05/config/name",		{S32}, F_XET, {0}},
 		{"/auxin/05/config/icon",		{I32}, F_XET, {0}},
@@ -554,6 +559,7 @@ int Xauxin05_max = sizeof(Xauxin05) / sizeof(X32command);
 
 
 X32command Xauxin06[] = {
+		{"/auxin/06",						{CHCO}, F_FND, {0}},
 		{"/auxin/06/config",				{CHCO}, F_FND, {0}},
 		{"/auxin/06/config/name",		{S32}, F_XET, {0}},
 		{"/auxin/06/config/icon",		{I32}, F_XET, {0}},
@@ -663,6 +669,7 @@ int Xauxin06_max = sizeof(Xauxin06) / sizeof(X32command);
 
 
 X32command Xauxin07[] = {
+		{"/auxin/07",						{CHCO}, F_FND, {0}},
 		{"/auxin/07/config",				{CHCO}, F_FND, {0}},
 		{"/auxin/07/config/name",		{S32}, F_XET, {0}},
 		{"/auxin/07/config/icon",		{I32}, F_XET, {0}},
@@ -772,6 +779,7 @@ int Xauxin07_max = sizeof(Xauxin07) / sizeof(X32command);
 
 
 X32command Xauxin08[] = {
+		{"/auxin/08",						{CHCO}, F_FND, {0}},
 		{"/auxin/08/config",				{CHCO}, F_FND, {0}},
 		{"/auxin/08/config/name",		{S32}, F_XET, {0}},
 		{"/auxin/08/config/icon",		{I32}, F_XET, {0}},
