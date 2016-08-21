@@ -1,7 +1,7 @@
 /*
  * X32Fx.h
  *
- *  Created on: 4 févr. 2015
+ *  Created on: 4 fÃ©vr. 2015
  *      Author: patrick
  */
 
@@ -9,6 +9,7 @@
 #define X32FX_H_
 
 X32command Xfx[] = {
+		{"/fx",						{FXTYP1}, F_FND, {0}},
 		{"/fx/1",					{FXTYP1}, F_FND, {0}},
 		{"/fx/1/type",			{I32}, F_XET, {0}},
 		{"/fx/1/source",			{FXSRC}, F_FND, {0}},
