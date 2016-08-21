@@ -1,7 +1,7 @@
 /*
  * X32Output.h
  *
- *  Created on: 4 févr. 2015
+ *  Created on: 4 fÃ©vr. 2015
  *      Author: patrick
  */
 
@@ -9,6 +9,8 @@
 #define X32OUTPUT_H_
 
 X32command Xoutput[] = {
+		{"/outputs",						{OMAIN}, F_FND, {0}},
+		{"/outputs/main",					{OMAIN}, F_FND, {0}},
 		{"/outputs/main/01",				{OMAIN}, F_FND, {0}},
 		{"/outputs/main/01/src",		{I32}, F_XET, {0}},
 		{"/outputs/main/01/pos",		{I32}, F_XET, {0}},
@@ -126,6 +128,7 @@ X32command Xoutput[] = {
 		{"/outputs/aux/06/pos",			{I32}, F_XET, {0}},
 
 
+		{"/outputs/p16",					{OMAIN}, F_FND, {0}},
 		{"/outputs/p16/01",					{OMAIN}, F_FND, {0}},
 		{"/outputs/p16/01/src",			{I32}, F_XET, {0}},
 		{"/outputs/p16/01/pos",			{I32}, F_XET, {0}},
@@ -175,6 +178,7 @@ X32command Xoutput[] = {
 		{"/outputs/p16/16/src",			{I32}, F_XET, {0}},
 		{"/outputs/p16/16/pos",			{I32}, F_XET, {0}},
 
+		{"/outputs/aes",					{OMAIN}, F_FND, {0}},
 		{"/outputs/aes/01",					{OMAIN}, F_FND, {0}},
 		{"/outputs/aes/01/src",			{I32}, F_XET, {0}},
 		{"/outputs/aes/01/pos",			{I32}, F_XET, {0}},
@@ -182,6 +186,7 @@ X32command Xoutput[] = {
 		{"/outputs/aes/02/src",			{I32}, F_XET, {0}},
 		{"/outputs/aes/02/pos",			{I32}, F_XET, {0}},
 
+		{"/outputs/rec",					{OMAIN}, F_FND, {0}},
 		{"/outputs/rec/01",					{OMAIN}, F_FND, {0}},
 		{"/outputs/rec/01/src",			{I32}, F_XET, {0}},
 		{"/outputs/rec/01/pos",			{I32}, F_XET, {0}},
