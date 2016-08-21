@@ -1,7 +1,7 @@
 /*
  * X32Mtx.h
  *
- *  Created on: 4 févr. 2015
+ *  Created on: 4 fÃ©vr. 2015
  *      Author: patrick
  */
 
@@ -9,6 +9,8 @@
 #define X32MTX_H_
 
 X32command Xmtx01[] = {
+		{"/mtx",								{BSCO}, F_FND, {0}},
+		{"/mtx/01",								{BSCO}, F_FND, {0}},
 		{"/mtx/01/config",						{BSCO}, F_FND, {0}},
 		{"/mtx/01/config/name",				{S32}, F_XET, {0}},
 		{"/mtx/01/config/icon",				{I32}, F_XET, {0}},
@@ -78,6 +80,7 @@ int Xmtx01_max = sizeof(Xmtx01) / sizeof(X32command);
 
 
 X32command Xmtx02[] = {
+		{"/mtx/02",								{BSCO}, F_FND, {0}},
 		{"/mtx/02/config",						{BSCO}, F_FND, {0}},
 		{"/mtx/02/config/name",				{S32}, F_XET, {0}},
 		{"/mtx/02/config/icon",				{I32}, F_XET, {0}},
@@ -147,6 +150,7 @@ int Xmtx02_max = sizeof(Xmtx02) / sizeof(X32command);
 
 
 X32command Xmtx03[] = {
+		{"/mtx/03",								{BSCO}, F_FND, {0}},
 		{"/mtx/03/config",						{BSCO}, F_FND, {0}},
 		{"/mtx/03/config/name",				{S32}, F_XET, {0}},
 		{"/mtx/03/config/icon",				{I32}, F_XET, {0}},
@@ -216,6 +220,7 @@ int Xmtx03_max = sizeof(Xmtx03) / sizeof(X32command);
 
 
 X32command Xmtx04[] = {
+		{"/mtx/04",								{BSCO}, F_FND, {0}},
 		{"/mtx/04/config",						{BSCO}, F_FND, {0}},
 		{"/mtx/04/config/name",				{S32}, F_XET, {0}},
 		{"/mtx/04/config/icon",				{I32}, F_XET, {0}},
@@ -285,6 +290,7 @@ int Xmtx04_max = sizeof(Xmtx04) / sizeof(X32command);
 
 
 X32command Xmtx05[] = {
+		{"/mtx/05",								{BSCO}, F_FND, {0}},
 		{"/mtx/05/config",						{BSCO}, F_FND, {0}},
 		{"/mtx/05/config/name",				{S32}, F_XET, {0}},
 		{"/mtx/05/config/icon",				{I32}, F_XET, {0}},
@@ -354,6 +360,7 @@ int Xmtx05_max = sizeof(Xmtx05) / sizeof(X32command);
 
 
 X32command Xmtx06[] = {
+		{"/mtx/06",								{BSCO}, F_FND, {0}},
 		{"/mtx/06/config",						{BSCO}, F_FND, {0}},
 		{"/mtx/06/config/name",				{S32}, F_XET, {0}},
 		{"/mtx/06/config/icon",				{I32}, F_XET, {0}},
