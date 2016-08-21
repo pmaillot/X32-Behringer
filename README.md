@@ -404,3 +404,23 @@ Usage: X32Replay [-i X32 console ipv4 address] -default: 192.168.0.64
     play on:      starts playing
     # typed line: during recording, records the typed line as a user tag
 ```
+
+
+### X32DeskSave  / X32DeskRestore ###
+
+X32DeskSave  / X32DeskRestore: Save and Restore your X32 Preferences and State, Scene, Routing, Commands
+
+Say you want to be able to save those parameters that are not handled  by shows, scenes, snippets, cues, presets, routing or effects files... So when you connect to your desk, it is exactly as you want it: screen, light brightness, view, etc.
+
+That's what the "DeskSave" option of the tool will offer... but wait! there's more: You can also save scenes, routing presets or any type of file or settings based on a pattern file (a scene, any set of commands, etc.); what the "Pattern" option does is read a file you selected by pressing on the "Pat.File" button, extract the X32 commands from this file and send the extracted commands to X32 to retrieve the values from your X32. These are saved in the file you select using the "Save As" button. Of course you don't need to select a pattern file if you choose "Scene" or "Routing" options.
+
+Saving a full X32 Scene takes about 3 seconds (over WiFi), saving Routing or State/Preferences takes about 1.5 second.
+
+The restore utility is rather similar and enables you to select a file as a source of commands and values to be restored to your X32. It can be any of the files you saved using X32DeskSave, but it can also be an actual X32 Scene or an X32 Snippet file you saved directly on your system and imported you your PC.
+
+For both utilities, you need to connect to your X32, select the files or options you want to use. The status line under the "SaveDeskData" or "RestoreDeskData" buttons will indicate "Ready" meaning the utility has the information it needs to perform an operation. "Complete" will indicate the completion of the save or restore action. Other status lines will indicate actions you should take prior to using the utility.
+
+
+Attention!,
+This will not save/restore your current X32 show; for this you will need to use X32GetShow/X32SetShow.
+This will not save/restore all X32 current libraries types; for this you will need to use X32GetLib/X32SetLib
