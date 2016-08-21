@@ -1,7 +1,7 @@
 /*
  * X32Dca.h
  *
- *  Created on: 4 févr. 2015
+ *  Created on: 4 fÃ©vr. 2015
  *      Author: patrick
  */
 
@@ -9,6 +9,7 @@
 #define X32DCA_H_
 
 X32command Xdca[] = {
+		{"/dca",						{CHME}, F_FND, {0}},
 		{"/dca/1",						{CHME}, F_FND, {0}},
 		{"/dca/1/on",				{I32}, F_XET, {0}},
 		{"/dca/1/fader",			{F32}, F_XET, {0}},
