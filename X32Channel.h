@@ -1,7 +1,7 @@
 /*
  * X32Channel.h
  *
- *  Created on: 4 févr. 2015
+ *  Created on: 4 fÃ©vr. 2015
  *      Author: patrick
  */
 
@@ -10,6 +10,8 @@
 
 
 X32command Xchannel01[] = {
+		{"/ch",							{CHCO}, F_FND, {0}},
+		{"/ch/01",						{CHCO}, F_FND, {0}},
 		{"/ch/01/config",				{CHCO}, F_FND, {0}},
 		{"/ch/01/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/01/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -162,6 +164,7 @@ int 	Xchannel01_max = sizeof(Xchannel01) / sizeof(X32command);
 
 
 X32command Xchannel02[] = {
+		{"/ch/02",						{CHCO}, F_FND, {0}},
 		{"/ch/02/config",				{CHCO}, F_FND, {0}},
 		{"/ch/02/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/02/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -314,6 +317,7 @@ int 	Xchannel02_max = sizeof(Xchannel02) / sizeof(X32command);
 
 
 X32command Xchannel03[] = {
+		{"/ch/03",						{CHCO}, F_FND, {0}},
 		{"/ch/03/config",				{CHCO}, F_FND, {0}},
 		{"/ch/03/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/03/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -466,6 +470,7 @@ int 	Xchannel03_max = sizeof(Xchannel03) / sizeof(X32command);
 
 
 X32command Xchannel04[] = {
+		{"/ch/04",						{CHCO}, F_FND, {0}},
 		{"/ch/04/config",				{CHCO}, F_FND, {0}},
 		{"/ch/04/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/04/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -618,6 +623,7 @@ int 	Xchannel04_max = sizeof(Xchannel04) / sizeof(X32command);
 
 
 X32command Xchannel05[] = {
+		{"/ch/05",						{CHCO}, F_FND, {0}},
 		{"/ch/05/config",				{CHCO}, F_FND, {0}},
 		{"/ch/05/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/05/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -770,6 +776,7 @@ int 	Xchannel05_max = sizeof(Xchannel05) / sizeof(X32command);
 
 
 X32command Xchannel06[] = {
+		{"/ch/06",						{CHCO}, F_FND, {0}},
 		{"/ch/06/config",				{CHCO}, F_FND, {0}},
 		{"/ch/06/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/06/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -922,6 +929,7 @@ int 	Xchannel06_max = sizeof(Xchannel06) / sizeof(X32command);
 
 
 X32command Xchannel07[] = {
+		{"/ch/07",						{CHCO}, F_FND, {0}},
 		{"/ch/07/config",				{CHCO}, F_FND, {0}},
 		{"/ch/07/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/07/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -1074,6 +1082,7 @@ int 	Xchannel07_max = sizeof(Xchannel07) / sizeof(X32command);
 
 
 X32command Xchannel08[] = {
+		{"/ch/08",						{CHCO}, F_FND, {0}},
 		{"/ch/08/config",				{CHCO}, F_FND, {0}},
 		{"/ch/08/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/08/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -1226,6 +1235,7 @@ int 	Xchannel08_max = sizeof(Xchannel08) / sizeof(X32command);
 
 
 X32command Xchannel09[] = {
+		{"/ch/09",						{CHCO}, F_FND, {0}},
 		{"/ch/09/config",				{CHCO}, F_FND, {0}},
 		{"/ch/09/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/09/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -1378,6 +1388,7 @@ int 	Xchannel09_max = sizeof(Xchannel09) / sizeof(X32command);
 
 
 X32command Xchannel10[] = {
+		{"/ch/10",						{CHCO}, F_FND, {0}},
 		{"/ch/10/config",				{CHCO}, F_FND, {0}},
 		{"/ch/10/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/10/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -1530,6 +1541,7 @@ int 	Xchannel10_max = sizeof(Xchannel10) / sizeof(X32command);
 
 
 X32command Xchannel11[] = {
+		{"/ch/11",						{CHCO}, F_FND, {0}},
 		{"/ch/11/config",				{CHCO}, F_FND, {0}},
 		{"/ch/11/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/11/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -1682,6 +1694,7 @@ int 	Xchannel11_max = sizeof(Xchannel11) / sizeof(X32command);
 
 
 X32command Xchannel12[] = {
+		{"/ch/12",						{CHCO}, F_FND, {0}},
 		{"/ch/12/config",				{CHCO}, F_FND, {0}},
 		{"/ch/12/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/12/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -1834,6 +1847,7 @@ int 	Xchannel12_max = sizeof(Xchannel12) / sizeof(X32command);
 
 
 X32command Xchannel13[] = {
+		{"/ch/13",						{CHCO}, F_FND, {0}},
 		{"/ch/13/config",				{CHCO}, F_FND, {0}},
 		{"/ch/13/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/13/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -1986,6 +2000,7 @@ int 	Xchannel13_max = sizeof(Xchannel13) / sizeof(X32command);
 
 
 X32command Xchannel14[] = {
+		{"/ch/14",						{CHCO}, F_FND, {0}},
 		{"/ch/14/config",				{CHCO}, F_FND, {0}},
 		{"/ch/14/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/14/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -2138,6 +2153,7 @@ int 	Xchannel14_max = sizeof(Xchannel14) / sizeof(X32command);
 
 
 X32command Xchannel15[] = {
+		{"/ch/15",						{CHCO}, F_FND, {0}},
 		{"/ch/15/config",				{CHCO}, F_FND, {0}},
 		{"/ch/15/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/15/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -2290,6 +2306,7 @@ int 	Xchannel15_max = sizeof(Xchannel15) / sizeof(X32command);
 
 
 X32command Xchannel16[] = {
+		{"/ch/16",						{CHCO}, F_FND, {0}},
 		{"/ch/16/config",				{CHCO}, F_FND, {0}},
 		{"/ch/16/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/16/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -2442,6 +2459,7 @@ int 	Xchannel16_max = sizeof(Xchannel16) / sizeof(X32command);
 
 
 X32command Xchannel17[] = {
+		{"/ch/17",						{CHCO}, F_FND, {0}},
 		{"/ch/17/config",				{CHCO}, F_FND, {0}},
 		{"/ch/17/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/17/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -2594,6 +2612,7 @@ int 	Xchannel17_max = sizeof(Xchannel17) / sizeof(X32command);
 
 
 X32command Xchannel18[] = {
+		{"/ch/18",						{CHCO}, F_FND, {0}},
 		{"/ch/18/config",				{CHCO}, F_FND, {0}},
 		{"/ch/18/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/18/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -2746,6 +2765,7 @@ int 	Xchannel18_max = sizeof(Xchannel18) / sizeof(X32command);
 
 
 X32command Xchannel19[] = {
+		{"/ch/19",						{CHCO}, F_FND, {0}},
 		{"/ch/19/config",				{CHCO}, F_FND, {0}},
 		{"/ch/19/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/19/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -2898,6 +2918,7 @@ int 	Xchannel19_max = sizeof(Xchannel19) / sizeof(X32command);
 
 
 X32command Xchannel20[] = {
+		{"/ch/20",						{CHCO}, F_FND, {0}},
 		{"/ch/20/config",				{CHCO}, F_FND, {0}},
 		{"/ch/20/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/20/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -3050,6 +3071,7 @@ int 	Xchannel20_max = sizeof(Xchannel20) / sizeof(X32command);
 
 
 X32command Xchannel21[] = {
+		{"/ch/21",						{CHCO}, F_FND, {0}},
 		{"/ch/21/config",				{CHCO}, F_FND, {0}},
 		{"/ch/21/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/21/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -3202,6 +3224,7 @@ int 	Xchannel21_max = sizeof(Xchannel21) / sizeof(X32command);
 
 
 X32command Xchannel22[] = {
+		{"/ch/22",						{CHCO}, F_FND, {0}},
 		{"/ch/22/config",				{CHCO}, F_FND, {0}},
 		{"/ch/22/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/22/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -3354,6 +3377,7 @@ int 	Xchannel22_max = sizeof(Xchannel22) / sizeof(X32command);
 
 
 X32command Xchannel23[] = {
+		{"/ch/23",						{CHCO}, F_FND, {0}},
 		{"/ch/23/config",				{CHCO}, F_FND, {0}},
 		{"/ch/23/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/23/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -3506,6 +3530,7 @@ int 	Xchannel23_max = sizeof(Xchannel23) / sizeof(X32command);
 
 
 X32command Xchannel24[] = {
+		{"/ch/24",						{CHCO}, F_FND, {0}},
 		{"/ch/24/config",				{CHCO}, F_FND, {0}},
 		{"/ch/24/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/24/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -3658,6 +3683,7 @@ int 	Xchannel24_max = sizeof(Xchannel24) / sizeof(X32command);
 
 
 X32command Xchannel25[] = {
+		{"/ch/25",						{CHCO}, F_FND, {0}},
 		{"/ch/25/config",				{CHCO}, F_FND, {0}},
 		{"/ch/25/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/25/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -3810,6 +3836,7 @@ int 	Xchannel25_max = sizeof(Xchannel25) / sizeof(X32command);
 
 
 X32command Xchannel26[] = {
+		{"/ch/26",						{CHCO}, F_FND, {0}},
 		{"/ch/26/config",				{CHCO}, F_FND, {0}},
 		{"/ch/26/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/26/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -3962,6 +3989,7 @@ int 	Xchannel26_max = sizeof(Xchannel26) / sizeof(X32command);
 
 
 X32command Xchannel27[] = {
+		{"/ch/27",						{CHCO}, F_FND, {0}},
 		{"/ch/27/config",				{CHCO}, F_FND, {0}},
 		{"/ch/27/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/27/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -4114,6 +4142,7 @@ int 	Xchannel27_max = sizeof(Xchannel27) / sizeof(X32command);
 
 
 X32command Xchannel28[] = {
+		{"/ch/28",						{CHCO}, F_FND, {0}},
 		{"/ch/28/config",				{CHCO}, F_FND, {0}},
 		{"/ch/28/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/28/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -4266,6 +4295,7 @@ int 	Xchannel28_max = sizeof(Xchannel28) / sizeof(X32command);
 
 
 X32command Xchannel29[] = {
+		{"/ch/29",						{CHCO}, F_FND, {0}},
 		{"/ch/29/config",				{CHCO}, F_FND, {0}},
 		{"/ch/29/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/29/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -4418,6 +4448,7 @@ int 	Xchannel29_max = sizeof(Xchannel29) / sizeof(X32command);
 
 
 X32command Xchannel30[] = {
+		{"/ch/30",						{CHCO}, F_FND, {0}},
 		{"/ch/30/config",				{CHCO}, F_FND, {0}},
 		{"/ch/30/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/30/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -4570,6 +4601,7 @@ int 	Xchannel30_max = sizeof(Xchannel30) / sizeof(X32command);
 
 
 X32command Xchannel31[] = {
+		{"/ch/31",						{CHCO}, F_FND, {0}},
 		{"/ch/31/config",				{CHCO}, F_FND, {0}},
 		{"/ch/31/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/31/config/icon",		{I32}, F_XET, {0}},			// 2
@@ -4722,6 +4754,7 @@ int 	Xchannel31_max = sizeof(Xchannel31) / sizeof(X32command);
 
 
 X32command Xchannel32[] = {
+		{"/ch/32",						{CHCO}, F_FND, {0}},
 		{"/ch/32/config",				{CHCO}, F_FND, {0}},
 		{"/ch/32/config/name",		{S32}, F_XET, {0}},			// 1
 		{"/ch/32/config/icon",		{I32}, F_XET, {0}},			// 2
