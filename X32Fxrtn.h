@@ -9,6 +9,8 @@
 #define X32FXRTN_H_
 
 X32command Xfxrtn01[] = {
+		{"/fxrtn",							{CHCO}, F_FND, {0}},
+		{"/fxrtn/01",						{CHCO}, F_FND, {0}},
 		{"/fxrtn/01/config",				{CHCO}, F_FND, {0}},
 		{"/fxrtn/01/config/name",		{S32}, F_XET, {0}},
 		{"/fxrtn/01/config/icon",		{I32}, F_XET, {0}},
@@ -116,6 +118,7 @@ int Xfxrtn01_max = sizeof(Xfxrtn01) / sizeof(X32command);
 
 
 X32command Xfxrtn02[] = {
+		{"/fxrtn/02",						{CHCO}, F_FND, {0}},
 		{"/fxrtn/02/config",				{CHCO}, F_FND, {0}},
 		{"/fxrtn/02/config/name",		{S32}, F_XET, {0}},
 		{"/fxrtn/02/config/icon",		{I32}, F_XET, {0}},
@@ -223,6 +226,7 @@ int Xfxrtn02_max = sizeof(Xfxrtn02) / sizeof(X32command);
 
 
 X32command Xfxrtn03[] = {
+		{"/fxrtn/03",						{CHCO}, F_FND, {0}},
 		{"/fxrtn/03/config",				{CHCO}, F_FND, {0}},
 		{"/fxrtn/03/config/name",		{S32}, F_XET, {0}},
 		{"/fxrtn/03/config/icon",		{I32}, F_XET, {0}},
@@ -330,6 +334,7 @@ int Xfxrtn03_max = sizeof(Xfxrtn03) / sizeof(X32command);
 
 
 X32command Xfxrtn04[] = {
+		{"/fxrtn/04",						{CHCO}, F_FND, {0}},
 		{"/fxrtn/04/config",				{CHCO}, F_FND, {0}},
 		{"/fxrtn/04/config/name",		{S32}, F_XET, {0}},
 		{"/fxrtn/04/config/icon",		{I32}, F_XET, {0}},
@@ -437,6 +442,7 @@ int Xfxrtn04_max = sizeof(Xfxrtn04) / sizeof(X32command);
 
 
 X32command Xfxrtn05[] = {
+		{"/fxrtn/05",						{CHCO}, F_FND, {0}},
 		{"/fxrtn/05/config",				{CHCO}, F_FND, {0}},
 		{"/fxrtn/05/config/name",		{S32}, F_XET, {0}},
 		{"/fxrtn/05/config/icon",		{I32}, F_XET, {0}},
@@ -544,6 +550,7 @@ int Xfxrtn05_max = sizeof(Xfxrtn05) / sizeof(X32command);
 
 
 X32command Xfxrtn06[] = {
+		{"/fxrtn/06",						{CHCO}, F_FND, {0}},
 		{"/fxrtn/06/config",				{CHCO}, F_FND, {0}},
 		{"/fxrtn/06/config/name",		{S32}, F_XET, {0}},
 		{"/fxrtn/06/config/icon",		{I32}, F_XET, {0}},
@@ -651,6 +658,7 @@ int Xfxrtn06_max = sizeof(Xfxrtn06) / sizeof(X32command);
 
 
 X32command Xfxrtn07[] = {
+		{"/fxrtn/07",						{CHCO}, F_FND, {0}},
 		{"/fxrtn/07/config",				{CHCO}, F_FND, {0}},
 		{"/fxrtn/07/config/name",		{S32}, F_XET, {0}},
 		{"/fxrtn/07/config/icon",		{I32}, F_XET, {0}},
@@ -758,6 +766,7 @@ int Xfxrtn07_max = sizeof(Xfxrtn07) / sizeof(X32command);
 
 
 X32command Xfxrtn08[] = {
+		{"/fxrtn/08",						{CHCO}, F_FND, {0}},
 		{"/fxrtn/08/config",				{CHCO}, F_FND, {0}},
 		{"/fxrtn/08/config/name",		{S32}, F_XET, {0}},
 		{"/fxrtn/08/config/icon",		{I32}, F_XET, {0}},
