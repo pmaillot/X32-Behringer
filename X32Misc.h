@@ -1,7 +1,7 @@
 /*
  * X32Misc.h
  *
- *  Created on: 4 févr. 2015
+ *  Created on: 4 fÃ©vr. 2015
  *      Author: patrick
  */
 
@@ -10,7 +10,7 @@
 
 X32command Xmisc[] = {
 
-//		{"/-usb",									{USB}, F_FND, {0}},
+		{"/-usb",									{USB}, F_FND, {0}},
 		{"/-usb/path",							{S32}, F_XET, {0}},
 		{"/-usb/title",							{S32}, F_XET, {0}},
 		{"/-usb/maxpos",						{I32}, F_XET, {0}},
@@ -127,6 +127,9 @@ X32command Xmisc[] = {
 		{"/insert/aux/5",			{I32}, F_XET, {0}},
 		{"/insert/aux/6",			{I32}, F_XET, {0}},
 
+		{"/-ha",				{HA}, F_FND, {0}},
+		{"/-ha/00",				{HA}, F_FND, {0}},
+		{"/-ha/00/index",	{I32}, F_XET, {0}},
 		{"/-ha/01/index",	{I32}, F_XET, {0}},
 		{"/-ha/02/index",	{I32}, F_XET, {0}},
 		{"/-ha/03/index",	{I32}, F_XET, {0}},
@@ -159,6 +162,13 @@ X32command Xmisc[] = {
 		{"/-ha/30/index",	{I32}, F_XET, {0}},
 		{"/-ha/31/index",	{I32}, F_XET, {0}},
 		{"/-ha/32/index",	{I32}, F_XET, {0}},
+		{"/-ha/33/index",	{I32}, F_XET, {0}},
+		{"/-ha/34/index",	{I32}, F_XET, {0}},
+		{"/-ha/35/index",	{I32}, F_XET, {0}},
+		{"/-ha/36/index",	{I32}, F_XET, {0}},
+		{"/-ha/37/index",	{I32}, F_XET, {0}},
+		{"/-ha/38/index",	{I32}, F_XET, {0}},
+		{"/-ha/39/index",	{I32}, F_XET, {0}},
 
 };
 int Xmisc_max = sizeof(Xmisc) / sizeof(X32command);
