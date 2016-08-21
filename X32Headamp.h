@@ -1,7 +1,7 @@
 /*
  * X32Headamp.h
  *
- *  Created on: 4 févr. 2015
+ *  Created on: 4 fÃ©vr. 2015
  *      Author: patrick
  */
 
@@ -9,6 +9,7 @@
 #define X32HEADAMP_H_
 
 X32command Xheadamp[] = {
+		{"/headamp",							{HAMP}, F_FND, {0}},
 		{"/headamp/000",						{HAMP}, F_FND, {0}},
 		{"/headamp/000/gain",				{F32}, F_XET, {0}},
 		{"/headamp/000/phantom",			{I32}, F_XET, {0}},
