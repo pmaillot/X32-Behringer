@@ -414,7 +414,7 @@ Say you want to be able to save those parameters that are not handled  by shows,
 
 That's what the "DeskSave" option of the tool will offer... but wait! there's more: You can also save scenes, routing presets or any type of file or settings based on a pattern file (a scene, any set of commands, etc.); what the "Pattern" option does is read a file you selected by pressing on the "Pat.File" button, extract the X32 commands from this file and send the extracted commands to X32 to retrieve the values from your X32. These are saved in the file you select using the "Save As" button. Of course you don't need to select a pattern file if you choose "Scene" or "Routing" options.
 
-Saving a full X32 Scene takes about 3 seconds (over WiFi), saving Routing or State/Preferences takes about 1.5 second.
+Saving a full X32 Scene takes about 3 seconds (over WiFi), saving Routing or State/Preferences takes about 1.5 seconds.
 
 The restore utility is rather similar and enables you to select a file as a source of commands and values to be restored to your X32. It can be any of the files you saved using X32DeskSave, but it can also be an actual X32 Scene or an X32 Snippet file you saved directly on your system and imported you your PC.
 
