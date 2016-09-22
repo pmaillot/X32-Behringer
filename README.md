@@ -417,6 +417,8 @@ Usage: X32Replay [-i X32 console ipv4 address] -default: 192.168.0.64
 
 ### X32DeskSave  / X32DeskRestore ###
 
+![X32DeskSave.jpg](http://sites.google.com/site/patrickmaillot/x32/X32DeskSave.jpg)
+
 X32DeskSave  / X32DeskRestore: Save and Restore your X32 Preferences and State, Scene, Routing, Commands
 
 Say you want to be able to save those parameters that are not handled  by shows, scenes, snippets, cues, presets, routing or effects files... So when you connect to your desk, it is exactly as you want it: screen, light brightness, view, etc.
@@ -433,3 +435,6 @@ For both utilities, you need to connect to your X32, select the files or options
 Attention!,
 This will not save/restore your current X32 show; for this you will need to use X32GetShow/X32SetShow.
 This will not save/restore all X32 current libraries types; for this you will need to use X32GetLib/X32SetLib
+
+![X32DeskRestore.jpg](http://sites.google.com/site/patrickmaillot/x32/X32DeskRestore.jpg)
+
