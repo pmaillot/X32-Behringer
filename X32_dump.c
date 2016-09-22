@@ -3,6 +3,9 @@
  *
  *  Created on: Nov. 5, 2014
  *      Author: Patrick-Gilles Maillot
+ *
+ *  Updated Sep. 1 2016 to support /meters/16 type (X32 fw 3.04)
+ *
  */
 
 #include <stdio.h>
@@ -87,8 +90,30 @@ void Xdump(char *buf, int len, int debug)
 								for (k = 0; k < 2; endian.c1[k++] = buf[data++]);
 								endian.f1 = (float)endian.si[0] / 256.0;
 								// for (k = 4; k > 0; endian.c1[--k] = buf[data++]);
-								printf("%07.2f ", endian.f1);
+								printf("[%d] %07.2f ", j, endian.f1);
 							}
+						} else if(strncmp(buf, "/meters/16", 10) == 0) {
+							n = endian.i1 * 2;
+							printf("M/16: %d shorts\n", n);
+							for (j = 0; j < n - 8; j++) {
+								//printf("%02x %02x, ", (unsigned char)buf[data], (unsigned char)buf[data+1]);
+								for (k = 0; k < 2; endian.c1[k++] = buf[data++]);
+								endian.f1 = (float)endian.si[0] / 32767.0;
+								if (j < 32) printf("[%d: G %07.2f] ", j, endian.f1);
+								if (j < 64) printf("[%d: C %07.2f] ", j, endian.f1);
+								if (j < 80) printf("[%d: B %07.2f] ", j, endian.f1);
+								if (j < 86) printf("[%d: M %07.2f] ", j, endian.f1);
+								if (j == 86) printf("[%d:LR %07.2f] ", j, endian.f1);
+								if (j == 87) printf("[%d:MC %07.2f] ", j, endian.f1);
+							}
+							for (; j < n; j++) {
+								//printf("%02x %02x, ", (unsigned char)buf[data], (unsigned char)buf[data+1]);
+								for (k = 0; k < 2; endian.c1[k++] = buf[data++]);
+								endian.f1 = (float)endian.si[0] / 256.0;
+								printf("[%d: A %07.2f] ", j, endian.f1);
+							}
+							printf("\n");
+
 						} else {
 							n = endian.i1;
 							printf("%d flts: ", n);
