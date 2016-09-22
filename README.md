@@ -112,6 +112,15 @@ usage: X32Tap [-i X32 console ipv4 address]
  <cr> to set tempo
 ```
 
+
+### X32Tap (Windows) ###
+![X32Tap.jpg](https://sites.google.com/site/patrickmaillot/x32/4TAP.jpg)
+
+A utility similar to the non-GUI version above, but for WIndows and capable of setting Tap Tempo for any delay capable X32 effect and either from tapping tempo on the GUI button, or getting the tap tempo from consecutive audio signals on a chose X32 Channel. It checks for a delay capable effect to be on FX slots 1 to 4. If an effect is found, tempo can be set by clicking on the TAP button, or (can be simultaneous) from an audio channel; In all cases, tempo tap can be set between 0 and 3000ms.
+Please go to my website and download the documentation on how to best use the "auto" mode enabling audio tempo setting.
+
+
+
 ### X32 ###
 ![x32.jpg](https://bitbucket.org/repo/K9Ae7b/images/3945386401-x32.jpg)
 
