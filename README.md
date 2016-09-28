@@ -61,7 +61,8 @@ usage: X32_command [-i X32 console ipv4 address]
  If option -f file is used, the program runs in batch mode, taking data from
  the provided file until EOF has been reached, or 'exit' or 'kill' entered.
 
-Note: make sure the batch file is respecting unix standards (i.e. use notepad++ to create the file under Windows so EOL are made of only "\n" and not "\r\n").
+Note: make sure the batch file is respecting unix standards (i.e. use notepad++ to create
+the file under Windows so EOL are made of only "\n" and not "\r\n").
 
  While executing, the following commands can be used (without the quotes):
    '#line of text.....': will print out the input line as a comment line
@@ -81,7 +82,10 @@ All other commands are parsed and sent to X32.
       format: ',' ',i' ',f' ',s' or a combination: ',siss' ',ffiss' ...
       data: a list of int, float or string types separated by a space char...
 
-Note: Per OSC spec and in the format above OSC Type Tag String is "mandatory", therefore one should always provide at least a ',' to compete the OSC Address Pattern. This is nevertheless not necessary for X32 as the system accepts "older" notations where empty OSC Type Tag Strings are not present (see examples below)
+Note: Per OSC spec and in the format above OSC Type Tag String is "mandatory", therefore one 
+should always provide at least a ',' to compete the OSC Address Pattern. This is nevertheless 
+not necessary for X32 as the system accepts "older" notations where empty OSC Type Tag Strings 
+are not present (see examples below)
 
 
 Examples:
