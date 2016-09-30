@@ -431,7 +431,9 @@ That's what the "DeskSave" option of the tool will offer... but wait! there's mo
 
 Saving a full X32 Scene takes about 3 seconds (over WiFi), saving Routing or State/Preferences takes about 1.5 seconds.
 
-The restore utility is rather similar and enables you to select a file as a source of commands and values to be restored to your X32. It can be any of the files you saved using X32DeskSave, but it can also be an actual X32 Scene or an X32 Snippet file you saved directly on your system and imported you your PC.
+![X32DeskRestore.jpg](http://sites.google.com/site/patrickmaillot/x32/X32DeskRestore.jpg)
+
+The restore utility is rather similar and enables you to select a file as a source of commands and values to be restored to your X32. It can be any of the files you saved using X32DeskSave, but it can also be an actual X32 Scene or an X32 Snippet file you saved directly on your system and imported into your PC.
 
 For both utilities, you need to connect to your X32, select the files or options you want to use. The status line under the "SaveDeskData" or "RestoreDeskData" buttons will indicate "Ready" meaning the utility has the information it needs to perform an operation. "Complete" will indicate the completion of the save or restore action. Other status lines will indicate actions you should take prior to using the utility.
 
@@ -440,5 +442,4 @@ Attention!,
 This will not save/restore your current X32 show; for this you will need to use X32GetShow/X32SetShow.
 This will not save/restore all X32 current libraries types; for this you will need to use X32GetLib/X32SetLib
 
-![X32DeskRestore.jpg](http://sites.google.com/site/patrickmaillot/x32/X32DeskRestore.jpg)
 
