@@ -11,6 +11,7 @@
 FILE	*fp;
 
 typedef enum {
+	P_CHR,				// Parameter is a single char (i.e.  xxx='A')
 	P_INT,				// Parameter is an int (i.e.  xxx=10)
 	P_FLT,				// Parameter is a float (i.e. xxx=10.23)
 	P_STR,				// Parameter is a string (i.e. xxx=a string of some sort)
@@ -19,6 +20,7 @@ typedef enum {
 } Ptype;
 
 typedef union  {
+	char	c1;
 	char*	s1;
 	int		i1;
 	float	f1;
@@ -67,6 +69,9 @@ int LineParse(char* line, Param* par_tab) {
 	while (par_tab->param_name != 0) {
 		if (strcmp(par_tab->param_name, line) == 0) {
 			switch (par_tab->param_type) {
+			case P_CHR:	// save char directly in par_tab field
+				sscanf(start, "%c", &par_tab->param_data.c1);
+				break;
 			case P_INT:	// save int directly in par_tab field
 				sscanf(start, "%d", &par_tab->param_data.i1);
 				break;
