@@ -20,6 +20,7 @@
  *    0.10: fixed bug in the Bank selection; added a Record imply Play selection option
  *    0.11: got rid of "reset temp file"; added a default select for MTC vs. LTC
  *    0.12: forgot Xrecord flag in XExecuteReadMerge(); changed text Midi: ON/OFF & MERGE: ON/OFF
+ *    0.13: code cleanup; better handling of catchup when REW button/GUI is used
  */
 #include <winsock2.h>
 #include <mmsystem.h>	/* Multimedia functions (such as MIDI) for Windows */
@@ -69,6 +70,7 @@ extern void FreeParse(Param* par_tab);
 // Private functions
 void CALLBACK XReceiveMidi(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance, DWORD dwParam1, DWORD dwParam2);
 void XClearDisplay();
+void XDisplayMTC();
 void XDisplayLocalTimer();
 void XDisplayMidiTimer();
 void XWriteAndSend(int send);
@@ -209,6 +211,7 @@ int					Xmerge = 0;					// button MERGE: ON state
 int					Xpause = 0;					// button PAUSE state
 int					Xrecord = 0;				// button RECORD state
 int					Xfiledataready = 0;			// indicates if a record should be treated
+int					XfRate[] = {41666, 40000, 33366, 33333}; // 1/24, 1/25, 1/30 drop, 1/30 fps
 char				XInMidiNames[16][32];		// List of Midi IN devices (limit 16)
 char				XOutMidiNames[16][32];		// List of Midi OUT devices (limit 16)
 //
@@ -224,7 +227,8 @@ struct timeval		timeout;					// timeout for non blocking udp comm
 fd_set 				ufds;						// file descriptor
 int 				Xip_len = sizeof(Xip);		// length of addresses
 //
-struct timeval		t_now, t_before, t_play, t_pause;	// time structures
+struct timeval		t_1sec = {1, 0};			// 1 second timer
+struct timeval		t_now, t_before, t_play, t_pause, t_rew;	// time structures
 struct timeval		dt_read, dt_play;			// dt_read: from the file, dt_play: t_now - t_play
 char				xremote[12] = "/xremote";	// extra chars are set to \0
 //
@@ -281,9 +285,9 @@ char				xremote[12] = "/xremote";	// extra chars are set to \0
 #ifndef timercmp
 #define timercmp(a, b, CMP)									\
 	do {													\
-		(((a)->tv_sec != (b)->tv_sec) ?						\
-		((a)->tv_sec CMP (b)->tv_sec)) :					\
-		((a)->tv_usec CMP (b)->tv_usec)						\
+		  (((a)->tv_sec == (b)->tv_sec) ?					\
+		   ((a)->tv_usec CMP (b)->tv_usec) :				\
+		   ((a)->tv_sec CMP (b)->tv_sec))					\
 	} while (0)
 #endif
 //
@@ -306,7 +310,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 220, wWidth, wHeight, 0, 0, hInstance, 0);
 //
 // some initializations needed:
-	t_pause.tv_sec = t_pause.tv_usec = t_before.tv_sec  = 0;	// used for Xremote (don't care about .tv_usec member)
+	t_pause.tv_sec = t_pause.tv_usec = t_before.tv_sec = t_rew.tv_sec  = 0;	// used for Xremote (don't care about .tv_usec member)
 	XMconnected = Xconnected = Xplay = Xpunch = Xrecord = Xmerge = Xpause = 0;
 //
 // Main loop
@@ -322,9 +326,23 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 				SEND_TO(xremote, 12)
 				t_before = t_now;
 			}
+			// t_rew.tv_sec is typically = to 0, except when REW has been hit.
+			// a timeout of 1 second enables to ensure there's been enough time after a REW
+			// command to set catchback mode, enabling the tool to play as quickly as possible
+			// already recorded commands to attain the state it should be at for the new cursor
+			// position
+			if (t_rew.tv_sec) {
+				if(timercmp(&t_now, &t_rew, >)) {
+					XCtachBack = 1;
+				}
+			}
+			// XCtachBack can be set either if REW has been hit (1 second after the last hit)
+			// or if the DAW cursor was moved back in time, getting MTC to be reset using a MIDI
+			// SYSEX set time command
 			if (XCtachBack) {
 				XCatchBackProc();
 				XCtachBack = 0;
+				t_rew.tv_sec = 0;
 			}
 			if (Xplay) {
 				if (!Xpause) {
@@ -501,7 +519,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		TextOut(hdc, 5, 67, str1, wsprintf(str1, "MIDIin:"));
 		TextOut(hdc, 5, 92, str1, wsprintf(str1, "MIDIout:"));
 		TextOut(hdc, 5, 117, str1, wsprintf(str1, "X32Scene:"));
-		TextOut(hdc, 223, 15, str1, wsprintf(str1, "ver. 0.12"));
+		TextOut(hdc, 223, 15, str1, wsprintf(str1, "ver. 0.13"));
 		DeleteObject(htmp);
 		DeleteObject(hfont);
 		//
@@ -649,7 +667,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 						XInitUsrCtrl();
 						close(Xfd);
 					}
-					t_pause.tv_sec = t_pause.tv_usec = t_before.tv_sec  = 0;
+					t_pause.tv_sec = t_pause.tv_usec = t_before.tv_sec  = t_rew.tv_sec = 0;
 					XMconnected = Xconnected = Xplay = Xpunch = Xrecord = Xmerge = Xpause = 0;
 				}
 				break;
@@ -793,12 +811,7 @@ void CALLBACK XReceiveMidi(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance,
 				break;
 			case 0x70:
 				Xmidihr = (Xmidihr & 0x0f) | ((i & 1) << 4);
-				switch (i & 0x06) {
-					case 0x00: Xfrrate = 41666; break; // 1/24 fps
-					case 0x02: Xfrrate = 40000; break; // 1/25 fps
-					case 0x04: Xfrrate = 33366; break; // 1/30 fps drop frame
-					case 0x06: Xfrrate = 33333; break; // 1/30 fps
-				}
+				Xfrrate = XfRate[(i >> 1) & 0x03];
 				break;
 			}
 			// set dt_play accordingly (convert MTC to LTC)
@@ -816,12 +829,7 @@ void CALLBACK XReceiveMidi(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance,
 			if ((unsigned char)hmidiheader->lpData[1] == 0x7f) {
 				if ((unsigned char)hmidiheader->lpData[3] == 0x01) {	// SYSEX MTC signature
 					if ((unsigned char)hmidiheader->lpData[4] == 0x01) {
-						switch (hmidiheader->lpData[5] & 0x60) {
-							case 0x00: Xfrrate = 41666; break; 			// 1/24 fps
-							case 0x20: Xfrrate = 40000; break; 			// 1/25 fps
-							case 0x40: Xfrrate = 33366; break; 			// 1/30 fps drop frame
-							case 0x60: Xfrrate = 33333; break; 			// 1/30 fps
-						}
+						Xfrrate = XfRate[(hmidiheader->lpData[5] >> 5) & 0x03];
 						Xmidihr = hmidiheader->lpData[5] & 0x1f;		// get time data
 						Xmidimn = hmidiheader->lpData[6];				// hr:mn:ss:fr
 						Xmidiss = hmidiheader->lpData[7];				// on 4
@@ -832,17 +840,20 @@ void CALLBACK XReceiveMidi(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance,
 						// if the new MTC is less (a little or a lot) than the expected MTC, then we'll
 						// have to make serious changes to the state of the files.
 						//
-						if (Xmidihr < Xoldmidihr) {
-							XCtachBack = 1;
-						} else if (Xmidihr == Xoldmidihr) {
-							if (Xmidimn < Xoldmidimn) {
+						// we do this only if a REW command is not already ongoing
+						if (t_rew.tv_sec == 0) {
+							if (Xmidihr < Xoldmidihr) {
 								XCtachBack = 1;
-							} else if (Xmidimn == Xoldmidimn) {
-								if (Xmidiss < Xoldmidiss) {
+							} else if (Xmidihr == Xoldmidihr) {
+								if (Xmidimn < Xoldmidimn) {
 									XCtachBack = 1;
-								} else if (Xmidiss == Xoldmidiss) {
-									if (Xmidifr < Xoldmidifr) {
+								} else if (Xmidimn == Xoldmidimn) {
+									if (Xmidiss < Xoldmidiss) {
 										XCtachBack = 1;
+									} else if (Xmidiss == Xoldmidiss) {
+										if (Xmidifr < Xoldmidifr) {
+											XCtachBack = 1;
+										}
 									}
 								}
 							}
@@ -851,7 +862,6 @@ void CALLBACK XReceiveMidi(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance,
 						// either the timer is up to date, or has been moved to
 						// passed beyond the current time; in that later case, the
 						// program will quickly catch-up all needed changes
-
 						if (XCtachBack == 0) {
 							XDisplayMidiTimer();	// update midi time if appropriate
 						}
@@ -893,7 +903,7 @@ int main(int argc, char **argv) {
 	// load resource file data
 	r_len = FileParse("./.X32PunchControl.ini", MyParameters);
 	wWinMain(hInstance, hPrevInstance, pCmdLine, nCmdFile);
-//
+	//
 	FreeParse(MyParameters);
 	return 0;
 }
@@ -966,6 +976,20 @@ void XCatchBackProc() {
 	return;
 }
 //
+// XDisplayMTC()
+// Does what it says :)
+void XDisplayMTC() {
+	hfont = CreateFont(14, 0, 0, 0, FW_LIGHT, 0, 0, 0,
+		DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
+		ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
+	htmp = (HFONT) SelectObject(hdc, hfont);
+	TextOut(hdc, 517, 14, "M", 1);
+	TextOut(hdc, 518, 25, "T", 1);
+	TextOut(hdc, 518, 36, "C", 1);
+	DeleteObject(htmp);
+	DeleteObject(hfont);
+}
+//
 // XClearDisplay()
 // Clears the LTC/MTC window area
 // This is done by displaying a series of spaces
@@ -984,15 +1008,7 @@ void XClearDisplay() {
 	//
 	// if needded, display MTC logo using the appropriate font
 	if (XMTCon) {
-		hfont = CreateFont(14, 0, 0, 0, FW_LIGHT, 0, 0, 0,
-			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
-			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
-		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 517, 14, "M", 1);
-		TextOut(hdc, 518, 25, "T", 1);
-		TextOut(hdc, 518, 36, "C", 1);
-		DeleteObject(htmp);
-		DeleteObject(hfont);
+		XDisplayMTC();
 	}
 	ReleaseDC(Ghwnd, hdc);
 	return;
@@ -1016,15 +1032,7 @@ void XDisplayMidiTimer() {
 		DeleteObject(hfont);
 		//
 		// display MTC logo using appropriate font
-		hfont = CreateFont(14, 0, 0, 0, FW_LIGHT, 0, 0, 0,
-			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
-			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
-		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 517, 14, "M", 1);
-		TextOut(hdc, 518, 25, "T", 1);
-		TextOut(hdc, 518, 36, "C", 1);
-		DeleteObject(htmp);
-		DeleteObject(hfont);
+		XDisplayMTC();
 		ReleaseDC(Ghwnd, hdc);
 		//
 		// set dt_play accordingly (convert MTC to LTC)
@@ -1297,6 +1305,7 @@ void XPauseGUI() {
 // XFfGUI()
 // fast Forward or End Of Track.
 void XFfGUI() {
+	// send FF or EOT command
 	XSendMidi(Xmidi_eot_str);
 	return;
 }
@@ -1304,6 +1313,9 @@ void XFfGUI() {
 // XRewGUI()
 // rewind or Beginning of track.
 void XRewGUI() {
+	// get time for this REW request
+	timeradd(&t_now, &t_1sec, &t_rew);
+	// send REW or BOT command
 	XSendMidi(Xmidi_bot_str);
 	return;
 }
@@ -1426,7 +1438,6 @@ int  XMidiConnect() {
 // XSendMidi()
 // sending MIDI data to MIDI out
 void XSendMidi(char *XMidi_str) {
-
 	if (XMconnected && Xusemidi) {
 		MidiOutHdr.lpData = XMidi_str + 1;
 		MidiOutHdr.dwBufferLength = (int)XMidi_str[0];
@@ -1512,13 +1523,13 @@ int XListMidiOutDevices() {
 	int 			i, NumDevs;
 	MIDIOUTCAPS		moc;
 //
-	NumDevs = midiOutGetNumDevs();  	/* Get the number of MIDI Out devices in this computer */
-	/* Go through all of those devices, displaying their names */
+	NumDevs = midiOutGetNumDevs();  	// Get the number of MIDI Out devices in this computer
+	// Go through all of those devices, displaying their names
 	strcpy(XOutMidiNames[0], "Off");
 	for (i = 0; i < NumDevs; i++) {
-		/* Get info about the next device */
+		// Get info about the next device
 		if (!midiOutGetDevCaps(i, &moc, sizeof(MIDIOUTCAPS))) {
-			/* Display its Device ID and name */
+			// Display its Device ID and name
 			strncpy(XOutMidiNames[i + 1], moc.szPname, 31);
 			XOutMidiNames[i + 1][31] = 0;
 		}
@@ -1532,13 +1543,13 @@ int XListMidiInDevices() {
 	int 			i, NumDevs;
 	MIDIINCAPS		mic;
 //
-	NumDevs = midiInGetNumDevs();  	/* Get the number of MIDI In devices in this computer */
-	/* Go through all of those devices, displaying their names */
+	NumDevs = midiInGetNumDevs();  	// Get the number of MIDI In devices in this computer
+	// Go through all of those devices, displaying their names
 	strcpy(XInMidiNames[0], "Off");
 	for (i = 0; i < NumDevs; i++) {
-		/* Get info about the next device */
+		// Get info about the next device
 		if (!midiInGetDevCaps(i, &mic, sizeof(MIDIINCAPS))) {
-			/* Display its Device ID and name */
+			// Display its Device ID and name
 			strncpy(XInMidiNames[i + 1], mic.szPname, 31);
 			XInMidiNames[i + 1][31] = 0;
 		}
