@@ -650,6 +650,8 @@ char*		Scolor[] = {" OFF", " RD", " GN", " YE", " BL", " MG", " CY", " WH",
 
 char*		Sfslope[] = {" 12", " 18", " 24"};
 
+char*		Samix[] = {" OFF", " X", " Y"};
+
 char*		Sgmode[] = {" EXP2", " EXP3", " EXP4", " GATE", " DUCK"};
 
 char*		Sgftype[] = {" LC6", " LC12", " HC6", " HC12", " 1.0", " 2.0", " 3.0", " 5.0", " 10.0"};
