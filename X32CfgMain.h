@@ -186,6 +186,9 @@ X32command Xconfig[] = {
 		{"/config/tape/gainL",				{F32}, F_XET, {0}},
 		{"/config/tape/gainR",				{F32}, F_XET, {0}},
 		{"/config/tape/autoplay",			{I32}, F_XET, {0}},
+		{"/config/amixenable",					{CMIX}, F_FND, {0}},
+		{"/config/amixenable/X",			{I32}, F_XET, {0}},
+		{"/config/amixenable/Y",			{I32}, F_XET, {0}},
 };
 int 	Xconfig_max = sizeof(Xconfig) / sizeof(X32command);
 
