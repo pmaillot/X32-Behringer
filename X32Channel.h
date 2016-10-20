@@ -159,6 +159,12 @@ X32command Xchannel01[] = {
 		{"/ch/01/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/01/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/01/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/01/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/01/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/01/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/01/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/01/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/01/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel01_max = sizeof(Xchannel01) / sizeof(X32command);
 
@@ -312,6 +318,12 @@ X32command Xchannel02[] = {
 		{"/ch/02/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/02/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/02/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/02/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/02/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/02/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/02/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/02/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/02/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel02_max = sizeof(Xchannel02) / sizeof(X32command);
 
@@ -465,6 +477,12 @@ X32command Xchannel03[] = {
 		{"/ch/03/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/03/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/03/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/03/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/03/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/03/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/03/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/03/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/03/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel03_max = sizeof(Xchannel03) / sizeof(X32command);
 
@@ -618,6 +636,12 @@ X32command Xchannel04[] = {
 		{"/ch/04/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/04/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/04/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/04/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/04/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/04/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/04/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/04/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/04/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel04_max = sizeof(Xchannel04) / sizeof(X32command);
 
@@ -771,6 +795,12 @@ X32command Xchannel05[] = {
 		{"/ch/05/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/05/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/05/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/05/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/05/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/05/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/05/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/05/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/05/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel05_max = sizeof(Xchannel05) / sizeof(X32command);
 
@@ -924,6 +954,12 @@ X32command Xchannel06[] = {
 		{"/ch/06/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/06/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/06/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/06/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/06/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/06/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/06/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/06/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/06/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel06_max = sizeof(Xchannel06) / sizeof(X32command);
 
@@ -1077,6 +1113,12 @@ X32command Xchannel07[] = {
 		{"/ch/07/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/07/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/07/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/07/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/07/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/07/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/07/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/07/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/07/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel07_max = sizeof(Xchannel07) / sizeof(X32command);
 
@@ -1230,6 +1272,12 @@ X32command Xchannel08[] = {
 		{"/ch/08/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/08/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/08/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/08/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/08/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/08/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/08/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/08/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/08/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel08_max = sizeof(Xchannel08) / sizeof(X32command);
 
@@ -1383,6 +1431,12 @@ X32command Xchannel09[] = {
 		{"/ch/09/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/09/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/09/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/09/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/09/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/09/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/09/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/09/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/09/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel09_max = sizeof(Xchannel09) / sizeof(X32command);
 
@@ -1536,6 +1590,12 @@ X32command Xchannel10[] = {
 		{"/ch/10/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/10/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/10/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/10/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/10/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/10/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/10/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/10/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/10/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel10_max = sizeof(Xchannel10) / sizeof(X32command);
 
@@ -1689,6 +1749,12 @@ X32command Xchannel11[] = {
 		{"/ch/11/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/11/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/11/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/11/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/11/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/11/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/11/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/11/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/11/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel11_max = sizeof(Xchannel11) / sizeof(X32command);
 
@@ -1842,6 +1908,12 @@ X32command Xchannel12[] = {
 		{"/ch/12/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/12/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/12/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/12/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/12/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/12/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/12/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/12/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/12/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel12_max = sizeof(Xchannel12) / sizeof(X32command);
 
@@ -1995,6 +2067,12 @@ X32command Xchannel13[] = {
 		{"/ch/13/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/13/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/13/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/13/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/13/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/13/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/13/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/13/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/13/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel13_max = sizeof(Xchannel13) / sizeof(X32command);
 
@@ -2148,6 +2226,12 @@ X32command Xchannel14[] = {
 		{"/ch/14/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/14/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/14/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/14/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/14/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/14/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/14/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/14/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/14/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel14_max = sizeof(Xchannel14) / sizeof(X32command);
 
@@ -2301,6 +2385,12 @@ X32command Xchannel15[] = {
 		{"/ch/15/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/15/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/15/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/15/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/15/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/15/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/15/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/15/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/15/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel15_max = sizeof(Xchannel15) / sizeof(X32command);
 
@@ -2454,6 +2544,12 @@ X32command Xchannel16[] = {
 		{"/ch/16/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/16/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/16/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/16/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/16/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/16/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/16/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/16/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/16/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel16_max = sizeof(Xchannel16) / sizeof(X32command);
 
@@ -2607,6 +2703,12 @@ X32command Xchannel17[] = {
 		{"/ch/17/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/17/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/17/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/17/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/17/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/17/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/17/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/17/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/17/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel17_max = sizeof(Xchannel17) / sizeof(X32command);
 
@@ -2760,6 +2862,12 @@ X32command Xchannel18[] = {
 		{"/ch/18/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/18/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/18/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/18/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/18/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/18/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/18/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/18/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/18/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel18_max = sizeof(Xchannel18) / sizeof(X32command);
 
@@ -2913,6 +3021,12 @@ X32command Xchannel19[] = {
 		{"/ch/19/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/19/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/19/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/19/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/19/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/19/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/19/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/19/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/19/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel19_max = sizeof(Xchannel19) / sizeof(X32command);
 
@@ -3066,6 +3180,12 @@ X32command Xchannel20[] = {
 		{"/ch/20/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/20/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/20/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/20/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/20/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/20/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/20/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/20/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/20/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel20_max = sizeof(Xchannel20) / sizeof(X32command);
 
@@ -3219,6 +3339,12 @@ X32command Xchannel21[] = {
 		{"/ch/21/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/21/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/21/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/21/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/21/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/21/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/21/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/21/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/21/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel21_max = sizeof(Xchannel21) / sizeof(X32command);
 
@@ -3372,6 +3498,12 @@ X32command Xchannel22[] = {
 		{"/ch/22/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/22/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/22/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/22/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/22/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/22/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/22/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/22/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/22/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel22_max = sizeof(Xchannel22) / sizeof(X32command);
 
@@ -3525,6 +3657,12 @@ X32command Xchannel23[] = {
 		{"/ch/23/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/23/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/23/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/23/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/23/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/23/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/23/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/23/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/23/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel23_max = sizeof(Xchannel23) / sizeof(X32command);
 
@@ -3678,6 +3816,12 @@ X32command Xchannel24[] = {
 		{"/ch/24/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/24/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/24/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/24/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/24/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/24/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/24/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/24/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/24/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel24_max = sizeof(Xchannel24) / sizeof(X32command);
 
@@ -3831,6 +3975,12 @@ X32command Xchannel25[] = {
 		{"/ch/25/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/25/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/25/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/25/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/25/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/25/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/25/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/25/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/25/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel25_max = sizeof(Xchannel25) / sizeof(X32command);
 
@@ -3984,6 +4134,12 @@ X32command Xchannel26[] = {
 		{"/ch/26/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/26/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/26/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/26/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/26/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/26/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/26/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/26/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/26/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel26_max = sizeof(Xchannel26) / sizeof(X32command);
 
@@ -4137,6 +4293,12 @@ X32command Xchannel27[] = {
 		{"/ch/27/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/27/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/27/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/27/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/27/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/27/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/27/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/27/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/27/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel27_max = sizeof(Xchannel27) / sizeof(X32command);
 
@@ -4290,6 +4452,12 @@ X32command Xchannel28[] = {
 		{"/ch/28/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/28/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/28/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/28/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/28/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/28/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/28/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/28/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/28/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel28_max = sizeof(Xchannel28) / sizeof(X32command);
 
@@ -4443,6 +4611,12 @@ X32command Xchannel29[] = {
 		{"/ch/29/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/29/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/29/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/29/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/29/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/29/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/29/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/29/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/29/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel29_max = sizeof(Xchannel29) / sizeof(X32command);
 
@@ -4596,6 +4770,12 @@ X32command Xchannel30[] = {
 		{"/ch/30/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/30/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/30/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/30/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/30/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/30/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/30/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/30/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/30/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel30_max = sizeof(Xchannel30) / sizeof(X32command);
 
@@ -4749,6 +4929,12 @@ X32command Xchannel31[] = {
 		{"/ch/31/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/31/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/31/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/31/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/31/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/31/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/31/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/31/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/31/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel31_max = sizeof(Xchannel31) / sizeof(X32command);
 
@@ -4902,6 +5088,12 @@ X32command Xchannel32[] = {
 		{"/ch/32/mix/16",				{CHME}, F_FND, {0}},
 		{"/ch/32/mix/16/on",		{I32}, F_XET, {0}},			// 144
 		{"/ch/32/mix/16/level",		{F32}, F_XET, {0}},			// 145
+		{"/ch/32/grp",					{CHGRP}, F_FND, {0}},
+		{"/ch/32/grp/dca",			{I32}, F_XET, {0}},
+		{"/ch/32/grp/mute",			{I32}, F_XET, {0}},
+		{"/ch/32/automix",				{CHAMIX}, F_FND, {0}},
+		{"/ch/32/automix/group",	{I32}, F_XET, {0}},
+		{"/ch/32/automix/weight",	{I32}, F_XET, {0}},
 };
 int 	Xchannel32_max = sizeof(Xchannel32) / sizeof(X32command);
 
