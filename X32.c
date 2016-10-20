@@ -12,6 +12,7 @@
 //               0.40 & 0.41: Accepts OSC empty Tag Strings to better conform to OSC standard
 //               0.50: updated parameters accepted for -stat, prefs, -action commands
 //               0.60: better handling of /node commands (/node ,s ch), (/node ,s fxrtn), etc...
+//               0.65: support for (some) 3.04 features
 //
 #ifdef __WIN32__
 #include <windows.h>
@@ -38,7 +39,7 @@
 #include <time.h>
 
 
-#define XVERSION       "2.16"            // FW version
+#define XVERSION       "3.07"            // FW version
 #define BSIZE             512            // Buffer sizes
 #define X32DEBUG            0            // default debug mode
 #define X32VERBOSE          1            // default verbose mode
@@ -68,8 +69,8 @@
 
 enum        types {NIL, I32, F32, S32, B32, A32, RES1, RES2, RES3, RES4, FX32,
                 OFFON, CMONO, CSOLO, CTALK, CTALKAB, COSC, CROUTIN, CROUTAC,
-                CROUTOT, CCTRL, CENC, CTAPE, CHCO, CHDE, CHPR, CHGA, CHGF, CHDY,
-                CHDF,CHIN, CHEQ, CHMX, CHMO, CHME, CHGRP, AXPR, BSCO, MXPR,
+                CROUTOT, CCTRL, CENC, CTAPE, CMIX, CHCO, CHDE, CHPR, CHGA, CHGF, CHDY,
+                CHDF,CHIN, CHEQ, CHMX, CHMO, CHME, CHGRP, CHAMIX, AXPR, BSCO, MXPR,
                 MXDY, MSMX, FXTYP1, FXSRC, FXPAR1, FXTYP2, FXPAR2, OMAIN, OMAIND,
                 HAMP, PREFS, PIR, PIQ, PCARD, PRTA, PIP, PADDR, PMASK, PGWAY,
 				STAT, SSCREEN, SCHA, SMET, SROU, SSET, SLIB, SFX, SMON, SUSB, SSCE, SASS,
@@ -133,6 +134,7 @@ int     FXc_lookup(int i);
 int     funct_params(X32command* command, int i);
 int     function_shutdown();
 int     function_info();
+int     function_xinfo();
 int     function_status();
 int     function_xremote();
 int     function_slash();
@@ -182,6 +184,7 @@ char    snode_str[32];             // used to temporarily save a string in node 
 X32header Xheader[] = {                       // X32 Headers, the data used for testing and the
         {{"/shu"},    &function_shutdown},    // associated function call
         {{"/inf"},    &function_info},
+        {{"/xin"},    &function_xinfo},
         {{"/sta"},    &function_status},
         {{"/xre"},    &function_xremote},
         {{"/nod"},    &function_node},
@@ -300,7 +303,9 @@ X32node Xnode[] = {            // /node Command Headers (see structure definitio
         {"mtx/05",   6, Xmtx05,     sizeof(Xmtx05)     / sizeof(X32command)},
         {"mtx/06",   6, Xmtx06,     sizeof(Xmtx06)     / sizeof(X32command)},
         {"dca",      3, Xdca,       sizeof(Xdca)       / sizeof(X32command)},
-        {"outputs",  8, Xoutput,    sizeof(Xoutput)    / sizeof(X32command)},
+        {"outputs",  			8, Xoutput,    sizeof(Xoutput)    / sizeof(X32command)},
+        {"outputs/main",  		8, Xoutput,    sizeof(Xoutput)    / sizeof(X32command)},
+        {"outputs/main/01",  	8, Xoutput,    sizeof(Xoutput)    / sizeof(X32command)},
         {"headamp",  8, Xheadamp,   sizeof(Xheadamp)   / sizeof(X32command)},
         {"-ha",      3, Xmisc,      sizeof(Xmisc)      / sizeof(X32command)},
         {"-usb",     4, Xmisc,      sizeof(Xmisc)      / sizeof(X32command)},
@@ -345,6 +350,7 @@ struct  sockaddr_in Client_ip, Server_ip;
 struct  sockaddr *Client_ip_pt = (struct sockaddr*) &Client_ip;
 struct  sockaddr *Server_ip_pt = (struct sockaddr*) &Server_ip;
 char    Xport_str[8];
+char    Xip_str[32];
 
 fd_set                readfds;
 struct timeval        timeout;
@@ -446,9 +452,9 @@ main(int argc, char **argv)
 // Wait for messages from client
     i = 0;
     r_len = 0;
-    printf("X32 - v0.60 - An X32 Emulator - (c)2014-2016 Patrick-Gilles Maillot\n");
+    printf("X32 - v0.65 - An X32 Emulator - (c)2014-2016 Patrick-Gilles Maillot\n");
     getmyIP(); // Try to get our IP...
-    if (Xverbose) printf("Listening to port %s, X32 IP = %s\n", Xport_str, r_buf);
+    if (Xverbose) printf("Listening to port %s, X32 IP = %s\n", Xport_str, Xip_str);
     while(keep_on) {            // Main, receiving loop (active as long as keep_on is 1)
         FD_ZERO (&readfds);
         FD_SET (Xfd, &readfds);
@@ -522,7 +528,7 @@ void getmyIP() {
 
     if(!gethostname(r_buf, 256) && (host = gethostbyname(r_buf)) != NULL) {
         for(pp = host->h_addr_list ; *pp != NULL ; pp++) {
-            strcpy (r_buf, (inet_ntoa(*(struct in_addr *)*pp))); // copy IP (string) address to r_buf
+            strcpy (Xip_str, (inet_ntoa(*(struct in_addr *)*pp))); // copy IP (string) address to r_buf
             // set IP address in local structure
             // search for /-prefs/ip/addr dataset
             for (i = 0; i < Xprefs_max; i++) {
@@ -555,7 +561,7 @@ void getmyIP() {
     for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next)
     {
         if (ifa->ifa_addr != NULL) {
-            if ((s = getnameinfo(ifa->ifa_addr,sizeof(struct sockaddr_in), r_buf, NI_MAXHOST, NULL, 0, NI_NUMERICHOST)) == 0) {
+            if ((s = getnameinfo(ifa->ifa_addr,sizeof(struct sockaddr_in), Xip_str, NI_MAXHOST, NULL, 0, NI_NUMERICHOST)) == 0) {
 // you typically have to replace "en0" by "wlan0", "eth0",... depending on your physical interface support
                 if ((strcmp(ifa->ifa_name,"en0") == 0) && (ifa->ifa_addr->sa_family == AF_INET))
                 {
@@ -1693,6 +1699,16 @@ int function_info() {
     return S_SND;        // send reply only to requesting client
 }
 
+int function_xinfo() {
+    s_len = Xsprint(s_buf, 0, 's', "/xinfo");
+    s_len = Xsprint(s_buf, s_len, 's', ",ssss");
+    s_len = Xsprint(s_buf, s_len, 's', Xip_str);
+    s_len = Xsprint(s_buf, s_len, 's', "osc-server");
+    s_len = Xsprint(s_buf, s_len, 's', "X32");
+    s_len = Xsprint(s_buf, s_len, 's', XVERSION);
+    return S_SND;        // send reply only to requesting client
+}
+
 int function_status() {
     getmyIP();    // get my IP in r_buf
 
@@ -1816,7 +1832,7 @@ X32command*  command;
                 s_buf[s_len] = 0;
                 // manage head of nodes (two of more consecutive F_FND types)
                 while (command[i+1].flags == F_FND) i++;
-                // we're now pointitng at the first data command (with parameters) of the node pack
+                // we're now pointing at the first data command (with parameters) of the node pack
                 strcat (s_buf + s_len, command[i].command);
                 switch (command[i].format.typ) {
                 case OFFON:
@@ -1899,6 +1915,10 @@ X32command*  command;
                     strcat(s_buf + s_len, Slinf(command[i + 1].value.ff, -6., +24., 1));
                     strcat(s_buf + s_len, Slinf(command[i + 2].value.ff, -6., +24., 1));
                     strcat(s_buf + s_len, command[i + 3].value.ii? " ON": " OFF");
+                    break;
+                case CMIX:
+                    strcat(s_buf + s_len, command[i + 1].value.ii? " ON": " OFF");
+                    strcat(s_buf + s_len, command[i + 2].value.ii? " ON": " OFF");
                     break;
                 case CHCO:
                     if (command[i + 1].value.str) {
@@ -1986,6 +2006,10 @@ X32command*  command;
                     strcat(s_buf + s_len, Sbitmp(command[i + 1].value.ii, 8));
                     strcat(s_buf + s_len, Sbitmp(command[i + 2].value.ii, 6));
                     break;
+                case CHAMIX:
+                    strcat(s_buf + s_len, Samix[command[i + 1].value.ii]);
+                    strcat(s_buf + s_len, Slinfs(command[i + 2].value.ff, -12., +12., 1));
+                	break;
                 case AXPR:
                     strcat(s_buf + s_len, Slinf(command[i + 1].value.ff, -18., +18., 1));
                     strcat(s_buf + s_len, command[i + 2].value.ii? " ON": " OFF");
@@ -2041,6 +2065,7 @@ X32command*  command;
                 case OMAIN:
                     strcat(s_buf + s_len, Sint(command[i + 1].value.ii));
                     strcat(s_buf + s_len, Smpos[command[i + 2].value.ii]);
+                    strcat(s_buf + s_len, command[i + 3].value.ii? " ON": " OFF");
                     break;
                 case OMAIND:
                     strcat(s_buf + s_len, command[i + 1].value.ii? " ON": " OFF");
