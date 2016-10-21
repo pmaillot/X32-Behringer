@@ -106,7 +106,7 @@ typedef struct X32node {            // The Node header structure is used to dire
     int          nchars;            // "jump" to the associated node entry function to manage
     X32command*  cmd_ptr;           // the appropriate "node ,s ..." answer
     int          cmd_max;           //
-} X32node; 
+} X32node;
 
 
 
@@ -671,36 +671,51 @@ FXc_lookup(int index) {
 
 char*
 Slevel(float fin) {
+    float fl;
+
 
     if (fin == 0.)          sprintf(snode_str, " -oo");
-    else if (fin <= 0.0625) sprintf(snode_str, " %+.1f", 30. / 0.0625 * fin - 90.);
-    else if (fin <= 0.25)   sprintf(snode_str, " %+.1f", 30. / (0.25 - 0.0625) * (fin - 0.0625) - 60.);
-    else if (fin < 0.5)     sprintf(snode_str, " %+.1f", 20. / (0.5 - 0.25) * (fin - 0.25) - 30.);
-    else                    sprintf(snode_str, " %+.1f", 20. / (1. - 0.5) * (fin - 0.5) - 10.);
+    else {
+//    	if (fin <= 0.0625) 		sprintf(snode_str, " %+.1f", 30. / 0.0625 * fin - 90.);
+//		else if (fin <= 0.25)   sprintf(snode_str, " %+.1f", 30. / (0.25 - 0.0625) * (fin - 0.0625) - 60.);
+//		else if (fin < 0.5)     sprintf(snode_str, " %+.1f", 20. / (0.5 - 0.25) * (fin - 0.25) - 30.);
+//		else                    sprintf(snode_str, " %+.1f", 20. / (1. - 0.5) * (fin - 0.5) - 10.);
+    	if (fin <= 0.0625) 		fl = 30. / 0.0625 * fin - 90.;
+		else if (fin <= 0.25)   fl = 30. / (0.25 - 0.0625) * (fin - 0.0625) - 60.;
+		else if (fin < 0.5)     fl = 20. / (0.5 - 0.25) * (fin - 0.25) - 30.;
+		else                    fl = 20. / (1. - 0.5) * (fin - 0.5) - 10.;
+    	sprintf(snode_str, " %+.1f", fl);
+    }
     return snode_str;
 }
 
 char*
 Slinf(float fin, float fmin, float fmax, int pre) {
-    float fl;
+//    float fl;
+    char  formt[8] = " %.0f";
 
-    fl = fmin + (fmax - fmin) * fin;
-    if (pre == 0)        sprintf(snode_str, " %.0f", fl);
-    else if (pre == 1)   sprintf(snode_str, " %.1f", fl);
-    else if (pre == 2)   sprintf(snode_str, " %.2f", fl);
-    else if (pre == 3)   sprintf(snode_str, " %.3f", fl);
+    formt[3] = (char)(48 + pre); // results in " %.0f"... " %.3f" for pre = 0..3
+    sprintf(snode_str, formt, fmin + (fmax - fmin) * fin);
+//    fl = fmin + (fmax - fmin) * fin;
+//    if (pre == 0)        sprintf(snode_str, " %.0f", fl);
+//    else if (pre == 1)   sprintf(snode_str, " %.1f", fl);
+//    else if (pre == 2)   sprintf(snode_str, " %.2f", fl);
+//    else if (pre == 3)   sprintf(snode_str, " %.3f", fl);
     return snode_str;
 }
 
 char*
 Slinfs(float fin, float fmin, float fmax, int pre) {
-    float fl;
+//    float fl;
+    char  formt[8] = " %+.0f";
 
-    fl = fmin + (fmax - fmin) * fin;
-    if (pre == 0)        sprintf(snode_str, " %+.0f", fl);
-    else if (pre == 1)   sprintf(snode_str, " %+.1f", fl);
-    else if (pre == 2)   sprintf(snode_str, " %+.2f", fl);
-    else if (pre == 3)   sprintf(snode_str, " %+.3f", fl);
+    formt[4] = (char)(48 + pre); // results in " %+.0f"... " %+.3f" for pre = 0..3
+    sprintf(snode_str, formt, fmin + (fmax - fmin) * fin);
+//    fl = fmin + (fmax - fmin) * fin;
+//    if (pre == 0)        sprintf(snode_str, " %+.0f", fl);
+//    else if (pre == 1)   sprintf(snode_str, " %+.1f", fl);
+//    else if (pre == 2)   sprintf(snode_str, " %+.2f", fl);
+//    else if (pre == 3)   sprintf(snode_str, " %+.3f", fl);
     return snode_str;
 }
 
@@ -1566,9 +1581,9 @@ char*    s_adr;
 char*    s_fmt;
 
 //
-// warning... This function will correctly parse and accept /ch/xx/config ,siii <name> [i] [i] [i] 
+// warning... This function will correctly parse and accept /ch/xx/config ,siii <name> [i] [i] [i]
 // when the X32 will not accept a 'node' address starting with ,s
-// The XAIR series accept the function and option correctly; X32 & M32 do not as 
+// The XAIR series accept the function and option correctly; X32 & M32 do not as
 // a node address followed by a string is interpreted differently by the X32-edit application
 // (so says Behringer).
     f_len = f_num = c_type = 0;
@@ -2724,7 +2739,7 @@ int function_add() {
 int function_load() {
 //
 // load function - format is /load~~~~,siii~~~~type number name
-// 
+//
 // TODO: do a proper implementation of the function
     printf("Nothing actually loaded\n"); fflush(stdout);
     s_len = Xsprint(s_buf, 0, 's', "/load");
@@ -2738,7 +2753,7 @@ int function_save() {
 int            i, j;
 //
 // save function - format is /save~~~,si[s|i,..]~~~type number name note value
-// Only 'sce', 'snippet' are implemented. 'libchan' is OK too 
+// Only 'sce', 'snippet' are implemented. 'libchan' is OK too
 // TODO: implement 'libfx' and 'librout'
     i = 0;
     if (strcmp(r_buf + 16, "scene") == 0) {
