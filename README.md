@@ -467,3 +467,51 @@ In order to start from a known state of settings, routing, etc., X32PunchControl
 Most transport options and commands needed during normal workflow are under the control of X32PunchControl. This can be done from the program GUI, clicking on transport buttons (REW, PLAY, PAUSE, PUNCH, RECORD, STOP, FF), or using a user selectable set of buttons, directly from the X32. X32PunchControl enables assigning transport buttons to a set of X32 Buttons of the User Assign Section.
 
 
+### X32Commander ###
+
+X32Commander scans for a user selected subset of X32 Commands. If a matching command is found, the tool can fire a MIDI or OSC command to another device, optionally using parameters sent with the matching command.
+
+![X32Commander.jpg](http://sites.google.com/site/patrickmaillot/x32/X32Commander.jpg)
+
+When using the X32 Command parameters, a formula can be applied:
+```
+for MIDI
+Only the low byte of Integer X32 Command parameters are considered.
+Float X32 Command parameters [0.0 ... 1.0] are transformed to int 0..127 before being used by operators
+( ) + - * / » « & | ^ resulting in a usable value for the MIDI data to be sent to another device.
+for OSC
+Integer and float X32 Command parameters are considered by operators
+( ) + - * /  resulting in a usable value for the OSC data to be sent to another device.
+```
+
+Below is an example of user selection, saved in a file used at program startup:
+```
+# X32Commander translation file (c) Patrick-Gilles Maillot
+# These two first lines must be kept part of the this file
+#
+# Describes and lists MIDI or OSC command to send, corresponding to the X32
+# OSC command the program scans for, listed below.
+# A line starting with M means the expected command to send will be a MIDI command
+# O means the expected command to send will be an OSC command
+# In the command to send, a '$0' string element will be replaced by the parameter value
+# of the respective OSC command 0: first parameter, 1: 2nd parameter, and so on
+# '$n' parameters or their calculated data must be enclused within '[' and ']' characters
+#
+# comment line below if only one instance of a line can match
+scan all
+#
+M /-stat/selidx ,i 0        | F0 7F 00 [$0] 02 F7    # first command select channel 1
+#                                                 ... sends F0 7F 02 00 02 F7 for chan 1
+#                                                 ... sends F0 7F 02 01 02 F7 for chan 2
+# Channel Faders [0., 1.]-> [0..127] etc.
+O /ch/01/mix/fader ,f 0     | /ch/05/mix/fader ,f [1-$0]    # for fader moves on channel 1
+O /ch/02/mix/fader ,f 0     | /ch/06/mix/fader ,f [2*$0]    # for fader moves on channel 2
+O /ch/03/mix/fader ,f 0     | /ch/07/mix/fader ,f [1-$0]    # for fader moves on channel 3
+O /ch/03/mix/fader ,f 0     | /ch/08/mix/fader ,f [2*$0]    # for fader moves on channel 3
+M /ch/03/mix/fader ,f 0     | F0 7F 04 [$0] 02 F7           # for fader moves on channel 3
+M /ch/04/mix/fader ,f 0     | F0 7F 04 [$0] 02 F7           # for fader moves on channel 4
+#
+# end of file
+```
+Such tool can enable you to control for example a lighting system, certain features of a DAW connected to X32, or even another X32 family member.
+See it in action: https://youtu.be/W_UQt0YdnhU
