@@ -483,6 +483,7 @@ for OSC
 Integer and float X32 Command parameters are considered by operators
 ( ) + - * /  resulting in a usable value for the OSC data to be sent to another device.
 ```
+The program can be launched directly, in that case it will attempt to open ./X32Commander.txt, a file that contains the list of commands to match and replace with user selected commands. X32Commander can also be launched from a terminal window, with a -f <file> option, enabling you to create and keep a set of files to fit different situations.
 
 Below is an example of user selection, saved in a file used at program startup:
 ```
@@ -513,5 +514,154 @@ M /ch/04/mix/fader ,f 0     | F0 7F 04 [$0] 02 F7           # for fader moves on
 #
 # end of file
 ```
+
+Below is an example of user selection, saved in a file used at program startup:
+```
+# X32Commander translation file (c) Patrick-Gilles Maillot
+# These two first lines must be kept part of the this file
+#
+# Describes and lists MIDI or OSC command to send, corresponding to the X32
+# OSC command the program scans for, listed below.
+# A line starting with M means the expected command to send will be a MIDI command
+#                      O means the expected command to send will be an OSC command
+# In the command to send, a '$0' string element will be replaced by the parameter value
+# of the respective OSC command 0: first parameter, 1: 2nd parameter, and so on
+# '$n' parameters or their calculated data must be enclused within '[' and ']' characters
+#
+# comment line belo if only one instance of a line can match
+#scan all
+#
+# This example file sets Ch10 as the stereo pair of Ch01
+# Commands may be added or removed in order to adjust or optimize what parts of the audio path
+# are actually used. Note that pan functions are always set as [1-$0] to move in opposite direction
+#
+# General settings
+O   /ch/01/config/color ,i 0            | /ch/10/config/color ,i [$0]
+O   /ch/01/delay/on ,i 0                | /ch/10/delay/on ,i [$0]
+O   /ch/01/delay/time ,f 0              | /ch/10/delay/timelor ,i [$0]
+# Preamp section - may adjust to adapt to uneven levels
+O   /ch/01/preamp/trim ,f 0             | /ch/10/preamp/trim ,f [$0]
+O   /ch/01/preamp/invert ,i 0           | /ch/10/preamp/invert ,i [$0]
+O   /ch/01/preamp/hpon ,i 0             | /ch/10/preamp/hpon ,i [$0]
+O   /ch/01/preamp/hpslope ,i 0          | /ch/10/preamp/hpslope ,i [$0]
+O   /ch/01/preamp/hpf ,f 0              | /ch/10/preamp/hpf ,f [$0]
+# Gate
+O   /ch/01/gate/on ,i 0                 | /ch/10/gate/on ,i [$0]
+O   /ch/01/gate/mode ,i 0               | /ch/10/gate/mode ,i [$0]
+O   /ch/01/gate/thr ,f 0                | /ch/10/gate/thr ,f [$0]
+O   /ch/01/gate/range ,f 0              | /ch/10/gate/range ,f [$0]
+O   /ch/01/gate/attack ,f 0             | /ch/10/gate/attack ,f [$0]
+O   /ch/01/gate/hold ,f 0               | /ch/10/gate/hold ,f [$0]
+O   /ch/01/gate/release ,f 0            | /ch/10/gate/release ,f [$0]
+O   /ch/01/gate/keysrc ,i 0             | /ch/10/gate/keysrc ,i [$0]
+O   /ch/01/gate/filter/on ,i 0          | /ch/10/gate/filter/on ,i [$0]
+O   /ch/01/gate/filter/type ,i 0        | /ch/10/gate/filter/type ,i [$0]
+O   /ch/01/gate/filter/f ,f 0           | /ch/10/gate/filter/f ,f [$0]
+# Comp
+O   /ch/01/dyn/on ,i 0                  | /ch/10/dyn/on ,i [$0]
+O   /ch/01/dyn/mode ,i 0                | /ch/10/dyn/mode ,i [$0]
+O   /ch/01/dyn/det ,i 0                 | /ch/10/dyn/det ,i [$0]
+O   /ch/01/dyn/env ,i 0                 | /ch/10/dyn/env ,i [$0]
+O   /ch/01/dyn/thr ,f 0                 | /ch/10/dyn/thr ,f [$0]
+O   /ch/01/dyn/ratio ,i 0               | /ch/10/dyn/ratio ,i [$0]
+O   /ch/01/dyn/knee ,f 0                | /ch/10/dyn/knee ,f [$0]
+O   /ch/01/dyn/mgain ,f 0               | /ch/10/dyn/mgain ,f [$0]
+O   /ch/01/dyn/attack ,f 0              | /ch/10/dyn/attack ,f [$0]
+O   /ch/01/dyn/hold ,f 0                | /ch/10/dyn/hold ,f [$0]
+O   /ch/01/dyn/release ,f 0             | /ch/10/dyn/release ,f [$0]
+O   /ch/01/dyn/pos ,i 0                 | /ch/10/dyn/pos ,i [$0]
+O   /ch/01/dyn/keysrc ,i 0              | /ch/10/dyn/keysrc ,i [$0]
+O   /ch/01/dyn/mix ,f 0                 | /ch/10/dyn/mix ,f [$0]
+O   /ch/01/dyn/auto ,i 0                | /ch/10/dyn/auto ,i [$0]
+O   /ch/01/dyn/filter/on ,i 0           | /ch/10/dyn/filter/on ,i [$0]
+O   /ch/01/dyn/filter/type ,i 0         | /ch/10/dyn/filter/type ,i [$0]
+O   /ch/01/dyn/filter/f ,f 0            | /ch/10/dyn/filter/f ,f [$0]
+# Insert
+O   /ch/01/insert/on ,i 0               | /ch/10/insert/on ,i [$0]
+O   /ch/01/insert/pos ,i 0              | /ch/10/insert/pos ,i [$0]
+O   /ch/01/insert/sel ,i 0              | /ch/10/insert/sel ,i [$0]
+# EQ
+O   /ch/01/eq/on ,i 0                   | /ch/10/eq/on ,i [$0]
+O   /ch/01/eq/1/type ,i 0               | /ch/10/eq/1/type ,i [$0]
+O   /ch/01/eq/1/f ,f 0                  | /ch/10/eq/1/f ,f [$0]
+O   /ch/01/eq/1/g ,f 0                  | /ch/10/eq/1/f ,g [$0]
+O   /ch/01/eq/1/q ,f 0                  | /ch/10/eq/1/f ,q [$0]
+O   /ch/01/eq/2/type ,i 0               | /ch/10/eq/2/type ,i [$0]
+O   /ch/01/eq/2/f ,f 0                  | /ch/10/eq/2/f ,f [$0]
+O   /ch/01/eq/2/g ,f 0                  | /ch/10/eq/2/f ,g [$0]
+O   /ch/01/eq/2/q ,f 0                  | /ch/10/eq/2/f ,q [$0]
+O   /ch/01/eq/3/type ,i 0               | /ch/10/eq/3/type ,i [$0]
+O   /ch/01/eq/3/f ,f 0                  | /ch/10/eq/3/f ,f [$0]
+O   /ch/01/eq/3/g ,f 0                  | /ch/10/eq/3/f ,g [$0]
+O   /ch/01/eq/3/q ,f 0                  | /ch/10/eq/3/f ,q [$0]
+O   /ch/01/eq/4/type ,i 0               | /ch/10/eq/4/type ,i [$0]
+O   /ch/01/eq/4/f ,f 0                  | /ch/10/eq/4/f ,f [$0]
+O   /ch/01/eq/4/g ,f 0                  | /ch/10/eq/4/f ,g [$0]
+O   /ch/01/eq/4/q ,f 0                  | /ch/10/eq/4/f ,q [$0]
+# SENDS - remove unnecessary/unwanted ones if needed
+O   /ch/01/mix/on ,i 0                  | /ch/10/mix/on ,i [$0]
+O   /ch/01/mix/fader ,f 0               | /ch/10/mix/fader ,f [$0]
+O   /ch/01/mix/st ,i 0                  | /ch/10/mix/st ,i [$0]
+O   /ch/01/mix/pan ,f 0                 | /ch/10/mix/pan ,f [1-$0]
+O   /ch/01/mix/mono ,i 0                | /ch/10/mix/mono ,i [$0]
+O   /ch/01/mix/mlevel ,f 0              | /ch/10/mix/mlevel ,f [$0]
+O   /ch/01/mix/01/on ,i 0               | /ch/10/mix/01/on ,i [$0]
+O   /ch/01/mix/01/level ,f 0            | /ch/10/mix/01/level ,f [$0]
+O   /ch/01/mix/01/pan ,f 0              | /ch/10/mix/01/pan ,f [1-$0]
+O   /ch/01/mix/01/type ,i 0             | /ch/10/mix/01/type ,i [$0]
+O   /ch/01/mix/02/on ,i 0               | /ch/10/mix/02/on ,i [$0]
+O   /ch/01/mix/02/level ,f 0            | /ch/10/mix/02/level ,f [$0]
+O   /ch/01/mix/03/on ,i 0               | /ch/10/mix/03/on ,i [$0]
+O   /ch/01/mix/03/level ,f 0            | /ch/10/mix/03/level ,f [$0]
+O   /ch/01/mix/03/pan ,f 0              | /ch/10/mix/03/pan ,f [1-$0]
+O   /ch/01/mix/03/type ,i 0             | /ch/10/mix/03/type ,i [$0]
+O   /ch/01/mix/04/on ,i 0               | /ch/10/mix/04/on ,i [$0]
+O   /ch/01/mix/04/level ,f 0            | /ch/10/mix/04/level ,f [$0]
+O   /ch/01/mix/05/on ,i 0               | /ch/10/mix/05/on ,i [$0]
+O   /ch/01/mix/05/level ,f 0            | /ch/10/mix/05/level ,f [$0]
+O   /ch/01/mix/05/pan ,f 0              | /ch/10/mix/05/pan ,f [1-$0]
+O   /ch/01/mix/05/type ,i 0             | /ch/10/mix/05/type ,i [$0]
+O   /ch/01/mix/06/on ,i 0               | /ch/10/mix/06/on ,i [$0]
+O   /ch/01/mix/06/level ,f 0            | /ch/10/mix/06/level ,f [$0]
+O   /ch/01/mix/07/on ,i 0               | /ch/10/mix/07/on ,i [$0]
+O   /ch/01/mix/07/level ,f 0            | /ch/10/mix/07/level ,f [$0]
+O   /ch/01/mix/07/pan ,f 0              | /ch/10/mix/07/pan ,f [1-$0]
+O   /ch/01/mix/07/type ,i 0             | /ch/10/mix/07/type ,i [$0]
+O   /ch/01/mix/08/on ,i 0               | /ch/10/mix/08/on ,i [$0]
+O   /ch/01/mix/08/level ,f 0            | /ch/10/mix/08/level ,f [$0]
+O   /ch/01/mix/09/on ,i 0               | /ch/10/mix/09/on ,i [$0]
+O   /ch/01/mix/09/level ,f 0            | /ch/10/mix/09/level ,f [$0]
+O   /ch/01/mix/09/pan ,f 0              | /ch/10/mix/09/pan ,f [1-$0]
+O   /ch/01/mix/09/type ,i 0             | /ch/10/mix/09/type ,i [$0]
+O   /ch/01/mix/10/on ,i 0               | /ch/10/mix/10/on ,i [$0]
+O   /ch/01/mix/10/level ,f 0            | /ch/10/mix/10/level ,f [$0]
+O   /ch/01/mix/11/on ,i 0               | /ch/10/mix/11/on ,i [$0]
+O   /ch/01/mix/11/level ,f 0            | /ch/10/mix/11/level ,f [$0]
+O   /ch/01/mix/11/pan ,f 0              | /ch/10/mix/11/pan ,f [1-$0]
+O   /ch/01/mix/11/type ,i 0             | /ch/10/mix/11/type ,i [$0]
+O   /ch/01/mix/12/on ,i 0               | /ch/10/mix/12/on ,i [$0]
+O   /ch/01/mix/12/level ,f 0            | /ch/10/mix/12/level ,f [$0]
+O   /ch/01/mix/13/on ,i 0               | /ch/10/mix/13/on ,i [$0]
+O   /ch/01/mix/13/level ,f 0            | /ch/10/mix/13/level ,f [$0]
+O   /ch/01/mix/13/pan ,f 0              | /ch/10/mix/13/pan ,f [1-$0]
+O   /ch/01/mix/13/type ,i 0             | /ch/10/mix/13/type ,i [$0]
+O   /ch/01/mix/14/on ,i 0               | /ch/10/mix/14/on ,i [$0]
+O   /ch/01/mix/14/level ,f 0            | /ch/10/mix/14/level ,f [$0]
+O   /ch/01/mix/15/on ,i 0               | /ch/10/mix/15/on ,i [$0]
+O   /ch/01/mix/15/level ,f 0            | /ch/10/mix/15/level ,f [$0]
+O   /ch/01/mix/15/pan ,f 0              | /ch/10/mix/15/pan ,f [1-$0]
+O   /ch/01/mix/15/type ,i 0             | /ch/10/mix/15/type ,i [$0]
+O   /ch/01/mix/16/on ,i 0               | /ch/10/mix/16/on ,i [$0]
+O   /ch/01/mix/16/level ,f 0            | /ch/10/mix/16/level ,f [$0]
+# DCA/Mute group
+O   /ch/01/grp/dca ,i 0                 | /ch/10/grp/dca ,i [$0]
+O   /ch/01/grp/mute ,i 0                | /ch/10/grp/mute ,i [$0]
+# Automix
+O   /ch/01/automix/group ,i 0           | /ch/10/automix/group ,i [$0]
+O   /ch/01/automix/weight ,i 0          | /ch/10/automix/weight ,i [$0]
+#    
+# end of file
+```
+
 Such tool can enable you to control for example a lighting system, certain features of a DAW connected to X32, or even another X32 family member.
 See it in action: https://youtu.be/W_UQt0YdnhU
