@@ -665,3 +665,36 @@ O   /ch/01/automix/weight ,i 0          | /ch/10/automix/weight ,i [$0]
 
 Such tool can enable you to control for example a lighting system, certain features of a DAW connected to X32, or even another X32 family member.
 See it in action: https://youtu.be/W_UQt0YdnhU
+
+
+### X32CopyFX ###
+
+X32CopyFX Reset or Copy sides or full parameters set from an effect to itself or another.
+
+This small utility is the Windows GUI equivalent to the command line X32GEQ2cpy tool which runs as a Unix or Windows command line utility, with a few additions.
+
+As one launches X32CopyFX, the tool displays 5 fields the user has to fill;
+
+The first one to fill is for the X32 IP address. As soon a the IP address is entered and the user clicks on "Connect", the tool request from the X32 its set of currently loaded in the X32. The list of available effects is loaded into the two combo-boxes left of the APPLY button. The user then selects a source (FROM) and destination (TO) effect slot. A third combo-box lists the possible operations: reset, copy side A to side B, or the opposite (applies to the FROM effect), or copy the FROM effect data to the TO effect.
+The "Copy Master" check box enables the user to select if the selected operation also applies to the Master parameter (#32 and #64 for EQ types).
+
+![X32CopyFX.jpg](http://sites.google.com/site/patrickmaillot/x32/X32CopyFX.jpg)
+
+
+Starting with version 1.20, The tool offers two RESET types of effects settings to their respective default values. Choices are to reset only the effect in the FROM: box, or all effects from the FROM: to the TO: boxes; each effect will receive their respective default values.
+
+Starting with ver 1.30, X32CopyFX will accept an optional "-f <file>" argument to the main program. If such option is passed on, the <file> provided by the user (a text file) is expected to hold pairs of lines in the form:
+{
+  effect name
+  effect parameters values
+}
+This enables to set default values for effects to user preferences rather than default X32 values, for example the file below will overwrite HALL and PIT default values, all other effects will keep the X32 standard default values.
+<myfx.txt>:
+HALL
+40 1.57 60 5k74 25 0.0 83 7k2 0.95 25 50 40
+PIT
+-12. 0 5.0 52 15k8 80
+
+The APPLY button starts the selected operation. The button momentarily (1 second) displays "DONE" as the operation progresses.
+
+NOTE: Microsoft Defender seems to inappropriately report this program as potential malware: X32CopyFX uses (arrays of) pointers and can overwrite some of these pointers (managing memory correctly) to replace X32 effects parameters default values by user sets. While a very effective way of doing this (from a memory management point of view), it can be something considered “suspicious”.
