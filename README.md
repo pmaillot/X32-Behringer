@@ -684,16 +684,20 @@ The "Copy Master" check box enables the user to select if the selected operation
 Starting with version 1.20, The tool offers two RESET types of effects settings to their respective default values. Choices are to reset only the effect in the FROM: box, or all effects from the FROM: to the TO: boxes; each effect will receive their respective default values.
 
 Starting with ver 1.30, X32CopyFX will accept an optional "-f <file>" argument to the main program. If such option is passed on, the <file> provided by the user (a text file) is expected to hold pairs of lines in the form:
+```
 {
   effect name
   effect parameters values
 }
+```
 This enables to set default values for effects to user preferences rather than default X32 values, for example the file below will overwrite HALL and PIT default values, all other effects will keep the X32 standard default values.
+```
 <myfx.txt>:
 HALL
 40 1.57 60 5k74 25 0.0 83 7k2 0.95 25 50 40
 PIT
 -12. 0 5.0 52 15k8 80
+```
 
 The APPLY button starts the selected operation. The button momentarily (1 second) displays "DONE" as the operation progresses.
 
