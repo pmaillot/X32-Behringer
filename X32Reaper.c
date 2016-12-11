@@ -11,7 +11,8 @@
  * Ver 1.9: A user correctly reported a pb with several track being simultaneously selected... System
  *          behaves badly. This was due to my code trying to align the REAPER slider values to X32
  *          fader values. I don't send the X32 values back to REAPER anymore (code is commented, for now)
- */
+ * Ver 2.0: Introduce REAPER DCA tracks; multiple REAPER tracks can be controlled from X32 DCA
+ *          channels*/
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -133,7 +134,8 @@ int Xbus_min = 0;		// Bus min track number for Reaper/X32
 int Xbus_max = 0;		// Bus max track number for Reaper/X32
 int Xdca_min = 0;		// DCA min track number for Reaper/X32
 int Xdca_max = 0;		// DCA max track number for Reaper/X32
-
+int Rdca_min[8] = {0, 0, 0, 0, 0, 0, 0, 0};	// REAPER 'dca' mins
+int Rdca_max[8] = {0, 0, 0, 0, 0, 0, 0, 0};	// REAPER 'dca' maxs
 //
 struct ifaddrs *ifa;									// to get our own system's IP address
 struct sockaddr_in XX32IP;								// X socket IP we send/receive
@@ -173,7 +175,7 @@ int Finiretval;
 //
 
 int main(int argc, char **argv) {
-
+	int i;
 	int temp;
 	Xverbose = Xdelay = 0;
 
@@ -191,14 +193,18 @@ int main(int argc, char **argv) {
 		S_SndPort[strlen(S_SndPort) - 1] = 0;
 		fgets(S_RecPort, sizeof(S_RecPort), res_file);
 		S_RecPort[strlen(S_RecPort) - 1] = 0;
+		for (i = 0; i < 8; i++) fscanf(res_file, "%d %d\n", &Rdca_min[i], &Rdca_max[i]);
 		fclose(res_file);
 	}
-	printf("X32Reaper - v1.9 - (c)2015 Patrick-Gilles Maillot\n\n");
+	printf("X32Reaper - v2.0 - (c)2015 Patrick-Gilles Maillot\n\n");
 	printf("X32 at IP %s\n", S_X32_IP);
 	printf("REAPER at IP %s, receives on port %s, sends to port %s\n", S_Hst_IP, S_RecPort, S_SndPort);
 	printf("Flags: verbose: %1d, delay: %dms, Transport: %1d, Master: %1d\n", Xverbose, Xdelay, Xtransport_on, Xmaster_on);
 	printf("Map (min/max): Ch %d/%d, Aux %d/%d, FxR %d/%d, Bus %d/%d, DCA %d/%d, Bus Offset %d\n",
 			Xtrk_min, Xtrk_max, Xaux_min, Xaux_max, Xfxr_min, Xfxr_max, Xbus_min, Xbus_max, Xdca_min, Xdca_max, bus_offset);
+	printf("RDCA Map (min/max):");
+	for (i = 0; i < 8; i++) printf(" %d: %d/%d-", i+1, Rdca_min[i], Rdca_max[i]);
+	printf("\n");
 	fflush(stdout);
 	if ((log_file = fopen(".X32Reaper.log", "w")) != NULL) {
 		fprintf(log_file, "*\n*\n");
@@ -816,6 +822,14 @@ int X32ParseX32Message() {
 				for (i = 4; i > 0; endian.cc[--i] = Xb_r[Xb_i++]);
 				sprintf(tmp, "/track/%d/volume", dca + Xdca_min - 1);
 				Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
+				if ((Rdca_min[dca - 1] > 0) && (Rdca_max[dca - 1] >= Rdca_min[dca - 1])) {
+					// There are REAPER 'dca' tracks to manage
+					for (i = Rdca_min[dca - 1]; i <= Rdca_max[dca - 1]; i++) {
+						SEND_TOR(Rb_s, Rb_ls)
+						sprintf(tmp, "/track/%d/volume", i);
+						Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
+					}
+				}
 			} else if (Xb_r[Xb_i] == 'o') {
 				//	/dca/1..8/on
 				Xb_i += 2;	// skip "on"
@@ -826,6 +840,14 @@ int X32ParseX32Message() {
 				else				endian.ff = 1.0;
 				sprintf(tmp, "/track/%d/mute", dca + Xdca_min - 1);
 				Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
+				if ((Rdca_min[dca - 1] > 0) && (Rdca_max[dca - 1] >= Rdca_min[dca - 1])) {
+					// There are REAPER 'dca' tracks to manage
+					for (i = Rdca_min[dca - 1]; i <= Rdca_max[dca - 1]; i++) {
+						SEND_TOR(Rb_s, Rb_ls)
+						sprintf(tmp, "/track/%d/mute", i);
+						Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
+					}
+				}
 			} else if ((Xb_r[Xb_i] == 'c') && (Xb_r[Xb_i + 7] == 'n')) {
 				//	/dca/1..8/config/name
 				Xb_i += 11; //skip "/config/name" string
@@ -1151,10 +1173,6 @@ int X32ParseReaperMessage() {
 				for (i = 4; i > 0; endian.cc[--i] = Rb_r[Rb_i++]);
 // 				Make REAPER stick to X32 known values to avoid fader kick-backs
 				endian.ff = roundf(endian.ff * 1023.) / 1023.;
-//				sprintf(tmp, "/track/%d/volume", tnum);
-//				Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
-//				SEND_TOR(Rb_s, Rb_ls)
-//				Rb_ls = 0; // REAPER message has been sent
 //
 // !! take this back. Doing the above creates issues when several REAPER tracks are simultaneously selected.
 // REAPER buffers the changes for the other tracks and applies them after the changes on one of the Tracks
@@ -1165,8 +1183,41 @@ int X32ParseReaperMessage() {
 				else if ((tnum >= Xaux_min) && (tnum <= Xaux_max))	sprintf(tmp, "/auxin/%02d/mix/fader", tnum - Xaux_min + 1);
 				else if ((tnum >= Xfxr_min) && (tnum <= Xfxr_max))	sprintf(tmp, "/fxrtn/%02d/mix/fader", tnum - Xfxr_min + 1);
 				else if ((tnum >= Xbus_min) && (tnum <= Xbus_max))	sprintf(tmp, "/bus/%02d/mix/fader", tnum - Xbus_min + 1);
-				else if ((tnum >= Xdca_min) && (tnum <= Xdca_max))	sprintf(tmp, "/dca/%1d/fader", tnum - Xdca_min + 1);
-				else tnum = -1;
+				else if ((tnum >= Xdca_min) && (tnum <= Xdca_max))	{
+					if ((Rdca_min[tnum - Xdca_min] > 0) && (Rdca_max[tnum - Xdca_min] >= Rdca_min[tnum - Xdca_min])) {
+						for (i = Rdca_min[tnum - Xdca_min]; i <= Rdca_max[tnum - Xdca_min]; i++) {
+							// update all REAPER DCA tracks to same values
+							sprintf(tmp, "/track/%d/volume", i);
+							Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
+							SEND_TOR(Rb_s, Rb_ls)
+						}
+					}
+					sprintf(tmp, "/dca/%1d/fader", tnum - Xdca_min + 1);
+				} else {
+					// Do we have a REAPER DCA assigned channel?
+					for (i = 0; i < 8; i++) {
+						if (tnum >= Rdca_min[i] && tnum <= Rdca_max[i]) {
+							for (tnum = Rdca_min[i]; tnum <= Rdca_max[i]; tnum++) {
+								// update all REAPER DCA tracks to same values
+								sprintf(tmp, "/track/%d/volume", tnum);
+								Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
+								SEND_TOR(Rb_s, Rb_ls)
+							}
+							tnum = i;
+							// also update REAPER DCA fader
+							if ((Xdca_max > 0) && (i <= (Xdca_max - Xdca_min + 1))) {
+
+//							if ((Xdca_min > 0) && (Xdca_max >= Xdca_min)) {
+								sprintf(tmp, "/track/%d/volume", Xdca_min + i);
+								Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
+								SEND_TOR(Rb_s, Rb_ls)
+							}
+							sprintf(tmp, "/dca/%1d/fader", i + 1);
+							break;
+						}
+					}
+					if (i >= 8) tnum = -1;
+				}
 				if (tnum > 0) Xb_ls = Xfprint(Xb_s, 0, tmp, 'f', &endian.ff);
 			} else if (Rb_r[Rb_i] == 'n') { // /track/name
 				while (Rb_r[Rb_i] != ',') Rb_i += 1;
@@ -1191,8 +1242,42 @@ int X32ParseReaperMessage() {
 				else if ((tnum >= Xaux_min) && (tnum <= Xaux_max))	sprintf(tmp, "/auxin/%02d/mix/on", tnum - Xaux_min + 1);
 				else if ((tnum >= Xfxr_min) && (tnum <= Xfxr_max))	sprintf(tmp, "/fxrtn/%02d/mix/on", tnum - Xfxr_min + 1);
 				else if ((tnum >= Xbus_min) && (tnum <= Xbus_max))	sprintf(tmp, "/bus/%02d/mix/on", tnum - Xbus_min + 1);
-				else if ((tnum >= Xdca_min) && (tnum <= Xdca_max))	sprintf(tmp, "/dca/%1d/on", tnum - Xdca_min + 1);
-				else tnum = -1;
+				else if ((tnum >= Xdca_min) && (tnum <= Xdca_max)) {
+					if ((Rdca_min[tnum - Xdca_min] > 0) && (Rdca_max[tnum - Xdca_min] >= Rdca_min[tnum - Xdca_min])) {
+						for (i = Rdca_min[tnum - Xdca_min]; i <= Rdca_max[tnum - Xdca_min]; i++) {
+							// update all REAPER DCA tracks to same values
+							sprintf(tmp, "/track/%d/mute", i);
+							Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
+							SEND_TOR(Rb_s, Rb_ls)
+						}
+					}
+					sprintf(tmp, "/dca/%1d/on", tnum - Xdca_min + 1);
+				} else {
+					// Do we have a REAPER DCA assigned channel?
+					for (i = 0; i < 8; i++) {
+						if (tnum >= Rdca_min[i] && tnum <= Rdca_max[i]) {
+							for (tnum = Rdca_min[i]; tnum <= Rdca_max[i]; tnum++) {
+								// update all REAPER DCA tracks to same values
+								sprintf(tmp, "/track/%d/mute", tnum);
+								Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
+								SEND_TOR(Rb_s, Rb_ls)
+							}
+							tnum = i;
+							// also update REAPER DCA fader
+							if ((Xdca_max > 0) && (i <= (Xdca_max - Xdca_min + 1))) {
+
+//							if ((Xdca_min > 0) && (Xdca_max >= Xdca_min)) {
+								sprintf(tmp, "/track/%d/mute", Xdca_min + i);
+								Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
+								SEND_TOR(Rb_s, Rb_ls)
+							}
+							sprintf(tmp, "/dca/%1d/on", i + 1);
+							break;
+						}
+					}
+					if (i >= 8) tnum = -1;
+				}
+				i = 1 - (int) endian.ff;
 				if (tnum > 0) Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i);
 			} else if (Rb_r[Rb_i] == 's') { // /track/select, /track/send or /track/solo
 				Rb_i++;
@@ -1300,10 +1385,8 @@ int X32ParseReaperMessage() {
 			}
 		}
 		if (Xb_ls) SEND_TOX(Xb_s, Xb_ls)
-		Rb_i = Rb_nm; // Set Rb_ls pointing to next message (at index Rb_nm) in Reaper bundle
+		Rb_i = Rb_nm; // Set Rb_i pointing to next message (at index Rb_nm) in Reaper bundle
 	} while (bundle);
 	return (Xb_ls);
 }
-
-
 
