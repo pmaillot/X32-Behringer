@@ -417,6 +417,13 @@ Usage: X32Replay [-i X32 console ipv4 address] -default: 192.168.0.64
     play on:      starts playing
     # typed line: during recording, records the typed line as a user tag
 ```
+### X32Reaper ###
+X32 <-> REAPER controls.
+
+The main idea is to use the X32 as a playback unit and a control surface to REAPER. Digital audio is stored and managed on a computer via REAPER. REAPER controls translate to the X32 and vice-verse, changes made at the X32 deck are reflected in REAPER.
+An OSC config file and a daemon program enable Reaper actions to be reflected on the X32. Simultaneously, the daemon program listens to the X32 and translates X32 actions and changes to REAPER changes on the computer. 
+
+The source code proposed here is for the Liux or command-line version, which takes the sams resource file to setup the different options used by the program. My website conains executables for different versions including GUI based ones. Do read the documentation that comes with program, read REAPER documentation on setting up a control surface, this can / will be useful. Cut&paste the OSC config file provided in the X32Reaper documentation to install your config file. Be careful in selecting and matching ports and IP addresses, and you'll be just fine.
 
 
 ### X32DeskSave  / X32DeskRestore ###
