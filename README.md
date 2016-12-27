@@ -709,3 +709,13 @@ PIT
 The APPLY button starts the selected operation. The button momentarily (1 second) displays "DONE" as the operation progresses.
 
 NOTE: Microsoft Defender seems to inappropriately report this program as potential malware: X32CopyFX uses (arrays of) pointers and can overwrite some of these pointers (managing memory correctly) to replace X32 effects parameters default values by user sets. While a very effective way of doing this (from a memory management point of view), it can be something considered “suspicious”.
+
+
+### X32Reaper ###
+
+X32Reaper - This is the command line version of X32Reaper.
+
+The main idea is to use the X32 as a playback unit and a control surface to REAPER. REAPER controls translate to the X32 and vice-verse, changes made at the X32 deck are reflected in REAPER. An OSC config file and a program enable Reaper actions to be reflected on the X32. Simultaneously, the program listens to the X32 and translates X32 actions and changes to REAPER changes on the computer. Several videos on Youtube show the different usecases (search for X32Reaper).
+Grab the Windows version from my website; it contains additional files (OSC file, settings, documentation, REAPER template) that will help you in the initial setup. Please read the documentation!!!
+The command line version uses the same resource file as the Windows version; dynamic changes cannot take place but full functionality is offered.
+
