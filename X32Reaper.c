@@ -249,8 +249,8 @@ int main(int argc, char **argv) {
 		exit (-1);
 	}
 	printf("X32 at IP %s\n", S_X32_IP);
-	printf("REAPER at IP %s, receives on port %s, sends to port %s\n", S_Hst_IP, S_RecPort, S_SndPort);
-	printf("Flags: verbose: %1d, delay: %dms, Transport: %1d, Master: %1d\n", Xverbose, Xdelay, Xtransport_on, Xmaster_on);
+	printf("REAPER at IP %s\nreceives on port %s\nsends to port %s\n", S_Hst_IP, S_RecPort, S_SndPort);
+	printf("Flags: verbose: %1d, delay: %dms, Transport: %1d, CHBank: %1d, Master: %1d\n", Xverbose, Xdelay, Xtransport_on, Xchbank_on, Xmaster_on);
 	printf("Map (min/max): Ch %d/%d, Aux %d/%d, FxR %d/%d, Bus %d/%d, DCA %d/%d, Bus Offset %d\n",
 			Xtrk_min, Xtrk_max, Xaux_min, Xaux_max, Xfxr_min, Xfxr_max, Xbus_min, Xbus_max, Xdca_min, Xdca_max, bus_offset);
 	printf("RDCA Map (min/max):");
