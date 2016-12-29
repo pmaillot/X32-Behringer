@@ -569,9 +569,6 @@ void getmyIP() {
 //                    printf("\t  Address : <%s>\n", r_buf);
                     break;
                 }
-            } else {
-                perror("getnameinfo");
-                break;
             }
         }
     }
