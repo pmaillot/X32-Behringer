@@ -538,14 +538,14 @@ Below is an example of user selection, saved in a file used at program startup:
 # comment line belo if only one instance of a line can match
 #scan all
 #
-# This example file sets Ch10 as the stereo pair of Ch01
+# This example file sets ch10 as the stereo pair of ch01
 # Commands may be added or removed in order to adjust or optimize what parts of the audio path
 # are actually used. Note that pan functions are always set as [1-$0] to move in opposite direction
 #
 # General settings
 O   /ch/01/config/color ,i 0            | /ch/10/config/color ,i [$0]
 O   /ch/01/delay/on ,i 0                | /ch/10/delay/on ,i [$0]
-O   /ch/01/delay/time ,f 0              | /ch/10/delay/timelor ,i [$0]
+O   /ch/01/delay/time ,f 0              | /ch/10/delay/time ,i [$0]
 # Preamp section - may adjust to adapt to uneven levels
 O   /ch/01/preamp/trim ,f 0             | /ch/10/preamp/trim ,f [$0]
 O   /ch/01/preamp/invert ,i 0           | /ch/10/preamp/invert ,i [$0]
