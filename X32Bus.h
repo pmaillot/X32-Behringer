@@ -183,7 +183,7 @@ X32command Xbus02[] = {
 		{"/bus/02/mix/01/on",		{I32}, F_XET, {0}},
 		{"/bus/02/mix/01/level",	{F32}, F_XET, {0}},
 		{"/bus/02/mix/01/pan",		{F32}, F_XET, {0}},
-		{"/bus/02/mix/02/type",		{I32}, F_XET, {0}},
+		{"/bus/02/mix/01/type",		{I32}, F_XET, {0}},
 		{"/bus/02/mix/02",				{CHME}, F_FND, {0}},
 		{"/bus/02/mix/02/on",		{I32}, F_XET, {0}},
 		{"/bus/02/mix/02/level",	{F32}, F_XET, {0}},
