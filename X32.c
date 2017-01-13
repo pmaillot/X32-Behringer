@@ -13,6 +13,7 @@
 // 0.60: better handling of /node commands (/node ,s ch), (/node ,s fxrtn), etc...
 // 0.65: support for (some) 3.04 features
 // 0.66: fixed typos and cosmetic changes
+// 0.67: fixed bug in the reply sent by /status ; /bus/02/mix/01/type fixed
 //
 #ifdef __WIN32__
 #include <windows.h>
@@ -512,7 +513,7 @@ int main(int argc, char **argv) {
 // Wait for messages from client
 	i = 0;
 	r_len = 0;
-	printf("X32 - v0.66 - An X32 Emulator - (c)2014-2017 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.67 - An X32 Emulator - (c)2014-2017 Patrick-Gilles Maillot\n");
 	getmyIP(); // Try to get our IP...
 	if (Xverbose) printf("Listening to port %s, X32 IP = %s\n", Xport_str, Xip_str);
 	while (keep_on) { // Main, receiving loop (active as long as keep_on is 1)
@@ -1823,7 +1824,7 @@ int function_status() {
 	s_len = Xsprint(s_buf, 0, 's', "/status");
 	s_len = Xsprint(s_buf, s_len, 's', ",sss");
 	s_len = Xsprint(s_buf, s_len, 's', "active");
-	s_len = Xsprint(s_buf, s_len, 's', r_buf);
+	s_len = Xsprint(s_buf, s_len, 's', Xip_str);
 	s_len = Xsprint(s_buf, s_len, 's', "osc-server");
 	return S_SND; // send reply only to requesting client
 }
