@@ -23,7 +23,7 @@
  *          Additionally, this version enables to set icon type and scribble colors with the track names
  *          by using the following syntax "<name>[ %icon[ %color]]" (spaces are optional.
  * Ver 2.21 & 2.22: bug fixes around memory allocation logic when changing Channel Bank Select state
- *
+ * Ver 2.3: removed /action commands 53808 and 53809 which seem to not exist anymore
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,7 +32,7 @@
 #include <time.h>
 #include <math.h>
 
-#ifdef __WIN32__
+#ifdef __WIN32
 #include <winsock2.h>
 #define MySleep(a)	Sleep(a)
 #define socklen_t	int
@@ -208,7 +208,7 @@ int main(int argc, char **argv) {
 
 	strcpy(S_X32_IP, "");
 	strcpy(S_Hst_IP, "");
-	printf("X32Reaper - v2.22 - (c)2015 Patrick-Gilles Maillot\n\n");
+	printf("X32Reaper - v2.3 - (c)2015 Patrick-Gilles Maillot\n\n");
 	// load resource file
 	if ((res_file = fopen("./.X32Reaper.ini", "r")) != NULL) { // ignore Width and Height
 		fscanf(res_file, "%d %d %d %d %d %d %d\n", &i, &j, &Xverbose, &Xdelay, &Xtransport_on, &Xchbank_on, &Xmaster_on);
@@ -281,7 +281,7 @@ int main(int argc, char **argv) {
 				if (Xfd > Rfd) Mfd = Xfd + 1;
 				if (select(Mfd, &fds, NULL, NULL, &timeout) > 0) {
 					if (FD_ISSET(Rfd, &fds) > 0) {
-						if ((Rb_lr = recvfrom(Rfd, Rb_r, RBrmax, 0, RFrmIP_pt, (unsigned int*)&RFrmIP_len)) > 0) {
+						if ((Rb_lr = recvfrom(Rfd, Rb_r, RBrmax, 0, RFrmIP_pt, &RFrmIP_len)) > 0) {
 // Parse Reaper Messages and send corresponding data to X32
 // These can be simple or #bundle messages!
 // Can result in several/many messages to X32
@@ -291,7 +291,7 @@ int main(int argc, char **argv) {
 						}
 					}
 					if (FD_ISSET(Xfd, &fds) > 0) {
-						if ((Xb_lr = recvfrom(Xfd, Xb_r, XBrmax, 0, XX32IP_pt, (unsigned int*)&XX32IP_len)) > 0) {
+						if ((Xb_lr = recvfrom(Xfd, Xb_r, XBrmax, 0, XX32IP_pt, &XX32IP_len)) > 0) {
 // X32 transmitted something
 // Parse and send (if applicable) to Reaper
 //							printf("X32 sent data\n"); fflush(stdout);
@@ -1001,10 +1001,10 @@ int X32ParseX32Message() {
 		Xb_i = 10;
 		if (Xb_r[Xb_i] == 'i') { // test on 'i' for selidx
 			// unselect all REAPER tracks
-			Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40297");
+			Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40297"); //40297 or 40769
 			SEND_TOR(Rb_s, Rb_ls)
-			Rb_ls = Xsprint(Rb_s, 0, 's', "/action/53809");
-			SEND_TOR(Rb_s, Rb_ls)
+//			Rb_ls = Xsprint(Rb_s, 0, 's', "/action/53809"); // seems this does not exist anymore
+//			SEND_TOR(Rb_s, Rb_ls)
 			Rb_ls = 0;
 			//	/-stat/selidx.........,i..[%d]
 			while (Xb_r[Xb_i] != ',') Xb_i += 1;
@@ -1022,15 +1022,15 @@ int X32ParseX32Message() {
 			else if ((endian.ii < 40) && (Xaux_max > 0))		cnum = endian.ii + Xaux_min - 32;
 			else if ((endian.ii < 48) && (Xfxr_max > 0))		cnum = endian.ii + Xfxr_min - 40;
 			else if ((endian.ii < 64) && (Xbus_max > 0))		cnum = endian.ii + Xbus_min - 48;
-			else if (endian.ii == 70) cnum = -1;	// set flag!
+	//		else if (endian.ii == 70) cnum = -1;	// set flag for master track...
 			// select requested track
 			if (cnum > -2) {
-				if (cnum == -1) {
-					Rb_ls = Xsprint(Rb_s, 0, 's', "/action/53808");
-				} else {
+//				if (cnum == -1) {
+//					Rb_ls = Xsprint(Rb_s, 0, 's', "/action/53808"); // seems this does not exist anymore
+//				} else {
 					sprintf(tmp, "/track/%d/select", cnum);
 					Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &fone);
-				}
+//				}
 			}
 		} else if ((Xb_r[Xb_i] == 'o') && (Xb_r[Xb_i + 1] == 's')) {
 			//	/-stat/solosw/%02d....,i..[0/1]
@@ -1270,8 +1270,8 @@ int X32ParseX32Message() {
 				// unselect all REAPER tracks and select Master track
 				Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40297");
 				SEND_TOR(Rb_s, Rb_ls)
-				Rb_ls = Xsprint(Rb_s, 0, 's', "/action/53808");
-				SEND_TOR(Rb_s, Rb_ls)
+//				Rb_ls = Xsprint(Rb_s, 0, 's', "/action/53808"); // seem this doesn't exist anymore
+//				SEND_TOR(Rb_s, Rb_ls)
 				//echo Master track selected on X32
 				i = 70; // master track on X32
 				Xb_ls = Xfprint(Xb_s, 0, "/-stat/selidx", 'i', &i);
