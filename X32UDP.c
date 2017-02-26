@@ -1,6 +1,6 @@
 /*
  * X32UDP.c
- *	(POSIX compliant version, Linux...)
+ *	(POSIX compliant version, Linux... (WIndows too))
  *  Created on: June 2, 2015
  *      Author: Patrick-Gilles Maillot
  *
@@ -23,18 +23,26 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-//
+
 #define BSIZE	512		// MAX receive buffer size
 //
+#ifdef __WIN32__
+#include <winsock2.h>
+WSADATA 			wsa;
 struct sockaddr_in	Xip;
-struct sockaddr*	Xip_addr = (struct sockaddr *)&Xip;
+int					Xip_len = sizeof(Xip);		// length of addresses
+#else
+#include <sys/socket.h>
+#include <arpa/inet.h>
+struct sockaddr_in	Xip;
 socklen_t			Xip_len = sizeof(Xip);		// length of addresses
-int 				Xfd;						// X32 socket
-fd_set 				ufd;						// associted file descriptor
+#endif
 //
-int		r_len, p_status;	// length and status for receiving
+struct sockaddr*	Xip_addr = (struct sockaddr *)&Xip;
+int 				Xfd;					// X32 socket
+fd_set 				ufd;					// associted file descriptor
+//
+int					r_len, p_status;		// length and status for receiving
 //
 //
 int X32Connect(char *Xip_str, char *Xport_str) {
@@ -46,9 +54,10 @@ int X32Connect(char *Xip_str, char *Xport_str) {
 // Input: String - Pointer to destination port in the form "12345"
 //
 // Returns int:
+// -4 : (WIndows only) WSA init error
 // -3 : Error on Sending data
 // -2 : Socket creation error
-// -1 : Error on polling for data
+// -1 : Error on waiting for data
 //  0 : No error, no connection (timeout)
 //  1 : Connected (connection validated with X32)
 //
@@ -56,6 +65,12 @@ char	r_buf[128];			// receive buffer for /info command test
 char	Info[8] = "/info";	// testing connection with /info request
 struct timeval		timeout;
 
+#ifdef __WIN32__
+//Initialize winsock
+	if (WSAStartup (MAKEWORD( 2, 2), &wsa) != 0) {
+		return -4; // Error on Windows sockets init
+	}
+#endif
 //
 // Create UDP socket
 	if ((Xfd = socket (PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
@@ -65,8 +80,8 @@ struct timeval		timeout;
 	memset (&Xip, 0, sizeof(Xip));				// Clear structure
 	Xip.sin_family = AF_INET;					// Internet/IP
 	Xip.sin_addr.s_addr = inet_addr(Xip_str);	// IP address
-	Xip.sin_port = htons(atoi(Xport_str));		// server port	
-	timeout.tv_sec = 0; 					// Set timeout for non 
+	Xip.sin_port = htons(atoi(Xport_str));		// server port
+	timeout.tv_sec = 0; 					// Set timeout for non
 	timeout.tv_usec = 500000;				// blocking recvfrom(): 500ms
 // Validate connection by sending a /info command
 	if (sendto (Xfd, Info, 8, 0, Xip_addr, Xip_len) < 0) {	// X32 sent something?
@@ -74,7 +89,7 @@ struct timeval		timeout;
 	}
 //register for receiving X32 console updates
 	FD_ZERO (&ufd);
-	FD_SET (Xfd, &ufd);	
+	FD_SET (Xfd, &ufd);
 	if ((p_status = select(Xfd+1, &ufd, NULL, NULL, &timeout)) > 0) {
 		r_len = recvfrom(Xfd, r_buf, 128, 0, 0, 0);	// Get answer and
 		if ((strncmp(r_buf, Info, 5)) == 0) {		// test data (5 bytes)
@@ -126,7 +141,7 @@ int X32Recv(char *buffer, int time_out) {
 	FD_ZERO (&ufd);
 	FD_SET (Xfd, &ufd);							// X32 sent something?
 	if ((p_status = select(Xfd+1, &ufd, NULL, NULL, &timeout)) > 0) {
-		return recvfrom(Xfd, buffer, BSIZE, 0, 0, 0);// return length
+		return recvfrom(Xfd, buffer, BSIZE, 0, 0, 0); // return length
 	} else if (p_status < 0) {
 		return -1; //An error occurred on polling
 	}
@@ -137,33 +152,33 @@ int X32Recv(char *buffer, int time_out) {
 //
 // Test purpose only - comment when linking the package to an application
 //
-//#include <stdio.h>
-//int main() {
-//
-//	char 	r_buf[512];
-//	char	s_buf[] = {"/status\0"};
-//	int		r_len = 0;
-//	int		s_len = 0;
-//	int		ten_mills = 10000;
-//	int		status;
-//
-//	status = X32Connect("192.168.1.62", "10023");
-//	printf ("Connection status: %d\n", status);
-//
-//	if (status) {
-//		s_len = X32Send(s_buf, 8);
-//		printf ("Send status: %d\n", s_len);
-//		if (s_len) {
-//			r_len = X32Recv(r_buf, ten_mills);
-//			printf ("Recv status: %d\n", r_len);
-//			s_len = 0;
-//			while (r_len--) {
-//				if (r_buf[s_len] < ' ') putchar('~');
-//				else putchar(r_buf[s_len]);
-//				s_len++;
-//			}
-//			putchar('\n');
-//		}
-//	}
-//	return 0;
-//}
+#include <stdio.h>
+int main() {
+
+	char 	r_buf[512];
+	char	s_buf[] = {"/status\0"};
+	int		r_len = 0;
+	int		s_len = 0;
+	int		ten_mills = 10000;
+	int		status;
+
+	status = X32Connect("192.168.1.65", "10023");
+	printf ("Connection status: %d\n", status);
+
+	if (status) {
+		s_len = X32Send(s_buf, 8);
+		printf ("Send status: %d\n", s_len);
+		if (s_len) {
+			r_len = X32Recv(r_buf, ten_mills);
+			printf ("Recv status: %d\n", r_len);
+			s_len = 0;
+			while (r_len--) {
+				if (r_buf[s_len] < ' ') putchar('~');
+				else putchar(r_buf[s_len]);
+				s_len++;
+			}
+			putchar('\n');
+		}
+	}
+	return 0;
+}
