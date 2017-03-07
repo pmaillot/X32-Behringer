@@ -24,6 +24,8 @@
  *          by using the following syntax "<name>[ %icon[ %color]]" (spaces are optional.
  * Ver 2.21 & 2.22: bug fixes around memory allocation logic when changing Channel Bank Select state
  * Ver 2.3: removed /action commands 53808 and 53809 which seem to not exist anymore
+ * Ver 2.4: Added the capability to enable bank selection (up/down)without transport control, adding two
+ * 			values to the resource file.
  */
 #include <stdio.h>
 #include <stdlib.h>
@@ -107,6 +109,7 @@ union littlebig {
 	float ff;
 } endian;
 //
+// reserve communication buffers
 int Xb_ls;
 char Xb_s[XBsmax];
 int Xb_lr;
@@ -139,6 +142,9 @@ int Xselected = 0;		// X32 channel currently selected (if Xchbank_on is on)
 int Xmaster_on = 1;		// whether master is enabled or not
 int bus_offset = 0;		// offset to manage REAPER track sends logical numbering
 //
+int XMbankup;			// user "bank up" selected button [5..12]
+int XMbankdn;			// user "bank down" selected button [5..12]
+//
 int Xtrk_min = 0;		// Input min track number for Reaper/X32
 int Xtrk_max = 0;		// Input max track number for Reaper/X32
 int Xaux_min = 0;		// Auxin min track number for Reaper/X32
@@ -160,36 +166,35 @@ struct sockaddr *RHstIP_pt = (struct sockaddr*) &RHstIP;// R socket IP pointer w
 struct sockaddr_in RFrmIP;								// R socket IP we received from
 struct sockaddr *RFrmIP_pt = (struct sockaddr*) &RFrmIP;// R socket IP pointer we received from
 int Xfd, Rfd, Mfd;			// X32 and Reaper receive and send sockets; Mfd is max(Xfd, Rfd)+1 for select()
-
-time_t before, now;			// timers for Xremote controls
-int poll_status;			// Polling status flag
 //
 //
-int XX32IP_len = sizeof(XX32IP);	// length of X32 address
-int RHstIP_len = sizeof(RHstIP);	// length of Reaper send to address
-int RFrmIP_len = sizeof(RFrmIP);	// length of Reaper received from address
+unsigned int XX32IP_len = sizeof(XX32IP);	// length of X32 address
+unsigned int RHstIP_len = sizeof(RHstIP);	// length of Reaper send to address
+unsigned int RFrmIP_len = sizeof(RFrmIP);	// length of Reaper received from address
 //
 #ifdef __WIN32__
 WSADATA wsa;
 #endif
-fd_set 			fds;
-struct timeval	timeout;
+fd_set 			fds;		// socket file descriptor
+struct timeval	timeout;	// UDP non-blocking Read timeout
+int p_status;				// UDP Read status flag
+time_t before, now;			// timers for Xremote controls
 //
 // structure definition for REAPER data backup (used for REAPER bank switches)
 // we'll allocate memory according to the number of channels declared in the
 // .X32Reaper.ini resource file
 typedef struct bkch {
-	char	scribble[16];	// keep only 12 chars for X32
 	float	fader;			// volume
 	float	pan;			// panoramic
 	float	mixbus[16];		// sends values
 	float	mute;			// mute
 	float	solo;			// solo
+	char	scribble[16];	// scribble text; keep only 12 chars for X32
 	int		color;			// scribble color
 	int		icon;			// scribble icon
 } S_bkch;
 //
-S_bkch *XMbanktracks = NULL;
+S_bkch *XMbanktracks = NULL;	// Address to data array for saved channel banks data
 ////
 // resource and log file data
 FILE *res_file;
@@ -208,7 +213,7 @@ int main(int argc, char **argv) {
 
 	strcpy(S_X32_IP, "");
 	strcpy(S_Hst_IP, "");
-	printf("X32Reaper - v2.3 - (c)2015 Patrick-Gilles Maillot\n\n");
+	printf("X32Reaper - v2.4 - (c)2015 Patrick-Gilles Maillot\n\n");
 	// load resource file
 	if ((res_file = fopen("./.X32Reaper.ini", "r")) != NULL) { // ignore Width and Height
 		fscanf(res_file, "%d %d %d %d %d %d %d\n", &i, &j, &Xverbose, &Xdelay, &Xtransport_on, &Xchbank_on, &Xmaster_on);
@@ -222,11 +227,10 @@ int main(int argc, char **argv) {
 		fgets(S_RecPort, sizeof(S_RecPort), res_file);
 		S_RecPort[strlen(S_RecPort) - 1] = 0;
 		for (i = 0; i < 8; i++) fscanf(res_file, "%d %d\n", &Rdca_min[i], &Rdca_max[i]);
-		fclose(res_file);
 		if (Xchbank_on) {
 			//
 			// allocate memory for maintaining REAPER data between banks
-			// WE make the choice to allocate by blocks of 32, ensuring we cover all input tracks
+			// We make the choice to allocate by blocks of 32, ensuring we cover all input tracks
 			// between Xtrk_max and Xtrk_min
 			if ((XMbanktracks = (S_bkch*)malloc(((Xtrk_max - Xtrk_min + 1) / 32 + 1) * 32 * sizeof(S_bkch))) == NULL) {
 				exit(-1);
@@ -243,6 +247,12 @@ int main(int argc, char **argv) {
 					XMbanktracks[i].mixbus[j] = 0.0;
 				}
 			}
+			if (!Xtransport_on) {	// If transport is on, buttons are pre-assigned.
+				//
+				// Read banks buttons assignments for up and down, from the resource file
+				fscanf(res_file, "%d %d\n", &XMbankup, &XMbankdn);
+			}
+			fclose(res_file);
 		}
 	} else {
 		printf("No resource file found\n\n");
@@ -255,6 +265,7 @@ int main(int argc, char **argv) {
 			Xtrk_min, Xtrk_max, Xaux_min, Xaux_max, Xfxr_min, Xfxr_max, Xbus_min, Xbus_max, Xdca_min, Xdca_max, bus_offset);
 	printf("RDCA Map (min/max):");
 	for (i = 0; i < 8; i++) printf(" %d: %d/%d-", i+1, Rdca_min[i], Rdca_max[i]);
+	if (Xchbank_on) printf("CHbank [bankC] up/down: %d %d\n", XMbankup, XMbankdn);
 	printf("\n");
 	fflush(stdout);
 	if ((log_file = fopen(".X32Reaper.log", "w")) != NULL) {
@@ -263,8 +274,10 @@ int main(int argc, char **argv) {
 		fprintf(log_file, "*\n*\n");
 		MainLoopOn = 1;
 // If connected/running, Consume X32 and REAPER messages
-		if ((Xconnected = X32Connect()) != 0) {		//
-			// run SW as long as needed
+		if ((Xconnected = X32Connect()) != 0) {
+//
+// Entering main loop
+// run SW as long as needed - i.e. indefinitely in the case of the command line version of the tool
 			while (MainLoopOn) {
 				now = time(NULL); 			// get time in seconds
 				if (now > before + 9) { 	// need to keep xremote alive?
@@ -318,7 +331,7 @@ int main(int argc, char **argv) {
 int X32Connect() {
 	int i;
 //
-	poll_status = 0;
+	p_status = 0;
 //
 	if (Xconnected) {
 //
@@ -367,7 +380,7 @@ int X32Connect() {
 				FD_ZERO(&fds);
 				FD_SET(Xfd, &fds);
 //				printf("before select\n"); fflush(stdout);
-				if ((poll_status = select(Xfd + 1, &fds, NULL, NULL, &timeout)) != -1) {
+				if ((p_status = select(Xfd + 1, &fds, NULL, NULL, &timeout)) != -1) {
 					if (FD_ISSET(Xfd, &fds) > 0) {
 //						printf("after select\n"); fflush(stdout);
 						// We have received data - process it!
@@ -398,7 +411,7 @@ int X32Connect() {
 				// get data back
 				FD_ZERO(&fds);
 				FD_SET(Xfd, &fds);
-				if ((poll_status = select(Xfd + 1, &fds, NULL, NULL, &timeout)) > 0) {
+				if ((p_status = select(Xfd + 1, &fds, NULL, NULL, &timeout)) > 0) {
 					Xb_lr = recvfrom(Xfd, Xb_r, BSIZE, 0, 0, 0);
 					if (strcmp(Xb_r, "/-stat/selidx") == 0) {
 						for (i = 0; i < 4; i++) endian.cc[i] = Xb_r[23-i];
@@ -430,9 +443,8 @@ int X32Connect() {
 				timeout.tv_sec = 0;
 				timeout.tv_usec = 1000; //Set/Change timeout for non blocking recvfrom(): 1ms for Reaper/X32 comm
 //
-// Init UserCtrl bank C
-				if (Xtransport_on)
-					X32UsrCtrlC();
+// Init UserCtrl bank C based on Xtransport_on or Xchbank_on values
+				X32UsrCtrlC();
 //
 // Cleanup X32 buffers if needed
 				XRcvClean();
@@ -456,13 +468,13 @@ void XRcvClean() {
 	do {
 		FD_ZERO(&fds);
 		FD_SET(Xfd, &fds);
-		if ((poll_status = select(Xfd + 1, &fds, NULL, NULL, &timeout)) > 0) {
+		if ((p_status = select(Xfd + 1, &fds, NULL, NULL, &timeout)) > 0) {
 			if ((Xb_lr = recvfrom(Xfd, Xb_r, BSIZE, 0, 0, 0)) > 0) {
 				if (Xverbose)
 					Xlogf("X->", Xb_r, Xb_lr);
 			}
 		}
-	} while (poll_status > 0);	// read and ignore X32 incoming data until
+	} while (p_status > 0);	// read and ignore X32 incoming data until
 	return;						// first timeout or error
 }
 //
@@ -622,43 +634,73 @@ void X32UsrCtrlC() {
 	char* MP[4] = { "MP13000", "MP14000", "MP15000", "MP16000" };
 	char* MN[8] = { "MN16000", "MN16001", "MN16002", "MN16003",
 					"MN16004", "MN16005", "MN16006", "MN16007" };
-	//
-	// Encoders
-	for (i = 1; i < 5; i++) {
-		sprintf(Xb_r, "/config/userctrl/C/enc/%d", i);
-		Xb_ls = Xfprint(Xb_s, 0, Xb_r, 's', MP[i - 1]);
-		SEND_TOX(Xb_s, Xb_ls)
-	}
-	//
-	// Buttons
-	for (i = 5; i < 13; i++) {
-		sprintf(Xb_r, "/config/userctrl/C/btn/%d", i);
-		Xb_ls = Xfprint(Xb_s, 0, Xb_r, 's', MN[i - 5]);
-		SEND_TOX(Xb_s, Xb_ls)
-	}
-	//
-	// Set X32 Bank C Encoders  to center "64" value
-	for (i = 33; i < 37; i++) {
-		sprintf(Xb_r, "/-stat/userpar/%2d/value", i);
-		Xb_ls = Xfprint(Xb_s, 0, Xb_r, 'i', &six4);
-		SEND_TOX(Xb_s, Xb_ls)
-	}
-	//
-	// Set X32 Bank C buttons  to "0" value
-	for (i = 17; i < 25; i++) {
-		sprintf(Xb_r, "/-stat/userpar/%2d/value", i);
-		Xb_ls = Xfprint(Xb_s, 0, Xb_r, 'i', &zero);
-		SEND_TOX(Xb_s, Xb_ls)
-	}
-	//
-	// Color : black
-	Xb_ls = Xfprint(Xb_s, 0, "/config/userctrl/C/color", 'i', &zero);
-	SEND_TOX(Xb_s, Xb_ls)
-	//
-	// Select X32 Bank C
-	Xb_ls = Xfprint(Xb_s, 0, "/-stat/userbank", 'i', &two);
-	SEND_TOX(Xb_s, Xb_ls)
 
+	if (Xtransport_on) {
+		//
+		// Encoders
+		for (i = 1; i < 5; i++) {
+			sprintf(Xb_r, "/config/userctrl/C/enc/%d", i);
+			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 's', MP[i - 1]);
+			SEND_TOX(Xb_s, Xb_ls)
+		}
+		//
+		// Buttons
+		for (i = 5; i < 13; i++) {
+			sprintf(Xb_r, "/config/userctrl/C/btn/%d", i);
+			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 's', MN[i - 5]);
+			SEND_TOX(Xb_s, Xb_ls)
+		}
+		//
+		// Set X32 Bank C Encoders  to center "64" value
+		for (i = 33; i < 37; i++) {
+			sprintf(Xb_r, "/-stat/userpar/%2d/value", i);
+			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 'i', &six4);
+			SEND_TOX(Xb_s, Xb_ls)
+		}
+		//
+		// Set X32 Bank C buttons  to "0" value
+		for (i = 17; i < 25; i++) {
+			sprintf(Xb_r, "/-stat/userpar/%2d/value", i);
+			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 'i', &zero);
+			SEND_TOX(Xb_s, Xb_ls)
+		}
+		//
+		// Color : black
+		Xb_ls = Xfprint(Xb_s, 0, "/config/userctrl/C/color", 'i', &zero);
+		SEND_TOX(Xb_s, Xb_ls)
+		//
+		// Select X32 Bank C
+		Xb_ls = Xfprint(Xb_s, 0, "/-stat/userbank", 'i', &two);
+		SEND_TOX(Xb_s, Xb_ls)
+	} else {
+		if(Xchbank_on) {
+			//
+			// Only update/change bank up and bank down buttons.
+			//
+			// bank up
+			sprintf(Xb_r, "/config/userctrl/C/btn/%d", XMbankup);
+			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 's', MN[XMbankup - 5]);
+			SEND_TOX(Xb_s, Xb_ls)
+			sprintf(Xb_r, "/-stat/userpar/%2d/value", 12 + XMbankup);
+			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 'i', &zero);
+			SEND_TOX(Xb_s, Xb_ls)
+			//
+			// bank down
+			sprintf(Xb_r, "/config/userctrl/C/btn/%d", XMbankdn);
+			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 's', MN[XMbankdn - 5]);
+			SEND_TOX(Xb_s, Xb_ls)
+			sprintf(Xb_r, "/-stat/userpar/%2d/value", 12 + XMbankdn);
+			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 'i', &zero);
+			SEND_TOX(Xb_s, Xb_ls)
+			//
+			// Not we do non set/force the user bank color to black
+			// in that case. Leave it to the user to choose.
+			//
+			// Select X32 Bank C
+			Xb_ls = Xfprint(Xb_s, 0, "/-stat/userbank", 'i', &two);
+			SEND_TOX(Xb_s, Xb_ls)
+		}
+	}
 	return;
 }
 //--------------------------------------------------------------------
@@ -700,23 +742,27 @@ int X32ParseX32Message() {
 //	/dca/1..8/fader........,f..[0..1.0]
 //	/dca/1..8/config/name..,s..[string\0]
 //
-// Bank C Actuators
-//		33		34		35		36
-//	   Beat   Measure  Marker  Item
+// if transport is on:
+//		Bank C Actuators
+//			33		34		35		36
+//		   Beat   Measure  Marker  Item
 //
-// Bank C Buttons
-//	/-stat/userpar/%2d/value~,i~~[0 or 127]	%2d = 17..24
+//		 Bank C Buttons
+//			/-stat/userpar/%2d/value~,i~~[0 or 127]	%2d = 17..24
 //
-//		17		18		19		20
-//		REW		PLAY	PAUSE	FF
+//			17		18		19		20
+//			REW		PLAY	PAUSE	FF
 //
-//		21		22		23		24
-//	 S/S loop  Repeat  STOP    REC
+//			21		22		23		24
+//		 S/S loop  Repeat  STOP    REC
 //
-//   or:
+//  	 or if chbank is on:
 //
-//		21       22       23	24
-//	 Bank UP  Bank Down  STOP  REC
+//			21       22       23	24
+//		 Bank UP  Bank Down  STOP  REC
+//
+// or if transport is OFF and chbank is on:
+//		2 buttons chosen by the user
 //
 	Rb_ls = 0;
 	if (strncmp(Xb_r, "/ch/", 4) == 0) {
@@ -1068,7 +1114,26 @@ int X32ParseX32Message() {
 			cnum = cnum * 10 + (int) Xb_r[Xb_i++] - (int) '0';
 			Xb_i += 11; // get value [0...127] in endian;
 			for (i = 4; i > 0; endian.cc[--i] = Xb_r[Xb_i++]);
-			if (Xtransport_on) {
+			if (Xchbank_on && (!Xtransport_on)) {
+				//
+				// ChBank buttons are two numbers between 5 to 12, mapped in Bank C between 17 to 24
+				if (cnum == (12 + XMbankup)) {
+					// Channel Bank UP
+					if (Xchbkof < (Xtrk_max - 1) / 32) {
+						if (endian.ii == 0) {
+							Xchbkof += 1; // ignore non zero values
+							XUpdateBkCh();
+						}
+					}
+				} else if (cnum == (12 + XMbankdn)) {
+				// Channel Bank DOWN
+					if (endian.ii == 0) {
+						Xchbkof -= 1; // ignore non zero values
+						if (Xchbkof < 0) Xchbkof = 0;
+						XUpdateBkCh();
+					}
+				}
+			} else if (Xtransport_on) {
 				switch (cnum) { // ignore non-bank C values
 				case 17: // bank C button 5
 					//user pressed "REW" / Go to Home
