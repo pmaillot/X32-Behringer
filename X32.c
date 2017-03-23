@@ -14,6 +14,7 @@
 // 0.65: support for (some) 3.04 features
 // 0.66: fixed typos and cosmetic changes
 // 0.67: fixed bug in the reply sent by /status ; /bus/02/mix/01/type fixed
+// 0.68: fixed bug in getting IP address with non-Windows systems (Xport_str was over written)
 //
 #ifdef __WIN32__
 #include <windows.h>
@@ -513,9 +514,10 @@ int main(int argc, char **argv) {
 // Wait for messages from client
 	i = 0;
 	r_len = 0;
-	printf("X32 - v0.67 - An X32 Emulator - (c)2014-2017 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.68 - An X32 Emulator - (c)2014-2017 Patrick-Gilles Maillot\n");
 	getmyIP(); // Try to get our IP...
-	if (Xverbose) printf("Listening to port %s, X32 IP = %s\n", Xport_str, Xip_str);
+//	printf("Xport=%s\n",Xport_str); //
+	if (Xverbose) printf("Listening to port: %s, X32 IP = %s\n", Xport_str, Xip_str);
 	while (keep_on) { // Main, receiving loop (active as long as keep_on is 1)
 		FD_ZERO(&readfds);
 		FD_SET(Xfd, &readfds);
@@ -618,12 +620,13 @@ void getmyIP() {
 	}
 	for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
 		if (ifa->ifa_addr != NULL) {
-			if ((s = getnameinfo(ifa->ifa_addr,sizeof(struct sockaddr_in), Xip_str, NI_MAXHOST, NULL, 0, NI_NUMERICHOST)) == 0) {
+			// use r_buf as we may need a large string
+			if ((s = getnameinfo(ifa->ifa_addr,sizeof(struct sockaddr_in), r_buf, NI_MAXHOST, NULL, 0, NI_NUMERICHOST)) == 0) {
 // you typically have to replace "en0" by "wlan0", "eth0",... depending on your physical interface support
 				if ((strcmp(ifa->ifa_name,"en0") == 0) && (ifa->ifa_addr->sa_family == AF_INET)) {
-// printf("\tInterface : <%s>\n",ifa->ifa_name );
-// printf("\t Address : <%s>\n", r_buf);
-					break;
+ //printf("\tInterface : <%s>\n",ifa->ifa_name );
+ //printf("\t Address : <%s>\n", r_buf);
+					strcpy(Xip_str, r_buf); // update Xip_str
 				}
 			}
 		}
