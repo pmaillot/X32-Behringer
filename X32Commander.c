@@ -15,7 +15,7 @@
  * Simple expression parser and calculator
  *
  * The grammar in BNF-ish notation
- * ---for ints / MIDI-------------------
+ * * ---for ints / MIDI-------------------
  * expression:  ['+'|'-'] shifter ['&'|'|'|'^' shifter]*
  * shifter:		pminus ['>'|'<' pminus]*
  * pminus:		dmulti ['+'|'-' dmulti]*
@@ -35,6 +35,8 @@
  *	ver 1.02:	float parameters accepted, isolated within '[' and ']', transformed to int
  *				[0..127] before use. Accepting multiple parameters (limit = MAXPARAM)
  *	ver 1.03:	added OSC capability for both int and float type tags.
+ *	ver 1.04:	fixed bugs! .
+ *	ver 1.05:	fixed index error in file reader&parser.
  */
 #include <winsock2.h>	// Windows functions for std GUI & sockets
 #include <mmsystem.h>	// Multimedia functions (such as MIDI) for Windows
@@ -46,7 +48,6 @@
 #include <time.h>
 #include <sys/stat.h>
 //
-#define USERFILE				"./X32Commander.txt"
 #define XREMOTE_TIMEOUT			9
 #define BSIZE					512
 #define MAXPARAM				16
@@ -76,7 +77,7 @@ int					keep_on = 1;
 int					Xconnected = 0;				// X32 Connected
 int					XMconnected = 0;			// MIDI Connected
 int					XOconnected = 0;			// OSC out Connected
-int					Xscanone = 1;				// stop at first match
+int					XScanOne = 1;				// stop at first match
 //
 char 				r_buf[BSIZE], s_buf[BSIZE];	// X32 receive and send buffers
 int 				r_len, s_len;				// associated data lengths
@@ -177,7 +178,7 @@ extern int  validateIP4Dotted(const char *s);
 // Private functions
 int Xinit();
 void XCommand();
-void XSendOSC(char* cmd);
+void XParseAndSendOSC(char* cmd);
 void XsendSysex(char* cmd);
 int  XListMidiOutDevices();
 int  XMidiConnect();
@@ -227,12 +228,10 @@ int number(char** cmd) {
 }
 //
 int operand(char** cmd) {
-    int n;
 
     if (ccc == '$') {
         next(cmd);
-        n = number(cmd);
-        return param[n].c_i;
+        return param[number(cmd)].c_i;
     }
     return number(cmd);
 }
@@ -302,12 +301,10 @@ int expression(char** cmd) {
 //
 // Float Calculator code
 float ooperand(char** cmd) {
-    int n;
 
     if (ccc == '$') {
         next(cmd);
-        n = number(cmd);
-        return param[n].c_f;
+        return param[number(cmd)].c_f;
     }
     return (float)number(cmd);
 }
@@ -379,7 +376,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 	RegisterClassW(&wc);
 	CreateWindowW(wc.lpszClassName,
 		L"X32Commander",
-		WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 220, 297, 180, 0, 0, hInstance, 0);
+		WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 220, 297, 187, 0, 0, hInstance, 0);
 //
 	XMconnected = Xconnected = 0;
 // Main loop
@@ -462,7 +459,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, FIXED_PITCH, NULL);//TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 235, 15, str1, wsprintf(str1, "v 1.03"));
+		TextOut(hdc, 235, 15, str1, wsprintf(str1, "v 1.05"));
 		TextOut(hdc, 5, 25, str1, wsprintf(str1, "Set X32 IP below:"));
 		TextOut(hdc, 5, 63, str1, wsprintf(str1, "MIDIout:"));
 		TextOut(hdc, 5, 105, str1, wsprintf(str1, "OSC out IP, Port below:"));
@@ -514,6 +511,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 }
 //
 // XOConnect()
+// Establish USD connection to OSC out. No test is done on the IP and port besides maybe a simple
+// IP syntax check. Can't test the actual connectiona s we cannot know what's on the other side.
 int XOConnect() {
 	int i;
 //
@@ -536,11 +535,15 @@ int XOConnect() {
 					break;
 				}
 			}
-			// Construct the server sockaddr_in structure
-			memset(&Xop, 0, sizeof(Xop));				// Clear struct
-			Xop.sin_family = AF_INET;					// Internet/IP
-			Xop.sin_addr.s_addr = inet_addr(Xop_str);	// IP address
-			Xop.sin_port = htons(atoi(Xop_str + i));	// Port
+			if (validateIP4Dotted(Xop_str)) {
+				// Construct the server sockaddr_in structure
+				memset(&Xop, 0, sizeof(Xop));				// Clear struct
+				Xop.sin_family = AF_INET;					// Internet/IP
+				Xop.sin_addr.s_addr = inet_addr(Xop_str);	// IP address
+				Xop.sin_port = htons(atoi(Xop_str + i));	// Port
+			} else {
+				return 0; // Make sure we don't considered being connected
+			}
 		}
 	}
 	return 1; // done !
@@ -549,6 +552,7 @@ int XOConnect() {
 //
 // Xinit: Open file for commands to scan for,
 // Parse file to create a source in memory and an index of line start pointers
+// <r_buf> is expected to contain the name/path of the file to read and parse.
 int Xinit() {
 //
 	struct stat sb;
@@ -557,19 +561,21 @@ int Xinit() {
 	int i;
 	//
 	//get file descriptor
-	fp = fopen(USERFILE, "r");
+	fp = fopen(r_buf, "r");
 	if (fp != NULL) {
 		// Get file stats
-		if (stat(USERFILE, &sb) == -1) {
+		if (stat(r_buf, &sb) == -1) {
+			fclose (fp);
 			perror("error: stat");
 			return (EXIT_FAILURE);
 		}
 		// The size of the file is now in stat.st_size
 		// Allocate our buffer to that size, and read/load the entire file into memory.
-		source_pt = malloc(sizeof(char) * sb.st_size);
+		source_pt = malloc(sizeof(char) * sb.st_size + 1);
 		if (source_pt) {
 			newLen = fread(source_pt, sizeof(char), sb.st_size, fp);
 			if (ferror(fp) != 0) {
+				fclose (fp);
 				perror("Error reading file");
 				if (source_pt) free(source_pt);
 				return (EXIT_FAILURE);
@@ -577,6 +583,7 @@ int Xinit() {
 				source_pt[newLen] = '\0'; /* Just to be safe. */
 			}
 		} else {
+			fclose (fp);
 			perror("Error: memory source_pt");
 			return (EXIT_FAILURE);
 		}
@@ -600,9 +607,9 @@ int Xinit() {
 					if (*s_pt++ == '\0') {
 						if (*s_pt != '#') {		// keep only valid lines
 							if (strncmp(s_pt, "scan all", 8) == 0) {
-								Xscanone = 0;	// all or only one command match?
+								XScanOne = 0;	// all or only one command match?
 							} else {
-								sindex_pt[++num_lines] = s_pt;
+								sindex_pt[num_lines++] = s_pt;
 							}
 						}
 					}
@@ -746,10 +753,10 @@ void XsendSysex(char* cmd) {
 }
 //
 //
-// XSendOSC : OSC command, after parsing user command
+// XParseAndSendOSC : OSC command, after parsing user command
 // User command parsing is actually quite minimal; the file should be correctly
 // written.. don't want to waste precious CPU time parsing
-void XSendOSC(char* cmd) {
+void XParseAndSendOSC(char* cmd) {
 	char* parstr_pt;							// where OSC Out parameter list starts
 // parse and send OSC command
 	o_len = 0;
@@ -862,7 +869,7 @@ void XCommand() {
 							++comma;
 							// parse and send related MIDI command
 							XsendSysex(cindex_pt + comma);
-							if (Xscanone) return;
+							if (XScanOne) return;
 						} else {
 							++comma;
 						}
@@ -878,7 +885,7 @@ void XCommand() {
 							c_pt = r_buf + comma;
 							j = 0;
 							// found a "," in *Windex_pt... actual comma in r_buf will be further due to possible padding
-							while (*(++c_pt) != ','); // progress in r_bufuntil we find a ','
+							while (*c_pt != ',') c_pt++; // progress in r_buf until we find a ','
 							// from thereon, save all int and float parameters in the form of floats
 							while (*(++c_pt)) j +=1; // count parameters until we find a '\0'
 							// j holds the number of arguments; comma points at the ',' char
@@ -927,12 +934,26 @@ void XCommand() {
 						if (cindex_pt[comma] == '|') {
 							++comma;
 							// parse and send related command, starts with 'M' or 'O'
-							XSendOSC(cindex_pt + comma);
-							if (Xscanone) return;
+							XParseAndSendOSC(cindex_pt + comma);
+							if (XScanOne) return;
 						} else {
 							++comma;
 						}
 					}
+				}
+			}
+		} else {
+			// no match on the first 4 chars... maybe the file line is a wildcard [codes as "*   "
+			// In that case, we simply copy the OSC in to out - no translation nor parameter change
+			if ((*windex_pt)[4] == '*') {
+				// valid for OSC only
+				if ((*windex_pt)[0] == 'O') {
+					// just send in command, to out
+					if (sendto (Xofd, r_buf, r_len, 0, Xop_addr, Xop_len) < 0) {
+						perror ("Error while sending data");
+						exit (EXIT_FAILURE);
+					}
+					if (XScanOne) return;
 				}
 			}
 		}
@@ -941,9 +962,25 @@ void XCommand() {
 //
 // Main program
 int main(int argc, char **argv) {
+	char input_ch;
 	HINSTANCE hPrevInstance = 0;
 	PWSTR pCmdLine = 0;
 	int nCmdFile = 0;
+
+	// set default file nale as input
+	strcpy(r_buf, "./X32Commander.txt");
+	while ((input_ch = getopt(argc, argv, "f:h")) != (char)0xff) {
+		switch (input_ch) {
+		case 'f':
+			sscanf(optarg, "%s", r_buf);
+			break;
+		default:
+		case 'h':
+			printf("usage: X32Commander [-f file, sets input file]\n\n");
+			return(0);
+			break;
+		}
+	}
 //
 	ShowWindow(GetConsoleWindow(), SW_HIDE); // Hide console window
 //
