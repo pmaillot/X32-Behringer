@@ -492,6 +492,29 @@ Integer and float X32 Command parameters are considered by operators
 ```
 The program can be launched directly, in that case it will attempt to open ./X32Commander.txt, a file that contains the list of commands to match and replace with user selected commands. X32Commander can also be launched from a terminal window, with a -f <file> option, enabling you to create and keep a set of files to fit different situations.
 
+Below is an example of user command file, used at program startup used to have a second X32 mimic what the first one does; Make sure to use with version1.05 or later.
+```
+# X32Commander translation file (c) Patrick-Gilles Maillot
+# These two first lines must be kept part of the this file
+#
+# Describes and lists MIDI or OSC command to send, corresponding to the X32
+# OSC command the program scans for, listed below.
+# A line starting with M means the expected command to send will be a MIDI command
+#                      O means the expected command to send will be an OSC command
+# In the command to send, a '$0' string element will be replaced by the parameter value
+# of the respective OSC command 0: first parameter, 1: 2nd parameter, and so on
+# '$n' parameters or their calculated data must be enclused within '[' and ']' characters
+#
+# Once all M (for Midi) or O (for OSC) commands are detailed, a wildcard line as below can be 
+# set to mention that any other OSC command should just be copied to OSC output
+# The line should be (without qutes) "O   *   "
+#
+# comment line below if only one instance of a line can match
+#scan all
+O   *   # Just copy everything to output --- WARNING! Do not use if OSC in and
+#         out IP addresses are the same or you'll end-up with infinite loops
+```
+
 Below is an example of user selection, saved in a file used at program startup:
 ```
 # X32Commander translation file (c) Patrick-Gilles Maillot
@@ -508,16 +531,16 @@ Below is an example of user selection, saved in a file used at program startup:
 # comment line below if only one instance of a line can match
 scan all
 #
-M /-stat/selidx ,i 0        | F0 7F 00 [$0] 02 F7    # first command select channel 1
+M   /-stat/selidx ,i 0        | F0 7F 00 [$0] 02 F7    # first command select channel 1
 #                                                 ... sends F0 7F 02 00 02 F7 for chan 1
 #                                                 ... sends F0 7F 02 01 02 F7 for chan 2
 # Channel Faders [0., 1.]-> [0..127] etc.
-O /ch/01/mix/fader ,f 0     | /ch/05/mix/fader ,f [1-$0]    # for fader moves on channel 1
-O /ch/02/mix/fader ,f 0     | /ch/06/mix/fader ,f [2*$0]    # for fader moves on channel 2
-O /ch/03/mix/fader ,f 0     | /ch/07/mix/fader ,f [1-$0]    # for fader moves on channel 3
-O /ch/03/mix/fader ,f 0     | /ch/08/mix/fader ,f [2*$0]    # for fader moves on channel 3
-M /ch/03/mix/fader ,f 0     | F0 7F 04 [$0] 02 F7           # for fader moves on channel 3
-M /ch/04/mix/fader ,f 0     | F0 7F 04 [$0] 02 F7           # for fader moves on channel 4
+O   /ch/01/mix/fader ,f 0     | /ch/05/mix/fader ,f [1-$0]    # for fader moves on channel 1
+O   /ch/02/mix/fader ,f 0     | /ch/06/mix/fader ,f [2*$0]    # for fader moves on channel 2
+O   /ch/03/mix/fader ,f 0     | /ch/07/mix/fader ,f [1-$0]    # for fader moves on channel 3
+O   /ch/03/mix/fader ,f 0     | /ch/08/mix/fader ,f [2*$0]    # for fader moves on channel 3
+M   /ch/03/mix/fader ,f 0     | F0 7F 04 [$0] 02 F7           # for fader moves on channel 3
+M   /ch/04/mix/fader ,f 0     | F0 7F 04 [$0] 02 F7           # for fader moves on channel 4
 #
 # end of file
 ```
