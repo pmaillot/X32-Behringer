@@ -1,6 +1,6 @@
 /*
  * X32UDP.c
- *	(POSIX compliant version, Linux... (WIndows too))
+ *	(POSIX compliant version, Linux... (Windows too))
  *  Created on: June 2, 2015
  *      Author: Patrick-Gilles Maillot
  *
