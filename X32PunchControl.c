@@ -20,18 +20,21 @@
  *    0.10: fixed bug in the Bank selection; added a Record imply Play selection option
  *    0.11: got rid of "reset temp file"; added a default select for MTC vs. LTC
  *    0.12: forgot Xrecord flag in XExecuteReadMerge(); changed text Midi: ON/OFF & MERGE: ON/OFF
- *    0.13: code cleanup; better handling of catchup when REW button/GUI is used
+ *    0.13: code cleanup; better handling of catchback when REW button/GUI is used
+ *    0.14: code cleanup; handling of catchup when FF button/GUI is used
+ *    0.15: missing exit-loop condition in XCatchBackProc()
+ *    0.16: new algorithm in catch-up XCatchBackProc()
+ *    0.17: Better handling of early stop, ensuring work will not be lost
  */
-#include <winsock2.h>
-#include <mmsystem.h>	/* Multimedia functions (such as MIDI) for Windows */
-#include <Commdlg.h>	/* Common Dialogs functions for Windows */
-//
-#include <stdlib.h>
+#include <winsock2.h>	// Windows functions for std GUI & sockets
+#include <commdlg.h>	// Windows widgets functions (file handling..)
+#include <mmsystem.h>	// Multimedia functions (such as MIDI) for Windows
 #include <stdio.h>
-#include <unistd.h>
+#include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
-#include <time.h>
+#include <io.h>
+//
 //
 #define BSIZE 512		// X32 dialog buffer size
 #define MAXFN 256		// File name max length
@@ -92,6 +95,8 @@ void XLoadScene();
 int  XListMidiInDevices();
 int  XListMidiOutDevices();
 void XCatchBackProc();
+void XCatchUpProc();
+
 
 //
 //
@@ -184,6 +189,7 @@ LPMIDIHDR			lpMidiIntHdr = &MidiInHdr;
 UINT				cbMidiInHdr = sizeof(MidiInHdr);
 int					Mflag;						// Midi flag
 int					XCtachBack = 0;				// CatchBack flag
+int					XCatchUp = 0;				// CatchUp flag
 //
 int 				X0127[] = {0, 127};
 //
@@ -228,7 +234,7 @@ fd_set 				ufds;						// file descriptor
 int 				Xip_len = sizeof(Xip);		// length of addresses
 //
 struct timeval		t_1sec = {1, 0};			// 1 second timer
-struct timeval		t_now, t_before, t_play, t_pause, t_rew;	// time structures
+struct timeval		t_now, t_before, t_play, t_pause, t_rew, t_ff;	// time structures
 struct timeval		dt_read, dt_play;			// dt_read: from the file, dt_play: t_now - t_play
 char				xremote[12] = "/xremote";	// extra chars are set to \0
 //
@@ -253,7 +259,7 @@ char				xremote[12] = "/xremote";	// extra chars are set to \0
 	do {												\
 		FD_ZERO (&ufds);								\
 		FD_SET (Xfd, &ufds);							\
-		p_status = select(Xfd, &ufds, 0, 0, &timeout);	\
+		p_status = select(Xfd+1, &ufds, 0, 0, &timeout);\
 	} while (0);
 //
 //
@@ -298,7 +304,7 @@ char				xremote[12] = "/xremote";	// extra chars are set to \0
 int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLine, int nCmdFile) {
 //
 	WNDCLASSW wc = {0};
-	wc.lpszClassName = L"X32DeskRestore";
+	wc.lpszClassName = L"X32PunchControl";
 	wc.hInstance = hInstance;
 	wc.hbrBackground = GetSysColorBrush(COLOR_3DFACE);
 	wc.lpfnWndProc = WndProc;
@@ -310,7 +316,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 		WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 220, wWidth, wHeight, 0, 0, hInstance, 0);
 //
 // some initializations needed:
-	t_pause.tv_sec = t_pause.tv_usec = t_before.tv_sec = t_rew.tv_sec  = 0;	// used for Xremote (don't care about .tv_usec member)
+	t_pause.tv_sec = t_pause.tv_usec = t_before.tv_sec = t_rew.tv_sec = 0;
+	t_ff.tv_sec  = 0;
 	XMconnected = Xconnected = Xplay = Xpunch = Xrecord = Xmerge = Xpause = 0;
 //
 // Main loop
@@ -327,12 +334,12 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 				t_before = t_now;
 			}
 			// t_rew.tv_sec is typically = to 0, except when REW has been hit.
-			// a timeout of 1 second enables to ensure there's been enough time after a REW
+			// a timeout of 1 second enables to ensure there's been enough time after a REW or FF
 			// command to set catchback mode, enabling the tool to play as quickly as possible
 			// already recorded commands to attain the state it should be at for the new cursor
 			// position
 			if (t_rew.tv_sec) {
-				if(timercmp(&t_now, &t_rew, >)) {
+				if (timercmp(&t_now, &t_rew, >)) {
 					XCtachBack = 1;
 				}
 			}
@@ -344,6 +351,29 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 				XCtachBack = 0;
 				t_rew.tv_sec = 0;
 			}
+// below an attempt to manage FF / forward jumps... not working as expected :-(
+// DAW (REAPER) is not sending SYSEX updates as it does for backward jumps.
+// There seems also to be some kind of a race condition on FF clicks, programmed
+// the same way as REW clicks but does not behave similarly... TODO therefore
+//
+//			// t_ff.tv_sec is typically = to 0, except when FF has been hit.
+//			// a timeout of 1 second enables to ensure there's been enough time after a FF
+//			// command to set catchup mode, enabling the tool to play as quickly as possible
+//			// already recorded commands to attain the state it should be at for the new cursor
+//			// position
+//			if (t_ff.tv_sec) {
+//				if (timercmp(&t_now, &t_ff, >)) {
+//					XCatchUp = 1;
+//				}
+//			}
+//			// XCatchUp can be set either if FF has been hit (1 second after the last hit)
+//			// or if the DAW cursor was moved forward in time, getting MTC to be reset using a MIDI
+//			// SYSEX set time command
+//			if (XCatchUp) {
+//				XCatchUpProc();
+//				XCatchUp = 0;
+//				t_ff.tv_sec = 0;
+//			}
 			if (Xplay) {
 				if (!Xpause) {
 					//
@@ -519,7 +549,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		TextOut(hdc, 5, 67, str1, wsprintf(str1, "MIDIin:"));
 		TextOut(hdc, 5, 92, str1, wsprintf(str1, "MIDIout:"));
 		TextOut(hdc, 5, 117, str1, wsprintf(str1, "X32Scene:"));
-		TextOut(hdc, 223, 15, str1, wsprintf(str1, "ver. 0.13"));
+		TextOut(hdc, 223, 15, str1, wsprintf(str1, "ver. 0.17"));
 		DeleteObject(htmp);
 		DeleteObject(hfont);
 		//
@@ -667,7 +697,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 						XInitUsrCtrl();
 						close(Xfd);
 					}
-					t_pause.tv_sec = t_pause.tv_usec = t_before.tv_sec  = t_rew.tv_sec = 0;
+					t_pause.tv_sec = t_pause.tv_usec = t_before.tv_sec = t_rew.tv_sec = 0;
+					t_ff.tv_sec = 0;
 					XMconnected = Xconnected = Xplay = Xpunch = Xrecord = Xmerge = Xpause = 0;
 				}
 				break;
@@ -734,11 +765,19 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		if (Xconnected) close(Xfd);
 		keep_running = 0;
 		// Is there additional data to copy to the write file?
-		if (Xreadfile) {
+		if (X32file_r_pt) {
+			Xreadfile = 1;
+			if (Xmerge) {
+				// MERGE is OFF... do we really want to skip write file update?
+				if (MessageBox(NULL, "Do you really want to \npossibly truncate your new .xpc file?", "Warning!",
+						MB_YESNO | MB_ICONWARNING) == IDYES) {
+					Xreadfile = 0;
+				}
+			}
 			do {
 				r_len = fread(&s_len, sizeof(int), 1, X32file_r_pt);		// read # of record bytes
-				r_len = fread(s_buf, sizeof(char), s_len, X32file_r_pt);	// read record buffer
 				if (r_len) {
+					r_len = fread(s_buf, sizeof(char), s_len, X32file_r_pt);	// read record buffer
 					XWriteAndSend(0);
 				}
 				if ((r_len = fread(&dt_read, sizeof(dt_read), 1, X32file_r_pt)) == 0) {
@@ -746,14 +785,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				}
 			} while (Xreadfile == 1);
 		}
-		Xfiledataready = 1;
-		if (X32file_w_pt) {
-			fclose(X32file_w_pt);
-		}
 		if (X32file_r_pt) {
 			fclose(X32file_r_pt);
-		}
-		if (X32file_r_pt) {
 			strcpy(Xpath, Xpathsave);
 			if(rename(Xpathsave, strcat(Xpath, ".old")) != 0) {
 				sprintf(s_buf, "rename to *.old failed: %s\n",strerror(errno));
@@ -761,6 +794,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			}
 		}
 		if (X32file_w_pt) {
+			fclose(X32file_w_pt);
 			strcpy(Xpath, Xpathsave);
 			if(rename(strcat(Xpath, "_xpc"), Xpathsave) != 0) {
 				sprintf(s_buf, "rename to *.xpc failed: %s\n",strerror(errno));
@@ -835,12 +869,11 @@ void CALLBACK XReceiveMidi(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance,
 						Xmidiss = hmidiheader->lpData[7];				// on 4
 						Xmidifr = hmidiheader->lpData[8];				// bytes, and
 						//
-						// detecting an abnormal change; we don't care if the MTC jumps forward as
-						// the program will automatically catch-up events, by reading/storing events.
-						// if the new MTC is less (a little or a lot) than the expected MTC, then we'll
-						// have to make serious changes to the state of the files.
+						// Detecting an MTC backward jumps; Test if we need to catch-back events,
+						// by reading/storing events. If the new MTC is less (a little or a lot) than the
+						// expected MTC, then we'll have to play all changes up to the new cursor position.
 						//
-						// we do this only if a REW command is not already ongoing
+						// We do this only if a REW command is not already registered
 						if (t_rew.tv_sec == 0) {
 							if (Xmidihr < Xoldmidihr) {
 								XCtachBack = 1;
@@ -858,11 +891,24 @@ void CALLBACK XReceiveMidi(HMIDIIN hMidiIn, UINT wMsg, DWORD dwInstance,
 								}
 							}
 						}
+//						// Detecting MTC forward jumps; Test if we need to catch-up events,
+//						// by reading/storing events. If the new MTC is more (a little or a lot) than the
+//						// expected MTC, then we'll have to play all changes up to the new cursor position.
+//						//
+//						// We do this only if a FF command is not already registered
+//						if (t_ff.tv_sec == 0) {
+//							if (Xmidifr > Xoldmidifr + 4) {
+//								XCatchUp = 1;
+//							} else if (Xmidiss > Xoldmidiss) {
+//								XCatchUp = 1;
+//							} else if (Xmidimn > Xoldmidimn) {
+//								XCatchUp = 1;
+//							}  else if (Xmidihr > Xoldmidihr) {
+//								XCatchUp = 1;
+//							}
+//						}
 						// we are [back] in a normal situation:
-						// either the timer is up to date, or has been moved to
-						// passed beyond the current time; in that later case, the
-						// program will quickly catch-up all needed changes
-						if (XCtachBack == 0) {
+						if (XCtachBack == 0 && XCatchUp == 0) {
 							XDisplayMidiTimer();	// update midi time if appropriate
 						}
 					}
@@ -913,65 +959,91 @@ int main(int argc, char **argv) {
 // Private functions:
 //
 //
+// XCatchUpProc()
+void XCatchUpProc() {
+	// Starting from current position, copy all events from reading file to writing
+	// file (updating X32) until new time, and keep going from standard reading file
+	dt_read.tv_sec = dt_read.tv_usec = 0;
+	if ((r_len = fread(&dt_read, sizeof(dt_read), 1, X32file_r_pt)) > 0) {
+		Xreadfile = 1;
+		while (Xreadfile  && (timercmp(&dt_play, &dt_read, >))) {
+			r_len = fread(&s_len, sizeof(int), 1, X32file_r_pt);		// read # of record bytes
+			r_len = fread(s_buf, sizeof(char), s_len, X32file_r_pt);	// read record buffer
+			XWriteAndSend(1);
+			Sleep(Xcatchdelay);	 // introduce a small delay to help fader moves
+			if ((r_len = fread(&dt_read, sizeof(dt_read), 1, X32file_r_pt)) == 0) {
+				Xreadfile = 0;
+			}
+		}
+	} else {
+		MessageBox(NULL, "Cannot manage intermediary file", NULL, MB_OKCANCEL);
+	}
+	return;
+}
+//
+//
 // XCatchBackProc()
-void XCatchBackProc() {
+void XCatchBackProc() {;
+FILE	*X32file_r_pt1;
 	// close reading file; close writing file
 	// re-open ex-reading and ex-writing file
 	// copy all events from ex-writing file to new writing file until new time
 	// then close ex-writing file, and keep going from standard reading file
-	fclose (X32file_r_pt);								// close reading file
-	fclose (X32file_w_pt);								// close writing file
-	X32file_r_pt = X32file_w_pt = 0;
-	rename (Xfile_w_str, "X32pctl.xpc");				// rename it
+	fclose (X32file_r_pt);								// close reading file (is there always one here?)
+	fclose (X32file_w_pt);								// close writing file (writes all pending data too)
+	X32file_r_pt = X32file_r_pt1 = X32file_w_pt = 0;
+	rename (Xfile_w_str, "X32pctl.xpc");				// rename writing file as ex-writing file
 //	Sleep(100);											// need to wait?
-	if ((X32file_r_pt = fopen("X32pctl.xpc", "rb"))) {	// re-open ex-writing file as read file
+	// re-open ex-writing file as read file
+	if ((X32file_r_pt1 = fopen("X32pctl.xpc", "rb"))) {
+		// create/open a new writing file
 		if ((X32file_w_pt = fopen(Xfile_w_str, "wb")) == NULL) {
-			MessageBox(NULL, "cannot open file for recording", NULL, MB_OKCANCEL);
+			MessageBox(NULL, "Cannot open file for recording", NULL, MB_OKCANCEL);
 		} else {
+			// ex-write (for reading) and new write files ok
+			// If needed/OK, re-open the read file to continue project update
+			// Note: the read file may not exist (if we write a file for the first time)
+			// shouldn't prevent from continuing, X32file_r_pt will be NULL
+			X32file_r_pt = fopen(Xfile_r_str, "rb");
 			// ex-write file opened for reading; new write file OK
 			dt_read.tv_sec = dt_read.tv_usec = 0;
-			if ((r_len = fread(&dt_read, sizeof(dt_read), 1, X32file_r_pt)) > 0) {
+			if (X32file_r_pt) r_len = fread(&dt_read, sizeof(dt_read), 1, X32file_r_pt);
+			if ((r_len = fread(&dt_read, sizeof(dt_read), 1, X32file_r_pt1)) > 0) {
+				// The ex-write file data will be copied into the newly created write file.
 				Xreadfile = 1;
 				while (Xreadfile  && (timercmp(&dt_play, &dt_read, >))) {
-					r_len = fread(&s_len, sizeof(int), 1, X32file_r_pt);		// read # of record bytes
-					r_len = fread(s_buf, sizeof(char), s_len, X32file_r_pt);	// read record buffer
-					XWriteAndSend(1);
-					Sleep(Xcatchdelay);	 // introduce a 2ms delay to help fader moves
-					if ((r_len = fread(&dt_read, sizeof(dt_read), 1, X32file_r_pt)) == 0) {
-						Xreadfile = 0;
-					}
-				}
-			}
-			//
-			// The ex-write file data has been copied into the newly created write file.
-			// If needed/OK, re-open the read file to continue project update
-			fclose(X32file_r_pt);
-			X32file_r_pt = 0;
-			r_len = remove("X32pctl.xpc"); // don't need the ex-write file anymore
-			//
-			fflush(X32file_w_pt);
-			dt_read.tv_sec = dt_read.tv_usec = 0;
-			Xreadfile = 0;
-			if ((X32file_r_pt = fopen(Xfile_r_str, "rb"))) {
-				Xreadfile = 1;
-				if ((r_len = fread(&dt_read, sizeof(dt_read), 1, X32file_r_pt)) > 0) {
-					while ( timercmp(&dt_play, &dt_read, > ) ) {
+					// Get the read file to progress
+					if (X32file_r_pt) {
 						r_len = fread(&s_len, sizeof(int), 1, X32file_r_pt);		// read # of record bytes
 						r_len = fread(s_buf, sizeof(char), s_len, X32file_r_pt);	// read record buffer
-						// read records until we get to the dt_play point
-						if ((r_len = fread(&dt_read, sizeof(dt_read), 1, X32file_r_pt)) == 0) {
-							Xreadfile = 0;
-						}
 					}
-				} else {
-					Xreadfile = 0;
+					// the ex-write file progresses equally
+					r_len = fread(&s_len, sizeof(int), 1, X32file_r_pt1);		// read # of record bytes
+					r_len = fread(s_buf, sizeof(char), s_len, X32file_r_pt1);	// read record buffer
+					// update the new write file
+					XWriteAndSend(1);
+					// Avoiding UDP packets drop; if a fader takes place
+					// can do that with strstr() as the term "fader" will always appear in the first
+					// part of the buffer just sent, before any null byte
+					if (strstr(s_buf, "fader")) Sleep(Xcatchdelay);	 // introduce a small delay
+					// read and test next dt_read time value
+					// make sure we progress equally on both files
+					if (X32file_r_pt) r_len = fread(&dt_read, sizeof(dt_read), 1, X32file_r_pt);
+					// the stop test in the while loop is made using the ex-writing file
+					if ((r_len = fread(&dt_read, sizeof(dt_read), 1, X32file_r_pt1)) == 0) {
+						Xreadfile = 0; // nothing more to read from the ex-write file
+					}
 				}
-			} else {
-				MessageBox(NULL, "cannot open file for reading", NULL, MB_OKCANCEL);
+				fclose(X32file_r_pt1);
+				r_len = remove("X32pctl.xpc"); // don't need the ex-write file anymore
+				// done catching up:
+				// dt_read time at the right position
+				// read file if it exists, too
+				// write file updated up to the dt_read position
 			}
 		}
 	} else {
-		MessageBox(NULL, "cannot manage intermediary file", NULL, MB_OKCANCEL);
+		MessageBox(NULL, "Cannot manage intermediary file", NULL, MB_OKCANCEL);
 	}
 	return;
 }
@@ -1305,6 +1377,8 @@ void XPauseGUI() {
 // XFfGUI()
 // fast Forward or End Of Track.
 void XFfGUI() {
+	// get time for this FF request
+	timeradd(&t_now, &t_1sec, &t_ff);
 	// send FF or EOT command
 	XSendMidi(Xmidi_eot_str);
 	return;
