@@ -30,6 +30,8 @@
  * Ver 2.5: Updates for setting buttons added in 2.4 in the GUI - removed Master select flag (always ON)
  * 			Modifications to preset and resource files contents and handling
  * Ver 2.51: bug fix. Some channels could be set to > 32 for X32... which obviously was wrong
+ * Ver 2.52: small fix on rounding the fader values to X32 known ones
+  *           also enables filtering what is sent to X32 from REAPER
  *
  */
 #include <stdio.h>
@@ -70,6 +72,17 @@ typedef struct in_addr IN_ADDR;
 #define RBsmax	BSIZE
 #define XBrmax	BSIZE * 2
 #define RBrmax	BSIZE * 4
+//
+// defining bits for enabling sending certain commands to X32 following REAPER parsing
+#define TRACKPAN		0x0001
+#define TRACKFADER		0x0002
+#define TRACKNAME		0x0004
+#define TRACKMUTE		0x0008
+#define TRACKSELECT		0x0010
+#define TRACKSEND		0x0020
+#define TRACKSOLO		0x0040
+#define MASTERPAN		0x0080
+#define MASTERVOLUME	0x0100
 //
 // Private functions
 void	X32UsrCtrlC();
@@ -166,6 +179,8 @@ int Xdca_min = 0;		// DCA min track number for Reaper/X32
 int Xdca_max = 0;		// DCA max track number for Reaper/X32
 int Rdca_min[8] = {0, 0, 0, 0, 0, 0, 0, 0};	// REAPER 'dca' mins
 int Rdca_max[8] = {0, 0, 0, 0, 0, 0, 0, 0};	// REAPER 'dca' maxs
+int XRmask = 0;			// bit mask for commands sent to X32 following REAPER parsing
+int Xcsend = -1;		// bits for enabling sending commands sent to X32
 //
 struct ifaddrs *ifa;									// to get our own system's IP address
 struct sockaddr_in XX32IP;								// X socket IP we send/receive
@@ -214,10 +229,10 @@ int main(int argc, char **argv) {
 
 	strcpy(S_X32_IP, "");
 	strcpy(S_Hst_IP, "");
-	printf("X32Reaper - v2.5 - (c)2015 Patrick-Gilles Maillot\n\n");
+	printf("X32Reaper - v2.52 - (c)2015 Patrick-Gilles Maillot\n\n");
 	// load resource file
 	if ((res_file = fopen("./.X32Reaper.ini", "r")) != NULL) { // ignore Width and Height
-		fscanf(res_file, "%d %d %d %d\n", &i, &j, &Xverbose, &Xdelay);
+		fscanf(res_file, "%d %d %d %d %d\n", &i, &j, &Xverbose, &Xdelay, &Xcsend);
 		fgets(S_X32_IP, sizeof(S_X32_IP), res_file);
 		S_X32_IP[strlen(S_X32_IP) - 1] = 0;
 		fgets(S_Hst_IP, sizeof(S_Hst_IP), res_file);
@@ -1411,6 +1426,7 @@ void X32ParseReaperMessage() {
 			// Got track #
 			// Known: /pan, /volume, /name, /mute, /select, /solo, /send
 			if (Rb_r[Rb_i] == 'p') { // /track/pan
+				XRmask = TRACKPAN;
 				while (Rb_r[Rb_i] != ',') Rb_i += 1;
 				Rb_i += 4;
 				for (i = 4; i > 0; endian.cc[--i] = Rb_r[Rb_i++]);
@@ -1433,12 +1449,13 @@ void X32ParseReaperMessage() {
 				else tnum = -1;
 				if (tnum > 0) Xb_ls = Xfprint(Xb_s, 0, tmp, 'f', &endian.ff);
 			} else if (Rb_r[Rb_i] == 'v') { // /track/volume
+				XRmask = TRACKFADER;
 				while (Rb_r[Rb_i] != ',') Rb_i += 1;
 				Rb_i += 4;
 				for (i = 4; i > 0; endian.cc[--i] = Rb_r[Rb_i++]);
 				//
 				// Make REAPER stick to X32 known values to avoid fader kick-backs
-				endian.ff = roundf(endian.ff * 1023.) / 1023.;
+				endian.ff = (int)(endian.ff * 1023.5) / 1023.0;
 				// /xxxx/[01-32]/mix/fader ,f 0..1
 				if ((tnum >= Xtrk_min) && (tnum <= Xtrk_max)) {
 					if (Xchbank_on) {
@@ -1490,6 +1507,7 @@ void X32ParseReaperMessage() {
 				}
 				if (tnum > 0) Xb_ls = Xfprint(Xb_s, 0, tmp, 'f', &endian.ff);
 			} else if (Rb_r[Rb_i] == 'n') { // /track/name
+				XRmask = TRACKNAME;
 				while (Rb_r[Rb_i] != ',') Rb_i += 1;
 				//
 				// Track name starts at Rb_i index
@@ -1519,7 +1537,7 @@ void X32ParseReaperMessage() {
 						if ((tnum - Xtrk_min + 1) < 33) {
 							sprintf(tmp, "/ch/%02d/config/icon", tnum - Xtrk_min + 1);
 							Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_icon);
-							SEND_TOX(Xb_s, Xb_ls)
+							if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
 						}
 						if (Xchbank_on) XMbanktracks[tnum - Xtrk_min].icon = i_icon;
 					}
@@ -1527,7 +1545,7 @@ void X32ParseReaperMessage() {
 						if ((tnum - Xtrk_min + 1) < 33) {
 							sprintf(tmp, "/ch/%02d/config/color", tnum - Xtrk_min + 1);
 							Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_color);
-							SEND_TOX(Xb_s, Xb_ls)
+							if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
 						}
 						if (Xchbank_on) XMbanktracks[tnum - Xtrk_min].color = i_color;
 					}
@@ -1544,48 +1562,48 @@ void X32ParseReaperMessage() {
 					if (i_icon) {
 						sprintf(tmp, "/auxin/%02d/config/icon", tnum - Xaux_min + 1);
 						Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_icon);
-						SEND_TOX(Xb_s, Xb_ls)
+						if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
 					}
 					if (i_color > -1) {
 						sprintf(tmp, "/auxin/%02d/config/color", tnum - Xaux_min + 1);
 						Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_color);
-						SEND_TOX(Xb_s, Xb_ls)
+						if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
 					}
 					sprintf(tmp, "/auxin/%02d/config/name", tnum - Xaux_min + 1);
 				} else if ((tnum >= Xfxr_min) && (tnum <= Xfxr_max)) {
 					if (i_icon) {
 						sprintf(tmp, "/fxrtn/%02d/config/icon", tnum - Xfxr_min + 1);
 						Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_icon);
-						SEND_TOX(Xb_s, Xb_ls)
+						if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
 					}
 					if (i_color > -1) {
 						sprintf(tmp, "/fxrtn/%02d/config/color", tnum - Xfxr_min + 1);
 						Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_color);
-						SEND_TOX(Xb_s, Xb_ls)
+						if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
 					}
 					sprintf(tmp, "/fxrtn/%02d/config/name", tnum - Xfxr_min + 1);
 				} else if ((tnum >= Xbus_min) && (tnum <= Xbus_max)) {
 					if (i_icon) {
 						sprintf(tmp, "/bus/%02d/config/icon", tnum - Xbus_min + 1);
 						Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_icon);
-						SEND_TOX(Xb_s, Xb_ls)
+						if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
 					}
 					if (i_color > -1) {
 						sprintf(tmp, "/bus/%02d/config/color", tnum - Xbus_min + 1);
 						Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_color);
-						SEND_TOX(Xb_s, Xb_ls)
+						if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
 					}
 					sprintf(tmp, "/bus/%02d/config/name", tnum - Xbus_min + 1);
 				} else if ((tnum >= Xdca_min) && (tnum <= Xdca_max)) {
 					if (i_icon) {
 						sprintf(tmp, "/dca/%1d/config/icon", tnum - Xdca_min + 1);
 						Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_icon);
-						SEND_TOX(Xb_s, Xb_ls)
+						if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
 					}
 					if (i_color > -1) {
 						sprintf(tmp, "/dca/%1d/config/color", tnum - Xdca_min + 1);
 						Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_color);
-						SEND_TOX(Xb_s, Xb_ls)
+						if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
 					}
 					sprintf(tmp, "/dca/%1d/config/name", tnum - Xdca_min + 1);
 				} else tnum = -1;
@@ -1593,6 +1611,7 @@ void X32ParseReaperMessage() {
 					Xb_ls = Xfprint(Xb_s, 0, tmp, 's', Rb_r + Rb_i);
 				}
 			} else if (Rb_r[Rb_i] == 'm') { // /track/mute
+				XRmask = TRACKMUTE;
 				while (Rb_r[Rb_i] != ',') Rb_i += 1;
 				Rb_i += 4;
 				for (i = 4; i > 0; endian.cc[--i] = Rb_r[Rb_i++]);
@@ -1653,6 +1672,7 @@ void X32ParseReaperMessage() {
 			} else if (Rb_r[Rb_i] == 's') { // /track/select, /track/send or /track/solo
 				Rb_i++;
 				if ((Rb_r[Rb_i] == 'e') && (Rb_r[Rb_i + 1] == 'l')) { // /track/select
+					XRmask = TRACKSELECT;
 					while (Rb_r[Rb_i] != ',') Rb_i += 1;
 					Rb_i += 4;
 					for (i = 4; i > 0; endian.cc[--i] = Rb_r[Rb_i++]);
@@ -1676,6 +1696,7 @@ void X32ParseReaperMessage() {
 					}
 				} else if ((Rb_r[Rb_i] == 'e') && (Rb_r[Rb_i + 1] == 'n')) { // /track/send
 					// example: /track/6/send/2/volume\0\0,f\0\0?7KÇ (track 6 sending to 2nd bus)
+					XRmask = TRACKSEND;
 					Rb_i += 4;	// skip "....send/"
 					// build bus track number
 					bus = (int) Rb_r[Rb_i++] - (int) '0';
@@ -1706,6 +1727,7 @@ void X32ParseReaperMessage() {
 						if (tnum > 0) Xb_ls = Xfprint(Xb_s, 0, tmp, 'f', &endian.ff);
 					}
 				} else if (Rb_r[Rb_i] == 'o') { // /track/solo
+					XRmask = TRACKSOLO;
 					while (Rb_r[Rb_i] != ',') Rb_i += 1;
 					Rb_i += 4;
 					for (i = 4; i > 0; endian.cc[--i] = Rb_r[Rb_i++]);
@@ -1738,12 +1760,13 @@ void X32ParseReaperMessage() {
 				// Known:/master/pan, /master/volume
 				// TODO: Not possible today: Select, Solo, Mute
 				if (Rb_r[Rb_i] == 'p') { // pan
+					XRmask = MASTERPAN;
 					while (Rb_r[Rb_i] != ',') Rb_i += 1;
 					Rb_i += 4;
 					for (i = 4; i > 0; endian.cc[--i] = Rb_r[Rb_i++]);
 					Xb_ls = Xfprint(Xb_s, 0, "/main/st/mix/pan", 'f', &endian.ff);
-				}
-				if (Rb_r[Rb_i] == 'v') { // volume
+				} else if (Rb_r[Rb_i] == 'v') { // volume
+					XRmask = MASTERVOLUME;
 					while (Rb_r[Rb_i] != ',') Rb_i += 1;
 					Rb_i += 4;
 					for (i = 4; i > 0; endian.cc[--i] = Rb_r[Rb_i++]);
@@ -1784,7 +1807,10 @@ void X32ParseReaperMessage() {
 				Xb_ls = Xfprint(Xb_s, 0, "/-stat/userpar/23/value", 'i', &endian.ii);
 			}
 		}
-		if (Xb_ls) SEND_TOX(Xb_s, Xb_ls)
+		if (Xb_ls) {
+			if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
+			Xb_ls = 0;
+		}
 		Rb_i = Rb_nm; // Set Rb_i pointing to next message (at index Rb_nm) in Reaper bundle
 	} while (bundle);
 	return;
