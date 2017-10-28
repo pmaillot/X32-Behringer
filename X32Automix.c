@@ -34,6 +34,11 @@
 // Note: This is not trying to be a Duncan-like automix system, but sure can help in
 // Studios, Theaters, or situations where several speakers will participate to a talk.
 //
+// Change Log:
+//		0.21: refactoring code: some functions moved to extern
+//		0.22: preventing window resizing
+//		0.23: Saving min and max of all faders to keep them from one session to the next
+//
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -51,9 +56,10 @@
 #define TRUE			1
 #define FALSE			0
 //
+extern int			X32Connect(int Xconnected, char* Xip_str, int btime);
+extern int 			validateIP4Dotted(const char *s);
+
 void RunAutomix();		// return status is in PSstatus
-int X32_Connect();
-int validateIP4Dotted(const char *s);
 void ExitAutomix();
 void GetPanelData();
 void add_3db();
@@ -108,10 +114,9 @@ int		Xfd;						// X32 socket
 int		Xip_len = sizeof(Xip);		// length of addresses
 struct	timeval timeout;
 fd_set	ufds;
-unsigned long mode;
 //
-int		wWidth = 480;
-int		wHeight = 200;
+int		wWidth = 475;
+int		wHeight = 190;
 //
 int		r_len, p_status;			// length and status for receiving
 char	r_buf[BSIZE];				// receive buffer
@@ -139,6 +144,8 @@ int		FaderH[32];
 char	Fader0[32][32];
 char	Fader1[32][32];
 char	LRmix[32];
+char	RFader[32][8];				// saved values of the floats for faders min and max (32 faders, 2x4bytes)
+
 time_t	X32Ftim_bfr[32], X32Ftim_now;// For fader timer
 
 //
@@ -148,8 +155,6 @@ union littlebig {		//Endian conversion union
 	float	ff;
 } endian;
 //
-wchar_t	W32_ip_str[20], W32o_delay_str[4], W32i_delay_str[8], W32sens_str[16];
-wchar_t	W32_start_str[4], W32_stop_str[4], W32_busnum[4];;
 char	Xip_str[20], X32o_delay_str[4], X32i_delay_str[8], X32sens_str[16];
 char	X32_start_str[4], X32_stop_str[4], X32_busnum[4];
 ;
@@ -174,7 +179,8 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	RegisterClassW(&wc);
 	CreateWindowW(wc.lpszClassName,
 			L"X32Automix - AutoMix mode for X32 ",
-			WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 220, wWidth, wHeight, 0,
+//			WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 220, wWidth, wHeight, 0,
+			WS_OVERLAPPED | WS_VISIBLE | WS_MINIMIZEBOX | WS_SYSMENU, 100, 220, wWidth, wHeight, 0,
 			0, hInstance, 0);
 
 	while (keep_running) {		// main GUI events loop
@@ -261,7 +267,7 @@ char str1[32];
 		hdc = BeginPaint(hwnd, &ps);
 		hdcMem = CreateCompatibleDC(hdc);
 		SelectObject(hdcMem, hBmp);
-		BitBlt(hdc, 5, 2, 115, 155, hdcMem, 0, 0, SRCCOPY);
+		BitBlt(hdc, 5, 2, 115, 150, hdcMem, 0, 0, SRCCOPY);
 		DeleteDC(hdcMem);
 
 		SetBkMode(hdc, TRANSPARENT);
@@ -271,7 +277,7 @@ char str1[32];
 		ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
 		TextOut(hdc, 150, 25, str1, wsprintf(str1, "Enter X32 IP below:"));
-		TextOut(hdc, 325, 18, str1, wsprintf(str1, "ver. 0.20"));
+		TextOut(hdc, 325, 18, str1, wsprintf(str1, "ver. 0.23"));
 		DeleteObject(htmp);
 		DeleteObject(hfont);
 //
@@ -333,11 +339,9 @@ char str1[32];
 			i = LOWORD(wParam);
 			switch (i) {
 			case 1:
-				i = GetWindowTextLengthW(hwndipaddr) + 1;
-				GetWindowTextW(hwndipaddr, W32_ip_str, i);
-				WideCharToMultiByte(CP_ACP, 0, W32_ip_str, i, Xip_str, i, NULL, NULL);
+				GetWindowText(hwndipaddr, Xip_str, GetWindowTextLength(hwndipaddr) + 1);
 				if (validateIP4Dotted(Xip_str)) {
-					Xconnected = X32_Connect();
+					Xconnected = X32Connect(Xconnected, Xip_str, 10000);
 					if (Xconnected)
 						SetWindowTextW(hwndconx, L"Connected");
 					else {
@@ -395,22 +399,38 @@ char str1[32];
 							LRmix[5] = X32_busnum[0];
 							LRmix[6] = X32_busnum[1];
 							for (i = 0; i < 32; i++) {	// use bus rather than general LR mix
-								memcpy(Fader0[i], "/ch/01/mix/01/level\0,f\0\0\0\0\0\0", 28);
-								memcpy(Fader1[i], "/ch/01/mix/01/level\0,f\0\0?@\0\0", 28);
+								memcpy(Fader0[i], "/ch/01/mix/01/level\0,f\0\0", 24);
+								memcpy(Fader1[i], "/ch/01/mix/01/level\0,f\0\0", 24);
 								k = i + 1;
 								Fader0[i][4] = Fader1[i][4] = k / 10 + '0';
 								Fader0[i][5] = Fader1[i][5] = k - ((k / 10) * 10) + '0';
 								Fader0[i][11] = Fader1[i][11] = X32_busnum[0];
 								Fader0[i][12] = Fader1[i][12] = X32_busnum[1];
+								Fader0[i][24] = RFader[i][0];
+								Fader0[i][25] = RFader[i][1];
+								Fader0[i][26] = RFader[i][2];
+								Fader0[i][27] = RFader[i][3];
+								Fader1[i][24] = RFader[i][4];
+								Fader1[i][25] = RFader[i][5];
+								Fader1[i][26] = RFader[i][6];
+								Fader1[i][27] = RFader[i][7];
 							}
 						} else {
 							memcpy(LRmix, "/main/st/mix/fader\0\0,f\0\0\0\0\0\0", 28);
 							for (i = 0; i < 32; i++) {	// use general LR mix
-								memcpy(Fader0[i], "/ch/01/mix/fader\0\0\0\0,f\0\0\0\0\0\0", 28);
-								memcpy(Fader1[i], "/ch/01/mix/fader\0\0\0\0,f\0\0?@\0\0", 28);
+								memcpy(Fader0[i], "/ch/01/mix/fader\0\0\0\0,f\0\0", 24);
+								memcpy(Fader1[i], "/ch/01/mix/fader\0\0\0\0,f\0\0", 24);
 								k = i + 1;
 								Fader0[i][4] = Fader1[i][4] = k / 10 + '0';
 								Fader0[i][5] = Fader1[i][5] = k - ((k / 10) * 10) + '0';
+								Fader0[i][24] = RFader[i][0];
+								Fader0[i][25] = RFader[i][1];
+								Fader0[i][26] = RFader[i][2];
+								Fader0[i][27] = RFader[i][3];
+								Fader1[i][24] = RFader[i][4];
+								Fader1[i][25] = RFader[i][5];
+								Fader1[i][26] = RFader[i][6];
+								Fader1[i][27] = RFader[i][7];
 							}
 						}
 						i = X32i_delay / 50;
@@ -443,6 +463,10 @@ char str1[32];
 					X32i_delay, chstart, chstop, usebus, NOM, X32sensitivity);
 			fprintf(res_file, "%s\n", X32_busnum);
 			fprintf(res_file, "%s\n", Xip_str);
+			for (i = 0; i < 32; i++) {
+				fprintf(res_file, "%c%c%c%c", Fader0[i][24], Fader0[i][25], Fader0[i][26], Fader0[i][27]);
+				fprintf(res_file, "%c%c%c%c", Fader1[i][24], Fader1[i][25], Fader1[i][26], Fader1[i][27]);
+			}
 			fclose(res_file);
 		}
 		if (Xconnected && Automix_on) {
@@ -461,47 +485,25 @@ char str1[32];
 //
 //
 void GetPanelData() {
-int i;
 
-	i = GetWindowTextLengthW(hwndipaddr) + 1;
-	GetWindowTextW(hwndipaddr, W32_ip_str, i);
-	WideCharToMultiByte(CP_ACP, 0, W32_ip_str, i, Xip_str, i, NULL,
-	NULL);
+	GetWindowText(hwndipaddr, Xip_str, GetWindowTextLength(hwndipaddr) + 1);
 
-	i = GetWindowTextLengthW(hwnodely) + 1;
-	GetWindowTextW(hwnodely, W32o_delay_str, i);
-	WideCharToMultiByte(CP_ACP, 0, W32o_delay_str, i, X32o_delay_str, i,
-	NULL, NULL);
+	GetWindowText(hwnodely, X32o_delay_str, GetWindowTextLength(hwnodely) + 1);
 	sscanf(X32o_delay_str, "%d", &X32o_delay);
 
-	i = GetWindowTextLengthW(hwnidely) + 1;
-	GetWindowTextW(hwnidely, W32i_delay_str, i);
-	WideCharToMultiByte(CP_ACP, 0, W32i_delay_str, i, X32i_delay_str, i,
-	NULL, NULL);
+	GetWindowText(hwnidely, X32i_delay_str, GetWindowTextLength(hwnidely) + 1);
 	sscanf(X32i_delay_str, "%d", &X32i_delay);
 
-	i = GetWindowTextLengthW(hwndsens) + 1;
-	GetWindowTextW(hwndsens, W32sens_str, i);
-	WideCharToMultiByte(CP_ACP, 0, W32sens_str, i, X32sens_str, i,
-	NULL, NULL);
+	GetWindowText(hwndsens, X32sens_str, GetWindowTextLength(hwndsens) + 1);
 	sscanf(X32sens_str, "%f", &X32sensitivity);
 
-	i = GetWindowTextLengthW(hwndstart) + 1;
-	GetWindowTextW(hwndstart, W32_start_str, i);
-	WideCharToMultiByte(CP_ACP, 0, W32_start_str, i, X32_start_str, i,
-	NULL, NULL);
+	GetWindowText(hwndstart, X32_start_str, GetWindowTextLength(hwndstart) + 1);
 	sscanf(X32_start_str, "%d", &chstart);
 
-	i = GetWindowTextLengthW(hwndstop) + 1;
-	GetWindowTextW(hwndstop, W32_stop_str, i);
-	WideCharToMultiByte(CP_ACP, 0, W32_stop_str, i, X32_stop_str, i,
-	NULL, NULL);
+	GetWindowText(hwndstop, X32_stop_str, GetWindowTextLength(hwndstop) + 1);
 	sscanf(X32_stop_str, "%d", &chstop);
 
-	i = GetWindowTextLengthW(hwndbnum) + 1;
-	GetWindowTextW(hwndbnum, W32_busnum, i);
-	WideCharToMultiByte(CP_ACP, 0, W32_busnum, i, X32_busnum, i, NULL,
-	NULL);
+	GetWindowText(hwndbnum, X32_busnum, GetWindowTextLength(hwndbnum) + 1);
 	Bus[5] = X32_busnum[0];
 	Bus[6] = X32_busnum[1];
 
@@ -509,86 +511,11 @@ int i;
 }
 //
 //
-int X32_Connect() {
-	p_status = 0;
-//
-	if (Xconnected) {
-		close(Xfd);
-		return 0;
-	}
-//
-// initialize communication with X32 server at IP ip and PORT port
-	p_status = GetWindowTextLengthW(hwndipaddr) + 1;
-	GetWindowTextW(hwndipaddr, W32_ip_str, p_status);
-	WideCharToMultiByte(CP_ACP, 0, W32_ip_str, p_status, Xip_str,
-			p_status, NULL, NULL);
-//
-	if (validateIP4Dotted(Xip_str) == 0) {
-		return 0;
-	}
-#ifdef __WIN32__
-//Initialize winsock
-	if (WSAStartup(MAKEWORD(2, 2), &wsa) != 0) {
-		exit(EXIT_FAILURE);
-	}
-#endif
-//
-// Load the X32 address we connect to; we're a client to X32, keep it simple.
-		// Create the UDP socket
-	if ((Xfd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
-		return 0; // Make sure we don't considered being connected
-	}
-	// Construct the server sockaddr_in structure
-	memset(&Xip, 0, sizeof(Xip));				// Clear struct
-	Xip.sin_family = AF_INET;					// Internet/IP
-	Xip.sin_addr.s_addr = inet_addr(Xip_str);	// IP address
-	Xip.sin_port = htons(atoi("10023"));		// server port
-// Non blocking mode
-	mode = 1;
-	p_status = ioctlsocket(Xfd, FIONBIO, &mode); // make socket non blocking
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 50000; //Set timeout for non blocking recvfrom(): 50ms
-	ufds.fd_array[0] = Xfd;
-	ufds.fd_count = 1;
-	if (sendto(Xfd, xinfo, 8, 0, Xip_addr, Xip_len) >= 0) { // send /info
-		RPOLL				// wait for answer
-		if (p_status > 0) {	// data ready
-			RECV			// get and compare data
-			if ((strncmp(r_buf, xinfo, 5)) == 0) {
-				return 1;	// We are connected
-			}
-		}
-	}
-	WSACleanup();
-	return 0; // Make sure we don't considered being connected
-}
-//
-// Validate IP string function
-//
-int validateIP4Dotted(const char *s) {
-	int i;
-	char tail[16];
-	unsigned int d[4];
-
-	i = strlen(s);
-	if (i < 7 || i > 15)
-		return 0;
-	tail[0] = 0;
-	int c = sscanf(s, "%3u.%3u.%3u.%3u%s", &d[0], &d[1], &d[2], &d[3],
-			tail);
-	if (c != 4 || tail[0])
-		return 0;
-	for (i = 0; i < 4; i++)
-		if (d[i] > 255)
-			return 0;
-	return 1;
-}
-//
-//
 int main(int argc, char **argv) {
 	HINSTANCE hPrevInstance = 0;
 	PWSTR pCmdLine = 0;
 	int nCmdShow = 0;
+	int i, j;
 
 	Xip_str[0] = 0;
 	// load resource file
@@ -605,6 +532,10 @@ int main(int argc, char **argv) {
 
 		fgets(Xip_str, sizeof(Xip_str), res_file);
 		Xip_str[strlen(Xip_str) - 1] = 0;
+
+		for (i = 0; i < 32; i++) {
+			for (j = 0; j < 8; j++) fscanf(res_file, "%c", &RFader[i][j]);
+		}
 		fclose(res_file);
 
 		ShowWindow(GetConsoleWindow(), SW_HIDE); // Hide console window
