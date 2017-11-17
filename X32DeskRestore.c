@@ -12,6 +12,9 @@
  *    0.91: cleaned the code, replacing longer parsing commands by the use of "/" X32 commands
  *          the older code is commented at the end of the file.
  *    0.92: code refactoring - moved some functions to extern
+ *    0.93: adapted to FW ver 3.04
+ *    0.94: preventing window resizing
+ *
  */
 
 #include <winsock2.h>
@@ -28,8 +31,8 @@
 #define BSIZE 512
 #define MAXLR 512
 
-extern int X32Connect(int Xconnected, char* Xip_str, int btime);
-extern int validateIP4Dotted(const char *s);
+extern int		X32Connect(int Xconnected, char* Xip_str, int btime);
+extern int		validateIP4Dotted(const char *s);
 // Private functions
 int X32DS_GetFile();
 void XRcvClean();
@@ -45,8 +48,8 @@ void XRcvClean();
 
 //
 // External calls used
-extern int Xsprint(char *bd, int index, char format, void *bs);//
-
+extern int Xsprint(char *bd, int index, char format, void *bs);
+//
 //
 // Windows stuff
 WINBASEAPI HWND WINAPI GetConsoleWindow(VOID);
@@ -82,7 +85,7 @@ char Xready[] = "Ready";
 char Xerror[] = "--Error--";
 char Xnofile[] = "No file selected";
 char Xnotconnected[] = "Not Connected";
-char d_version[] = "ver. 0.92";
+char d_version[] = "ver. 0.94";
 
 int Xconnected = 0;				// flags
 int Xfiles = 0;					// file info available (valid)
@@ -165,7 +168,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 	RegisterClassW(&wc);
 	CreateWindowW(wc.lpszClassName,
 		L"X32DeskRestore - Restore X32 State, Scene, data from pattern file information",
-		WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 220, wWidth, wHeight, 0, 0, hInstance, 0);
+		WS_OVERLAPPED | WS_VISIBLE | WS_MINIMIZEBOX | WS_SYSMENU, 100, 220, wWidth, wHeight, 0, 0, hInstance, 0);
 //
 // Main loop
 	while (keep_running) {
@@ -223,7 +226,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 //
 		hdcMem = CreateCompatibleDC(hdc);
 		SelectObject(hdcMem, hBmp);
-		BitBlt(hdc, 0, 2, 120, 100, hdcMem, 0, 0, SRCCOPY);
+		BitBlt(hdc, 0, 2, 120, 95, hdcMem, 0, 0, SRCCOPY);
 		DeleteDC(hdcMem);
 //
 		SetBkMode(hdc, TRANSPARENT);
