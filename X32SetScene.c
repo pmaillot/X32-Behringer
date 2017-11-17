@@ -8,6 +8,8 @@
 // Typical use is to restore a saved [partial] scene to X32, as saved with X32GetScene or from
 // an X32 file save.
 //
+// ver 1.8: support for FW 3.08
+//
 
 #include <stdio.h>
 #include <string.h>
@@ -123,17 +125,17 @@ char				c1;
 	Xip.sin_port = htons(atoi(Xport_str));		// server port
 //
 // Open file to interpret from stdin
-	printf ("# X32SetScene ver. 1.7 (c)2014 Patrick-Gilles Maillot\n\n");
+	printf ("# X32SetScene ver. 1.8 (c)2017 Patrick-Gilles Maillot\n\n");
 	Xin = stdin;
 	keep_reading = 1;
 	fx[0] = fx[1] = fx[2] = fx[3] = fx[4] = fx[5] = fx[6] = fx[7] = -1;
 	while(keep_reading) {
 		if ((read_status = scanf("%s", l_read)) != EOF) {
 			if (l_read[0] == '#') {
-				if (strcmp(l_read, "#2.1#") == 0) {
+				if (strcmp(l_read, "#2.7#") == 0) {
 					fgets(l_read, MAXLREAD, Xin); // ignore rest of the line
 				} else {
-					printf ("Only ver. 2.1 files are accepted at this time\n");
+					printf ("Only ver. 2.7 files are accepted at this time\n");
 					keep_reading = 0;
 				}
 			} else if (l_read[0] == '/') {
