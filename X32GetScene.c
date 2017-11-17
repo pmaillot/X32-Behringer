@@ -129,7 +129,7 @@ fd_set 				ufds;
 		printf ("Please enter note data: ");
 		scanf ("%s", b_snd);
 	}
-	printf ("#2.1# \"%s\" \"%s\" %%000000000 1 X32GetScene V1.4 (c)2014 Patrick-Gilles Maillot\n\n", b_rec, b_snd);
+	printf ("#2.7# \"%s\" \"%s\" %%000000000 1 X32GetScene V1.5 (c)2014 Patrick-Gilles Maillot\n\n", b_rec, b_snd);
 // Open file to interpret from stdin
 	k = Xsprint (b_snd, 0, 's', "/node");
 	k = Xsprint (b_snd, k, 's', ",s");
