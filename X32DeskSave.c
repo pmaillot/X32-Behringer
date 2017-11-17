@@ -13,6 +13,8 @@
  *    0.91: cleaned the code for first release with an attempt at .snp, .efx, and .chn handling
  *          not working as initially thought of but code commented; I may get back to this
  *    0.92: code refactoring - moved some functions to extern
+ *    0.93: adapted to FW ver 3.04
+ *    0.94: preventing windows resizing
  */
 
 #include <winsock2.h>
@@ -156,7 +158,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 
 	RegisterClassW(&wc);
 	CreateWindowW(wc.lpszClassName, L"X32DeskSave - Retrieve and save X32 State, Scene, data from pattern file information",
-			WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+			WS_OVERLAPPED | WS_VISIBLE | WS_MINIMIZEBOX | WS_SYSMENU,
 			100, 220, wWidth, wHeight, 0, 0, hInstance, 0);
 //
 	while (keep_running) {
