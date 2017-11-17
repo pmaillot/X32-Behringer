@@ -289,6 +289,11 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 //						k = Xp_list(buf, k, Xoscdest, Xoscdest_max);
 				SendDataToX32 // send to X32
 				break;
+			case config_routing_routswitch: // /config/routing/routswitch
+				k = Xsprint(buf, 0, 's', "config/routing/routswitch");
+				k = Xp_list(buf, k, Xroutswitch, Xroutswitch_max);
+				SendDataToX32 // send to X32
+				break;
 			case config_routing_IN: // /config/routing/IN
 				k = Xsprint(buf, 0, 's', "/config/routing/IN/1-8");
 				k = Xp_list(buf, k, Xinaertng, Xinaertng_max);
@@ -462,6 +467,48 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = Xp_list(buf, k, Xo58rtng, Xo58rtng_max);
 				SendDataToX32 // send to X32
 				break;
+			case config_routing_PLAY: // /config/routing/PLAY
+				k = Xsprint(buf, 0, 's', "/config/routing/PLAY/1-8");
+				k = Xp_list(buf, k, Xinaertng, Xinaertng_max);
+				SendDataToX32 // send to X32
+				k = Xsprint(buf, 0, 's', "/config/routing/PLAY/9-16");
+				k = Xp_list(buf, k, Xinaertng, Xinaertng_max);
+				SendDataToX32 // send to X32
+				k = Xsprint(buf, 0, 's', "/config/routing/PLAY/17-24");
+				k = Xp_list(buf, k, Xinaertng, Xinaertng_max);
+				SendDataToX32 // send to X32
+				k = Xsprint(buf, 0, 's', "/config/routing/PLAY/25-32");
+				k = Xp_list(buf, k, Xinaertng, Xinaertng_max);
+				SendDataToX32 // send to X32
+				k = Xsprint(buf, 0, 's', "/config/routing/PLAY/AUX");
+				k = Xp_list(buf, k, Xauxrtng, Xauxrtng_max);
+				SendDataToX32 // send to X32
+				break;
+			case config_routing_PLAY1: // /config/routing/PLAY/1-8
+				k = Xsprint(buf, 0, 's', "/config/routing/PLAY/1-8");
+				k = Xp_list(buf, k, Xinaertng, Xinaertng_max);
+				SendDataToX32 // send to X32
+				break;
+			case config_routing_PLAY9: // /config/routing/PLAY/9-16
+				k = Xsprint(buf, 0, 's', "/config/routing/PLAY/9-16");
+				k = Xp_list(buf, k, Xinaertng, Xinaertng_max);
+				SendDataToX32 // send to X32
+				break;
+			case config_routing_PLAY17: // /config/routing/PLAY/17-24
+				k = Xsprint(buf, 0, 's', "/config/routing/PLAY/17-24");
+				k = Xp_list(buf, k, Xinaertng, Xinaertng_max);
+				SendDataToX32 // send to X32
+				break;
+			case config_routing_PLAY25: // /config/routing/PLAY/25-32
+				k = Xsprint(buf, 0, 's', "/config/routing/PLAY/25-32");
+				k = Xp_list(buf, k, Xinaertng, Xinaertng_max);
+				SendDataToX32 // send to X32
+				break;
+			case config_routing_PLAYAUX: // /config/routing/PLAY/AUX
+				k = Xsprint(buf, 0, 's', "/config/routing/PLAY/AUX");
+				k = Xp_list(buf, k, Xauxrtng, Xauxrtng_max);
+				SendDataToX32 // send to X32
+				break;
 			case config_userctrl_A:case config_userctrl_B:case config_userctrl_C: // /config/userctrl
 				sscanf(l_read +17, "%c", &c1);
 				sprintf(tmp, "/config/userctrl/%c", c1);
@@ -507,6 +554,12 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = Xp_linf(buf, k, -6., 30., 0.5);
 				SendDataToX32 // send to X32
 				k = Xsprint(buf, 0, 's', "/config/tape/autoplay");
+				k = XOff_On(buf, k, "OFF");
+				SendDataToX32 // send to X32
+				break;
+			case config_amixenable: // /config/amixenable
+				k = Xsprint(buf, 0, 's', "/config/amixenable");
+				k = XOff_On(buf, k, "OFF");
 				k = XOff_On(buf, k, "OFF");
 				SendDataToX32 // send to X32
 				break;
@@ -1109,6 +1162,22 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				sprintf(tmp, "/ch/%02d/grp/mute", ch);
 				k = Xsprint(buf, 0, 's', tmp);
 				k = Xp_bit(buf, k);
+				SendDataToX32 // send to X32
+				break;
+			case ch_01_automix:case ch_02_automix:case ch_03_automix:case ch_04_automix: // /ch/01/automix
+			case ch_05_automix:case ch_06_automix:case ch_07_automix:case ch_08_automix:
+			case ch_09_automix:case ch_10_automix:case ch_11_automix:case ch_12_automix:
+			case ch_13_automix:case ch_14_automix:case ch_15_automix:case ch_16_automix:
+			case ch_17_automix:case ch_18_automix:case ch_19_automix:case ch_20_automix:
+			case ch_21_automix:case ch_22_automix:case ch_23_automix:case ch_24_automix:
+			case ch_25_automix:case ch_26_automix:case ch_27_automix:case ch_28_automix:
+			case ch_29_automix:case ch_30_automix:case ch_31_automix:case ch_32_automix:
+				sscanf(l_read + 4, "%d", &ch);
+				sprintf(tmp, "/ch/%02d/automix", ch);
+				k = Xsprint(buf, 0, 's', tmp);
+				k = XOff_On(buf, k, "OFF");
+				SendDataToX32 // send to X32
+				k = Xp_linf(buf, k, -12., 24., 0.5);
 				SendDataToX32 // send to X32
 				break;
 			case auxin_01_config: case auxin_02_config: case auxin_03_config: case auxin_04_config: // /auxin/01/config
@@ -2110,7 +2179,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				sscanf(l_read + 12, "%c", &c1);
 				sprintf(tmp, "/main/st/eq/%c/type", c1);
 				k = Xsprint(buf, 0, 's', tmp);
-				k = Xp_list(buf, k, Xeqtyp, Xeqtyp_max);
+				k = Xp_list(buf, k, Xmeqtyp, Xmeqtyp_max);
 				SendDataToX32 // send to X32
 				sprintf(tmp, "/main/st/eq/%c/f", c1);
 				k = Xsprint(buf, 0, 's', tmp);
@@ -2270,7 +2339,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				sscanf(l_read + 11, "%c", &c1);
 				sprintf(tmp, "/main/m/eq/%c/type", c1);
 				k = Xsprint(buf, 0, 's', tmp);
-				k = Xp_list(buf, k, Xeqtyp, Xeqtyp_max);
+				k = Xp_list(buf, k, Xmeqtyp, Xmeqtyp_max);
 				SendDataToX32 // send to X32
 				sprintf(tmp, "/main/m/eq/%c/f", c1);
 				k = Xsprint(buf, 0, 's', tmp);
@@ -2431,6 +2500,10 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = Xsprint(buf, 0, 's', tmp);
 				k = Xp_list(buf, k, Xoutpos, Xoutpos_max);
 				SendDataToX32 // send to X32
+				sprintf(tmp, "/outputs/main/%02d/invert", ch);
+				k = Xsprint(buf, 0, 's', tmp);
+				k = XOff_On(buf, k, "OFF");
+				SendDataToX32 // send to X32
 				break;
 			case outputs_main_01_delay:case outputs_main_02_delay:case outputs_main_03_delay:case outputs_main_04_delay: // /outputs/main/01
 			case outputs_main_05_delay:case outputs_main_06_delay:case outputs_main_07_delay:case outputs_main_08_delay:
@@ -2457,6 +2530,10 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = Xsprint(buf, 0, 's', tmp);
 				k = Xp_list(buf, k, Xoutpos, Xoutpos_max);
 				SendDataToX32 // send to X32
+				sprintf(tmp, "/outputs/aux/%02d/invert", ch);
+				k = Xsprint(buf, 0, 's', tmp);
+				k = XOff_On(buf, k, "OFF");
+				SendDataToX32 // send to X32
 				break;
 			case outputs_p16_01:case outputs_p16_02:case outputs_p16_03:case outputs_p16_04: //  /outputs/p16/01
 			case outputs_p16_05:case outputs_p16_06:case outputs_p16_07:case outputs_p16_08:
@@ -2470,6 +2547,10 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				sprintf(tmp, "/outputs/p16/%02d/pos", ch);
 				k = Xsprint(buf, 0, 's', tmp);
 				k = Xp_list(buf, k, Xoutpos, Xoutpos_max);
+				SendDataToX32 // send to X32
+				sprintf(tmp, "/outputs/p16/%02d/invert", ch);
+				k = Xsprint(buf, 0, 's', tmp);
+				k = XOff_On(buf, k, "OFF");
 				SendDataToX32 // send to X32
 				break;
 // if (X32VER > 210) { // starting with FW 2.11 (covered by case satement)
@@ -2506,6 +2587,10 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				sprintf(tmp, "/outputs/aes/%02d/pos", ch);
 				k = Xsprint(buf, 0, 's', tmp);
 				k = Xp_list(buf, k, Xoutpos, Xoutpos_max);
+				SendDataToX32 // send to X32
+				sprintf(tmp, "/outputs/aes/%02d/invert", ch);
+				k = Xsprint(buf, 0, 's', tmp);
+				k = XOff_On(buf, k, "OFF");
 				SendDataToX32 // send to X32
 				break;
 			case outputs_rec_01:case outputs_rec_02: // /outputs/rec/01
