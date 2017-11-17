@@ -3,12 +3,15 @@
 //
 //  Created on: 23 avr. 2015
 //
-// ©2015 - Patrick-Gilles Maillot
+// ©2017 - Patrick-Gilles Maillot
 //
 // X32SetPreset - a Windows app for loading a Preset to X32 memory from a PC HDD.
 //
 //              Although this program is essentially a Windows-only application,
 //              #ifdefs are kept for the case of a linux/MacOS implementation
+//
+//	ver. 0.20: Support for FW 3.08
+//
 //
 
 #include <stdlib.h>
@@ -293,7 +296,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 //
 	RegisterClassW(&wc);
 	CreateWindowW(wc.lpszClassName, L"X32SetPreset - Load Channel, Effects or Routing Preset to X32",
-			WS_OVERLAPPEDWINDOW | WS_VISIBLE,
+			WS_OVERLAPPED | WS_VISIBLE | WS_MINIMIZEBOX | WS_SYSMENU,
 			110, 110, wWidth, wHeight, 0, 0, hInstance, 0);
 //
 	while (keep_running) {
@@ -361,7 +364,7 @@ char 	str1[LENFILE];
 				305, 75, 75, 20, hwnd, (HMENU)8, NULL, NULL);
 //
         hwndcombo = CreateWindowW(L"COMBOBOX", NULL, CBS_DROPDOWN | WS_CHILD | WS_VISIBLE,
-        		450, 5, 80, 140, hwnd, (HMENU)7, NULL, NULL);
+        		435, 5, 95, 140, hwnd, (HMENU)7, NULL, NULL);
         // Load dropdown item list
         char tmpstr[8];
         for (k = 1; k < 9; k++) {
@@ -434,7 +437,7 @@ char 	str1[LENFILE];
 			TextOut(hdc, 150, 60, str1, wsprintf(str1, "Channel Preset Preview:"));
 		else if (PsetType == EFFECT)
 			TextOut(hdc, 150, 60, str1, wsprintf(str1, "Effect Preset Type:"));
-		TextOut(hdc, 335, 18, str1, wsprintf(str1, "ver. 0.14"));
+		TextOut(hdc, 335, 18, str1, wsprintf(str1, "ver. 0.20"));
 		DeleteObject(htmp);
 		DeleteObject(hfont);
 //
@@ -452,7 +455,7 @@ char 	str1[LENFILE];
 		ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
 //		TextOut(hdc, 395, 10, str1, wsprintf(str1, "Destination:"));
-		TextOut(hdc, 395, 10, str1, wsprintf(str1, "CH or FX:"));
+		TextOut(hdc, 395, 10, str1, wsprintf(str1, "CH/FX:"));
 		if (PsetType == CHANNEL) {
 			TextOut(hdc, 10, 109, str1, wsprintf(str1, "Channel Preset Safes ->"));
 			TextOut(hdc, 180, 109, str1, wsprintf(str1, "HA"));
@@ -1001,7 +1004,7 @@ main(int argc, char **argv)
 	// create logfile and run program
 	if ((log_file = fopen(r_buf, "wb")) != NULL) {
 		fprintf(log_file,"*\r\n*\r\n");
-		fprintf(log_file,"*    X32SetPreset Log data - ©2015 - Patrick-Gilles Maillot\r\n");
+		fprintf(log_file,"*    X32SetPreset Log data - ©2017 - Patrick-Gilles Maillot\r\n");
 		fprintf(log_file,"*\r\n*\r\n");
 
 		if (Finiretval) fprintf(log_file, ".ini file path: %s\r\n", Finipath);
@@ -1073,10 +1076,10 @@ int	PB_ind;
 		}
 		while (fscanf(Xin, "%s", PSBuffer + PB_ind) != EOF) {
 			if (PSBuffer[PB_ind] == '#') {
-				if (strcmp(PSBuffer + PB_ind, "#2.1#") == 0) {
+				if (strcmp(PSBuffer + PB_ind, "#2.7#") == 0) {
 					fgets(PSBuffer + PB_ind, sizeof(PSBuffer), Xin); // ignore rest of the line
 				} else {
-					fprintf (log_file, "Only ver. 2.1 files are accepted at this time\r\n");
+					fprintf (log_file, "Only ver. 2.7 files are accepted at this time\r\n");
 					PSstatus = 1;
 					return;
 				}
@@ -1161,10 +1164,10 @@ int	PB_ind;
 		}
 		while (fscanf(Xin, "%s", PSBuffer + PB_ind) != EOF) {
 			if (PSBuffer[PB_ind] == '#') {
-				if (strcmp(PSBuffer + PB_ind, "#2.1#") == 0) {
+				if (strcmp(PSBuffer + PB_ind, "#2.7#") == 0) {
 					fgets(PSBuffer + PB_ind, sizeof(PSBuffer), Xin); // ignore rest of the line
 				} else {
-					fprintf (log_file, "Only ver. 2.1 files are accepted at this time\r\n");
+					fprintf (log_file, "Only ver. 2.7 files are accepted at this time\r\n");
 					PSstatus = 1;
 					return;
 				}
