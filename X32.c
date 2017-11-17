@@ -15,6 +15,7 @@
 // 0.66: fixed typos and cosmetic changes
 // 0.67: fixed bug in the reply sent by /status ; /bus/02/mix/01/type fixed
 // 0.68: fixed bug in getting IP address with non-Windows systems (Xport_str was over written)
+// 0.69: support for X-Live! and 3.08FW
 //
 #ifdef __WIN32__
 #include <windows.h>
@@ -39,7 +40,7 @@
 #include <sys/time.h>
 #include <time.h>
 
-#define XVERSION "3.07"	// FW version
+#define XVERSION "3.08"	// FW version
 #define BSIZE 512		// Buffer sizes
 #define X32DEBUG 0		// default debug mode
 #define X32VERBOSE 1	// default verbose mode
@@ -85,71 +86,75 @@ enum types {
 	CTALK,		// 14
 	CTALKAB,	// 15
 	COSC,		// 16
-	CROUTIN,	// 17
-	CROUTAC,	// 18
-	CROUTOT,	// 19
-	CCTRL,		// 20
-	CENC,		// 21
-	CTAPE,		// 22
-	CMIX,		// 23
-	CHCO,		// 24
-	CHDE,		// 25
-	CHPR,		// 26
-	CHGA,		// 27
-	CHGF,		// 28
-	CHDY,		// 29
-	CHDF,		// 30
-	CHIN,		// 31
-	CHEQ,		// 32
-	CHMX,		// 33
-	CHMO,		// 34
-	CHME,		// 35
-	CHGRP,		// 36
-	CHAMIX,		// 37
-	AXPR,		// 38
-	BSCO,		// 39
-	MXPR,		// 40
-	MXDY,		// 41
-	MSMX,		// 42
-	FXTYP1,		// 43
-	FXSRC,		// 44
-	FXPAR1,		// 45
-	FXTYP2,		// 46
-	FXPAR2,		// 47
-	OMAIN,		// 48
-	OMAIND,		// 49
-	HAMP,		// 50
-	PREFS,		// 51
-	PIR,		// 52
-	PIQ,		// 53
-	PCARD,		// 54
-	PRTA,		// 55
-	PIP,		// 56
-	PADDR,		// 57
-	PMASK,		// 58
-	PGWAY,		// 59
-	STAT,		// 60
-	SSCREEN,	// 61
-	SCHA,		// 62
-	SMET,		// 63
-	SROU,		// 64
-	SSET,		// 65
-	SLIB,		// 66
-	SFX,		// 67
-	SMON,		// 68
-	SUSB,		// 69
-	SSCE,		// 70
-	SASS,		// 71
-	SSOLOSW,	// 72
-	SAES,		// 73
-	STAPE,		// 74
-	SOSC,		// 75
-	USB,		// 76
-	SNAM,		// 77
-	SCUE,		// 78
-	SSCN,		// 79
-	SSNP,		// 80
-	HA			// 81
+	CROUTSW,	// 17
+	CROUTIN,	// 18
+	CROUTAC,	// 19
+	CROUTOT,	// 20
+	CROUTPLAY,	// 21
+	CCTRL,		// 22
+	CENC,		// 23
+	CTAPE,		// 24
+	CMIX,		// 25
+	CHCO,		// 26
+	CHDE,		// 27
+	CHPR,		// 28
+	CHGA,		// 29
+	CHGF,		// 30
+	CHDY,		// 31
+	CHDF,		// 32
+	CHIN,		// 33
+	CHEQ,		// 34
+	CHMX,		// 35
+	CHMO,		// 36
+	CHME,		// 37
+	CHGRP,		// 38
+	CHAMIX,		// 39
+	AXPR,		// 40
+	BSCO,		// 41
+	MXPR,		// 42
+	MXDY,		// 43
+	MSMX,		// 44
+	FXTYP1,		// 45
+	FXSRC,		// 46
+	FXPAR1,		// 47
+	FXTYP2,		// 48
+	FXPAR2,		// 49
+	OMAIN,		// 50
+	OMAIND,		// 51
+	HAMP,		// 52
+	PREFS,		// 53
+	PIR,		// 54
+	PIQ,		// 55
+	PCARD,		// 56
+	PRTA,		// 57
+	PIP,		// 58
+	PADDR,		// 59
+	PMASK,		// 60
+	PGWAY,		// 61
+	STAT,		// 62
+	SSCREEN,	// 63
+	SCHA,		// 64
+	SMET,		// 65
+	SROU,		// 66
+	SSET,		// 67
+	SLIB,		// 68
+	SFX,		// 69
+	SMON,		// 70
+	SUSB,		// 71
+	SSCE,		// 72
+	SASS,		// 73
+	SSOLOSW,	// 74
+	SAES,		// 75
+	STAPE,		// 76
+	SOSC,		// 77
+	USB,		// 78
+	SNAM,		// 79
+	SCUE,		// 80
+	SSCN,		// 81
+	SSNP,		// 82
+	HA,			// 83
+	ACTION,		// 84
+	UREC		// 85
 };
 
 typedef struct X32header {	// The Header structure is used to quickly scan through
@@ -214,6 +219,7 @@ int function_config();
 int function_main();
 int function_prefs();
 int function_stat();
+int function_urec();
 int function_channel();
 int function_auxin();
 int function_fxrtn();
@@ -263,6 +269,7 @@ X32header Xheader[] = { // X32 Headers, the data used for testing and the
 	{ { "/mai" }, &function_main },
 	{ { "/-pr" }, &function_prefs },
 	{ { "/-st" }, &function_stat },
+	{ { "/-ur" }, &function_urec },
 	{ { "/ch/" }, &function_channel },
 	{ { "/aux" }, &function_auxin },
 	{ { "/fxr" }, &function_fxrtn },
@@ -296,7 +303,6 @@ X32node Xnode[] = { // /node Command Headers (see structure definition above
 	{ "main", 4, Xmain, sizeof(Xmain) / sizeof(X32command) },
 	{ "-pre", 4, Xprefs, sizeof(Xprefs) / sizeof(X32command) },
 	{ "-sta", 4, Xstat, sizeof(Xstat) / sizeof(X32command) },
-	{ "ch", 2, Xchannel01, sizeof(Xchannel01) / sizeof(X32command) },
 	{ "ch/01", 5, Xchannel01, sizeof(Xchannel01) / sizeof(X32command) },
 	{ "ch/02", 5, Xchannel02, sizeof(Xchannel02) / sizeof(X32command) },
 	{ "ch/03", 5, Xchannel03, sizeof(Xchannel03) / sizeof(X32command) },
@@ -329,7 +335,7 @@ X32node Xnode[] = { // /node Command Headers (see structure definition above
 	{ "ch/30", 5, Xchannel30, sizeof(Xchannel30) / sizeof(X32command) },
 	{ "ch/31", 5, Xchannel31, sizeof(Xchannel31) / sizeof(X32command) },
 	{ "ch/32", 5, Xchannel32, sizeof(Xchannel32) / sizeof(X32command) },
-	{ "auxin", 5, Xauxin01, sizeof(Xauxin01) / sizeof(X32command) },
+	{ "ch", 2, Xchannel01, sizeof(Xchannel01) / sizeof(X32command) },
 	{ "auxin/01", 8, Xauxin01, sizeof(Xauxin01) / sizeof(X32command) },
 	{ "auxin/02", 8, Xauxin02, sizeof(Xauxin02) / sizeof(X32command) },
 	{ "auxin/03", 8, Xauxin03, sizeof(Xauxin03) / sizeof(X32command) },
@@ -338,7 +344,7 @@ X32node Xnode[] = { // /node Command Headers (see structure definition above
 	{ "auxin/06", 8, Xauxin06, sizeof(Xauxin06) / sizeof(X32command) },
 	{ "auxin/07", 8, Xauxin07, sizeof(Xauxin07) / sizeof(X32command) },
 	{ "auxin/08", 8, Xauxin08, sizeof(Xauxin08) / sizeof(X32command) },
-	{ "fx", 2, Xfx, sizeof(Xfx) / sizeof(X32command) },
+	{ "auxin", 5, Xauxin01, sizeof(Xauxin01) / sizeof(X32command) },
 	{ "fxrtn", 5, Xfxrtn01, sizeof(Xfxrtn01) / sizeof(X32command) },
 	{ "fxrtn/01", 8, Xfxrtn01, sizeof(Xfxrtn01) / sizeof(X32command) },
 	{ "fxrtn/02", 8, Xfxrtn02, sizeof(Xfxrtn02) / sizeof(X32command) },
@@ -348,7 +354,7 @@ X32node Xnode[] = { // /node Command Headers (see structure definition above
 	{ "fxrtn/06", 8, Xfxrtn06, sizeof(Xfxrtn06) / sizeof(X32command) },
 	{ "fxrtn/07", 8, Xfxrtn07, sizeof(Xfxrtn07) / sizeof(X32command) },
 	{ "fxrtn/08", 8, Xfxrtn08, sizeof(Xfxrtn08) / sizeof(X32command) },
-	{ "bus", 3, Xbus01, sizeof(Xbus01) / sizeof(X32command) },
+	{ "fx", 2, Xfx, sizeof(Xfx) / sizeof(X32command) },
 	{ "bus/01", 6, Xbus01, sizeof(Xbus01) / sizeof(X32command) },
 	{ "bus/02", 6, Xbus02, sizeof(Xbus02) / sizeof(X32command) },
 	{ "bus/03", 6, Xbus03, sizeof(Xbus03) / sizeof(X32command) },
@@ -365,17 +371,18 @@ X32node Xnode[] = { // /node Command Headers (see structure definition above
 	{ "bus/14", 6, Xbus14, sizeof(Xbus14) / sizeof(X32command) },
 	{ "bus/15", 6, Xbus15, sizeof(Xbus15) / sizeof(X32command) },
 	{ "bus/16", 6, Xbus16, sizeof(Xbus16) / sizeof(X32command) },
-	{ "mtx", 3, Xmtx01, sizeof(Xmtx01) / sizeof(X32command) },
+	{ "bus", 3, Xbus01, sizeof(Xbus01) / sizeof(X32command) },
 	{ "mtx/01", 6, Xmtx01, sizeof(Xmtx01) / sizeof(X32command) },
 	{ "mtx/02", 6, Xmtx02, sizeof(Xmtx02) / sizeof(X32command) },
 	{ "mtx/03", 6, Xmtx03, sizeof(Xmtx03) / sizeof(X32command) },
 	{ "mtx/04", 6, Xmtx04, sizeof(Xmtx04) / sizeof(X32command) },
 	{ "mtx/05", 6, Xmtx05, sizeof(Xmtx05) / sizeof(X32command) },
 	{ "mtx/06", 6, Xmtx06, sizeof(Xmtx06) / sizeof(X32command) },
+	{ "mtx", 3, Xmtx01, sizeof(Xmtx01) / sizeof(X32command) },
 	{ "dca", 3, Xdca, sizeof(Xdca) / sizeof(X32command) },
-	{ "outputs", 8, Xoutput, sizeof(Xoutput) / sizeof(X32command) },
+	{ "outputs/main/01", 8, Xoutput, sizeof(Xoutput) / sizeof(X32command) },
 	{ "outputs/main", 8, Xoutput, sizeof(Xoutput) / sizeof(X32command) },
-	{"outputs/main/01", 8, Xoutput, sizeof(Xoutput) / sizeof(X32command) },
+	{ "outputs", 8, Xoutput, sizeof(Xoutput) / sizeof(X32command) },
 	{ "headamp", 8, Xheadamp, sizeof(Xheadamp) / sizeof(X32command) },
 	{ "-ha", 3, Xmisc, sizeof(Xmisc) / sizeof(X32command) },
 	{ "-usb", 4, Xmisc, sizeof(Xmisc) / sizeof(X32command) },
@@ -384,6 +391,7 @@ X32node Xnode[] = { // /node Command Headers (see structure definition above
 	{ "-show/showfile/snippet", 22, Xsnippet, sizeof(Xsnippet) / sizeof(X32command) },	// !! keep
 	{ "-show/showfile/scene", 20, Xscene, sizeof(Xscene) / sizeof(X32command) }, 		// in this
 	{ "-show", 5, Xshow, sizeof(Xshow) / sizeof(X32command) },							// order !!
+	{ "-urec", 5, Xurec, sizeof(Xurec) / sizeof(X32command) },
 };
 int Xnode_max = sizeof(Xnode) / sizeof(X32node);
 
@@ -514,7 +522,7 @@ int main(int argc, char **argv) {
 // Wait for messages from client
 	i = 0;
 	r_len = 0;
-	printf("X32 - v0.68 - An X32 Emulator - (c)2014-2017 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.69 - An X32 Emulator - (c)2014-2017 Patrick-Gilles Maillot\n");
 	getmyIP(); // Try to get our IP...
 //	printf("Xport=%s\n",Xport_str); //
 	if (Xverbose) printf("Listening to port: %s, X32 IP = %s\n", Xport_str, Xip_str);
@@ -1800,8 +1808,8 @@ int function() {
 int function_info() {
 	s_len = Xsprint(s_buf, 0, 's', "/info");
 	s_len = Xsprint(s_buf, s_len, 's', ",ssss");
-	s_len = Xsprint(s_buf, s_len, 's', "V2.06");
-	s_len = Xsprint(s_buf, s_len, 's', "osc-server");
+	s_len = Xsprint(s_buf, s_len, 's', "V2.07");
+	s_len = Xsprint(s_buf, s_len, 's', "X32-02-4A-53");
 	s_len = Xsprint(s_buf, s_len, 's', "X32");
 	s_len = Xsprint(s_buf, s_len, 's', XVERSION);
 	return S_SND; // send reply only to requesting client
@@ -1813,7 +1821,7 @@ int function_xinfo() {
 	s_len = Xsprint(s_buf, 0, 's', "/xinfo");
 	s_len = Xsprint(s_buf, s_len, 's', ",ssss");
 	s_len = Xsprint(s_buf, s_len, 's', Xip_str);
-	s_len = Xsprint(s_buf, s_len, 's', "osc-server");
+	s_len = Xsprint(s_buf, s_len, 's', "X32-02-4A-53");
 	s_len = Xsprint(s_buf, s_len, 's', "X32");
 	s_len = Xsprint(s_buf, s_len, 's', XVERSION);
 	return S_SND; // send reply only to requesting client
@@ -1828,7 +1836,7 @@ int function_status() {
 	s_len = Xsprint(s_buf, s_len, 's', ",sss");
 	s_len = Xsprint(s_buf, s_len, 's', "active");
 	s_len = Xsprint(s_buf, s_len, 's', Xip_str);
-	s_len = Xsprint(s_buf, s_len, 's', "osc-server");
+	s_len = Xsprint(s_buf, s_len, 's', "X32-02-4A-53");
 	return S_SND; // send reply only to requesting client
 }
 
@@ -1946,7 +1954,7 @@ int function_node() {
 		return 0;
 	for (i = 0; i < cmd_max; i++) {
 		if (command[i].flags == F_FND) {
-			printf("%s\n", command[i].command);
+//			printf("%s\n", command[i].command);
 			if (strncmp(str_pt_in, command[i].command + 1, strlen(str_pt_in))
 					== 0) {
 				s_len = Xsprint(s_buf, 0, 's', "node");
@@ -2004,7 +2012,11 @@ int function_node() {
 					strcat(s_buf + s_len, Sosct[command[i + 5].value.ii]);
 					strcat(s_buf + s_len, Sint(command[i + 6].value.ii));
 					break;
+				case CROUTSW:
+					strcat(s_buf + s_len, Sroutin[command[i + 1].value.ii]);
+					break;
 				case CROUTIN:
+				case CROUTPLAY:
 					strcat(s_buf + s_len, Sroutin[command[i + 1].value.ii]);
 					strcat(s_buf + s_len, Sroutin[command[i + 2].value.ii]);
 					strcat(s_buf + s_len, Sroutin[command[i + 3].value.ii]);
@@ -2452,6 +2464,50 @@ int function_node() {
 					strcat(s_buf + s_len, Sint(command[i + 6].value.ii));
 					break;
 				case HA:
+					break;
+				case ACTION:
+					break;
+				case UREC:
+					strcat(s_buf + s_len, Sint(command[i + 1].value.ii));
+					strcat(s_buf + s_len, Sint(command[i + 2].value.ii));
+					strcat(s_buf + s_len, Sint(command[i + 3].value.ii));
+					strcat(s_buf + s_len, Sint(command[i + 4].value.ii));
+					strcat(s_buf + s_len, Sint(command[i + 5].value.ii));
+
+					strcat(s_buf + s_len, Ubat[command[i + 6].value.ii]);
+
+					strcat(s_buf + s_len, Sint(command[i + 7].value.ii));
+					strcat(s_buf + s_len, Sint(command[i + 8].value.ii));
+					strcat(s_buf + s_len, Sint(command[i + 9].value.ii));
+					strcat(s_buf + s_len, Sint(command[i + 10].value.ii));
+
+					strcat(s_buf + s_len, Usdc[command[i + 11].value.ii]);
+					strcat(s_buf + s_len, Usdc[command[i + 12].value.ii]);
+
+					if (command[i + 13].value.str) {
+						strcat(s_buf + s_len, " \"");
+						strcat(s_buf + s_len, command[i + 13].value.str);
+						strcat(s_buf + s_len, "\"");
+					} else
+						strcat(s_buf + s_len, " \"\"");
+
+					if (command[i + 14].value.str) {
+						strcat(s_buf + s_len, " \"");
+						strcat(s_buf + s_len, command[i + 14].value.str);
+						strcat(s_buf + s_len, "\"");
+					} else
+						strcat(s_buf + s_len, " \"\"");
+
+					if (command[i + 15].value.str) {
+						strcat(s_buf + s_len, " \"");
+						strcat(s_buf + s_len, command[i + 15].value.str);
+						strcat(s_buf + s_len, "\"");
+					} else
+						strcat(s_buf + s_len, " \"\"");
+
+					strcat(s_buf + s_len, Sint(command[i + 16].value.ii));
+
+					break;
 				default:
 					return 0;
 					break;
@@ -2537,6 +2593,23 @@ int function_stat() {
 		if (strcmp(r_buf, Xstat[i].command) == 0) {
 			// found command at index i
 			return (funct_params(Xstat, i));
+		}
+		i += 1;
+	}
+	return 0;
+}
+
+//
+// /-urec command
+int function_urec() {
+	int i;
+//
+// check for actual command
+	i = 0;
+	while (i < Xurec_max) {
+		if (strcmp(r_buf, Xurec[i].command) == 0) {
+			// found command at index i
+			return (funct_params(Xurec, i));
 		}
 		i += 1;
 	}
@@ -3214,6 +3287,9 @@ int X32Shutdown() {
 	for (i = 0; i < Xmisc_max; i++) {
 		save(Xmisc);
 	}
+	for (i = 0; i < Xurec_max; i++) {
+		save(Xurec);
+	}
 	fclose(X32File);
 	printf(" Done\n");
 	fflush(stdout);
@@ -3304,6 +3380,9 @@ int X32Init() {
 	}
 	for (i = 0; i < Xmisc_max; i++) {
 		restore(Xmisc);
+	}
+	for (i = 0; i < Xurec_max; i++) {
+		restore(Xurec);
 	}
 	i = f_stat; // to avoid gcc warning;
 	fclose(X32File);
