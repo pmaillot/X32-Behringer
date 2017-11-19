@@ -102,6 +102,27 @@ Examples:
 /node ,s fx/01/par         - retrieve the 64 parameters of effect at FX slot 1
 ```
 
+### X32Wav_XLive ###
+![X32Wav_XLive.jpg](https://sites.google.com/site/patrickmaillot/x32/X32Wav_Xlive.jpg)
+
+This X32 utility aims at creating X-Live! compatible files from standard wave files; The typical use would be to enable playback using the X-Live! expansion board SD card(s) of already available multi-channel wave files such as those recorded from the X-USB interface or exported from a DAW software.
+
+A few rules must be respected in order to merge several wave files in “one” that can be used with X-Live!:
+
+     Files to merge must all be named ch_1 to ch_32.
+     Files to merge must all have the same structure and size.
+     Files to merge must all be of the same sample rate.
+     Files to merge must all be 24bits
+
+The long horizontal button labeled “Select Wav files Source Directory” is used to select a directory that contains all the ch_xx files mentioned above, that will be merged to X-Live! format.
+
+With the directory selected, additional settings corresponding to X-Live! capabilities are requested or possible: A session name is expected by X-Live! and can be up to 20 characters long.
+Optionally, markers can also be passed on the interface of the utility, to be saved with the created X-Live! files. With the button on the lower right of the panel set to “List of Markers”, Markers can be given as a comma-separated list of decimal values expressed in seconds, such as “1, 2.5, 5., 30”. The button toggles between “List of Markers” and “File Path”; When set to “File Path”, the path to a file containing markers can be provided. This can be a lot more practical when a large number of markers is provided. X-Live! supports up to 100 markers per session.
+
+With all data ready, it is time to click on the “Merge” button, which will launch the file merging process. The program tests for the different parameters and will report errors if problems are found. Assuming all data are correctly set, the program creates an X-Live! compatible directory containing at least two files: one or more wave files named 00000001.wav to 00000128.wav of up to 4GB each, all 32-bit PCM, and a binary session log file "SE_LOG.bin", which contains information such as the markers applied during merging. All these files will be created under a directory named by the 32-bit timestamp of the recording start as an 8 character hexstring, e.g. "4B728846"
+
+Be patient! Merging large audio files takes time. The program will display the elapsed time at the end of the process. The directory created by the utility can be copied in the X-Live! directory of an SD card to be used with the expansion board, so you can enjoy your mix using the X32.
+
 
 ### X32Tap ###
 ![X32Tap.jpg](https://bitbucket.org/repo/K9Ae7b/images/3888357480-X32Tap.jpg)
