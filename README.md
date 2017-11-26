@@ -124,6 +124,18 @@ With all data ready, it is time to click on the “Merge” button, which will l
 Be patient! Merging large audio files takes time. The program will display the elapsed time at the end of the process. The directory created by the utility can be copied in the X-Live! directory of an SD card to be used with the expansion board, so you can enjoy your mix using the X32.
 
 
+### X32Jog4Xlive ###
+![X32Jog4Xlive.jpg](https://sites.google.com/site/patrickmaillot/x32/X32Jog4Xlive.jpg)
+
+This X32 utility aims at creating X-Live! compatible files from standard wave files; The typical use would be to enable playback using the X-Live! expansion board SD card(s) of already available multi-channel wave files such as those recorded from the X-USB interface or exported from a DAW software.
+
+This X32 utility enables a functionality not included with the X-Live! expansion board. I discovered when testing and using the board there was no audio jog/shuttle proposed by the new firmware. This didn’t occur to me at first when recording short audio sequences during my tests. I later wrote another utility (see X32Wav-Xlive) to transfer multiple wav files into an X-Live! compatible session, and realized after transferring a 1h audio session there was no easy way to navigate within the audio session I just copied onto an SD card.
+
+OSC messages are fast and enable real-time remote controls to take place on X32; I wrote a set of transport capabilities to optimize the use of X32 with REAPER, and I’m using the same approach here in changing the destination of one of the User Assign rotary knob into an audio Jog. In the case of REAPER, the knobs control the REAPER slider, and an ingenious zoom function in REAPER enable moving precisely to very fast within the audio track(s). In the present case, there’s no zoom functionality, nor a cursor to move; as a result it was rather painful to move say 10ms at a time. I decided to use a second rotary knob to set the value of the time delta. The current version of the application enable a variation between 10ms and 2m41s
+
+You will need to be either in “Play” or “PPause” mode on the X-Live! in order for knob #1 to enable you to navigate in your SD card audio stream; Ans mentioned earlier, knob #3 will make you move faster or X32Jog4Xlive.
+
+
 ### X32Tap ###
 ![X32Tap.jpg](https://bitbucket.org/repo/K9Ae7b/images/3888357480-X32Tap.jpg)
 
