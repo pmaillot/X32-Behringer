@@ -125,7 +125,7 @@ Be patient! Merging large audio files takes time. The program will display the e
 
 
 ### X32Jog4Xlive ###
-![X32Jog4Xlive.jpg](https://sites.google.com/site/patrickmaillot/x32/X32Jog4Xlive.jpg)
+![X32Jog4XLive.jpg](https://sites.google.com/site/patrickmaillot/x32/X32Jog4XLive.jpg)
 
 This X32 utility aims at creating X-Live! compatible files from standard wave files; The typical use would be to enable playback using the X-Live! expansion board SD card(s) of already available multi-channel wave files such as those recorded from the X-USB interface or exported from a DAW software.
 
