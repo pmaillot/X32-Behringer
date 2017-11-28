@@ -20,6 +20,7 @@
  *	ver 0.91: fixes in different areas: date-code, and markers
  *	ver 0.92: got away from large memory block allocation; slower but can handle larger files
  *	ver 0.93: optimizations in fwrite use
+ *	ver 0.94: initialization of a variable (fill_chls) was forgotten
  */
 
 #include <stdio.h>
@@ -214,7 +215,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 0.93 - ©2017 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 0.94 - ©2017 - Patrick-Gilles Maillot"));
 		TextOut(hdc, 128, 50, str1, wsprintf(str1, "Enter Session Name:"));
 		TextOut(hdc, 128, 90, str1, wsprintf(str1, "Enter Markers:"));
 		DeleteObject(htmp);
@@ -392,6 +393,7 @@ int	MergeWavFiles(char* name_str, int num_markers, float* markers) {
 		fill_chls = 32 - numb_chls;
 	} else {
 		numb_chls = 32;	// limit to 32 channels
+		fill_chls = 0;
 		printf("More than 32 channels found, exceeding channels will be ignored!\n");
 	}
 	// read wav files
