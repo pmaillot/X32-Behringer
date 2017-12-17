@@ -104,6 +104,7 @@ int f_play(int fNum);		// play WAV file from id number
 int f_playName(char* name);	// play WAV file from file name
 int f_load(int fNum);		// load or run command from file id number
 int f_loadName(char* name);	// load or run command from file file name
+int f_help();				// display help - command reminder
 
 #ifdef __WIN32__
 #define millisleep(x)	Sleep(x)
@@ -136,12 +137,12 @@ int X32verbose = 0;
 #define RECV																	\
 do {																			\
 	r_len = recvfrom(Xfd, r_buf, BSIZE, 0, 0, 0);							\
-	if (X32verbose) {Xfdump("X->", r_buf, r_len, X32debug); fflush(stdout);}	\
+	if (X32verbose) {Xfdump("X->", r_buf, r_len, X32debug);}	\
 } while (0);
 
 #define SEND																	\
 do {																			\
-	if (X32verbose) {Xfdump("->X", s_buf, s_len, X32debug); fflush(stdout);}	\
+	if (X32verbose) {Xfdump("->X", s_buf, s_len, X32debug);}	\
 	if (s_delay) millisleep(s_delay);											\
 	if (sendto(Xfd, s_buf, s_len, 0, Xip_addr, Xip_len) < 0) {			\
 		perror("Error while sending data");										\
@@ -165,7 +166,7 @@ int		s_delay;
 int		zero = 0;
 int		one = 1;
 int		two = 2;
-int		i, j, k, num_dir, fXor;
+int		i, j, k, num_files, fXor;
 char	tmpstr[32];
 fPtr	fTreetop, fTree;
 int		fLpos, fNum, fNameLength;
@@ -351,7 +352,7 @@ int f_stop() {
 		s_len = Xfprint(s_buf, 0, "/-stat/tape/state", 'i', &zero);
 		SEND
 	}else {
-		printf ("No WAV file playing or selected\n");
+		printf ("No WAV file playing or selected\n");fflush(stdout);
 	}
 	fTape_is_on = 0;
 	return 1;
@@ -365,7 +366,7 @@ int f_pause() {
 		s_len = Xfprint(s_buf, 0, "/-stat/tape/state", 'i', &one);
 		SEND
 	} else {
-		printf ("No WAV file playing or selected\n");
+		printf ("No WAV file playing or selected\n");fflush(stdout);
 	}
 	return 1;
 }
@@ -378,7 +379,7 @@ int f_resume() {
 		s_len = Xfprint(s_buf, 0, "/-stat/tape/state", 'i', &two);
 		SEND
 	} else {
-		printf ("No WAV file playing or selected\n");
+		printf ("No WAV file playing or selected\n");fflush(stdout);
 	}
 	return 1;
 }
@@ -399,14 +400,14 @@ void f_free() {
 			free(fTree->fPrev);
 	}
 	fTreetop = fTree = NULL;
-	num_dir = 0;
+	num_files = 0;
 }
 
 //
 // delete and rebuild tree of current directory
 //
 int f_tree() {
-	int nDirs = 0;
+	int nFiles = 0;
 
 //
 // returns the number of files found, or 0
@@ -415,26 +416,26 @@ int f_tree() {
 
 	//
 	// USB stick is mounted - Check number of entries
-	s_len = Xsprint(s_buf, 0, 's', "/-usb/maxpos");
+	s_len = Xsprint(s_buf, 0, 's', "/-usb/dir/maxpos");
 	SEND;
 	RPOLL
 	if (p_status > 0) {
 		RECV
-		if (strcmp(r_buf, "/-usb/maxpos") == 0) {
-			j = 4, k = 20;
+		if (strcmp(r_buf, "/-usb/dir/maxpos") == 0) {
+			j = 4, k = 24;
 			while (j)
 				endian.cc[--j] = r_buf[k++];
-			nDirs = endian.ii;
+			nFiles = endian.ii;
 		}
 	} else {
-		printf("Receive error\n");
+		printf("Receive error\n");fflush(stdout);
 		return (0);
 	}
 	//
 	// List entries/names
-	printf("Found %d files or folders\n", nDirs);
-	if (nDirs > 0) {
-		for (i = 0; i < nDirs; i++) {
+	printf("Found %d files or folders\n", nFiles);fflush(stdout);
+	if (nFiles > 0) {
+		for (i = 1; i <= nFiles; i++) {
 			sprintf(tmpstr, "/-usb/dir/%03d/name", i);
 			s_len = Xsprint(s_buf, 0, 's', tmpstr);
 			SEND;
@@ -465,7 +466,7 @@ int f_tree() {
 			}
 		}
 	}
-	return nDirs;
+	return nFiles;
 }
 
 //
@@ -474,13 +475,13 @@ int f_tree() {
 int f_ls() {
 	//
 	if (!(f_is_mounted())) {
-		printf("No USB stick mounted!\n");
+		printf("No USB stick mounted!\n");fflush(stdout);
 		return 1; // do nothing
 	}
 	fXor = fLpos = 0;
 	//
 	// USB stick is mounted - Check number of entries
-	if ((num_dir = f_tree()) > 0) {
+	if ((num_files = f_tree()) > 0) {
 		fTree = fTreetop;
 		while (fTree) {
 			if ((fTree->fType == VOLUME) || (fTree->fType == DIR)
@@ -509,8 +510,7 @@ int f_ls() {
 	}
 	if (fXor)
 		printf("\n");
-	printf("End of listing\n");
-	fflush(stdout);
+	printf("End of listing\n");fflush(stdout);
 	return 1;
 }
 
@@ -535,7 +535,7 @@ int f_cd(int fNum) {
 		}
 		fTree = fTree->fNext;
 	}
-	printf("Directory not found!\n");
+	printf("Directory not found!\n");fflush(stdout);
 	return 1;
 }
 //
@@ -555,7 +555,7 @@ int f_cdName(char* str) {
 			return 1;
 		}
 	}
-	printf("Directory not found!\n");
+	printf("Directory not found!\n");fflush(stdout);
 	return 1;
 }
 
@@ -581,7 +581,7 @@ int f_play(int fNum) {
 		}
 		fTree = fTree->fNext;
 	}
-	printf("File not found!\n");
+	printf("File not found!\n");fflush(stdout);
 	return 1;
 }
 //
@@ -601,7 +601,7 @@ int f_playName(char* str) {
 			return 1;
 		}
 	}
-	printf("File not found!\n");
+	printf("File not found!\n");fflush(stdout);
 	return 1;
 }
 
@@ -628,7 +628,7 @@ int f_load(int fNum) {
 		}
 		fTree = fTree->fNext;
 	}
-	printf("File not found!\n");
+	printf("File not found!\n");fflush(stdout);
 	return 1;
 }
 //
@@ -649,7 +649,24 @@ int f_loadName(char* str) {
 			return 1;
 		}
 	}
-	printf("File not found!\n");
+	printf("File not found!\n");fflush(stdout);
+	return 1;
+}
+//
+// display help
+//
+int f_help() {
+	printf("  ls:                 List directory contents (with id and type)\n");
+	printf("  cd <id> | <name>    Change directory (prompt is updated)\n");
+	printf("  load <id> | <name>  Load or Run file (scene, snippet, etc.)\n");
+	printf("  run <id> | <name>   Load or Run file (scene, snippet, etc.)\n");
+	printf("  umount              Unmount the USB drive (no longer accessible)\n\n");
+	printf("  play <id> | <name>  Play WAV file\n");
+	printf("  stop                Stops a currently playing wav\n");
+	printf("  pause               Pauses a wav file currently playing\n");
+	printf("  resume              Resumes playing the current wav file\n");
+	printf("  exit | quit         Exists program\n\n");
+	fflush(stdout);
 	return 1;
 }
 //
@@ -661,7 +678,7 @@ int main(int argc, char **argv) {
 	//
 	// initialize communication with X32 server at IP ip and PORT port
 	//	set a default value for server[]; change to match your X32 desk
-	strcpy(Xip_str, "192.168.0.64");
+	strcpy(Xip_str, "192.168.1.62");
 	strcpy(Xport_str, "10023");
 	//
 	// Manage arguments
@@ -698,6 +715,7 @@ int main(int argc, char **argv) {
 			printf("  pause               Pauses a wav file currently playing\n");
 			printf("  resume              Resumes playing the current wav file\n");
 			printf("  exit | quit         Exists program\n");
+			fflush(stdout);
 			return (0);
 			break;
 		}
@@ -732,7 +750,7 @@ int main(int argc, char **argv) {
 
 	//
 	// All done.
-	printf(" X32USB - v0.1 - (c)2015 Patrick-Gilles Maillot\n\n");
+	printf(" X32USB - v0.2 - (c)2015-17 Patrick-Gilles Maillot\n\n");
 	//
 	// Let's send and receive messages
 	// Establish logical connection with X32 server
@@ -752,7 +770,7 @@ int main(int argc, char **argv) {
 		}				// ... else timeout
 		printf(".");
 	}
-	printf(" Done!\n");
+	printf(" Done!\n");fflush(stdout);
 
 	//
 	// We're connected! Prompt depends on USB mounted or not
@@ -800,11 +818,13 @@ int main(int argc, char **argv) {
 					keep_on = f_load(fNum);
 				else
 					keep_on = f_loadName(tmpstr + 4);
+			else if (strncmp(tmpstr, "help", 4) == 0)
+				keep_on = f_help();
 			else
 				keep_on = fSetPrompt();		// set/update default prompt
 		} else {
 			keep_on = 0;
-			printf("command read error\n");
+			printf("command read error\n"); fflush(stdout);
 		}
 	}
 	close(Xfd);
