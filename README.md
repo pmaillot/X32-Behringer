@@ -387,9 +387,10 @@ usage: X32USB [-i X32 console ipv4 address]
               [-d 0/1, [0], debug option]
               [-v 0/1  [1], verbose option]
               [-t <delay>, delay in ms between commands]
-                   default IP: 192.168.0.64
+                   default IP: 192.168.1.62
 
 Launch shell to accept the following commands applied to the X32 USB drive:
+  help:               Displays a command reminder help
   ls:                 List directory contents (with id and type)
   cd <id> | <name>    Change directory (prompt is updated)
   load <id> | <name>  Load or Run file (scene, snippet, etc.)
