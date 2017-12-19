@@ -16,6 +16,7 @@
 // v 1.32: longer timeout when read/send scene/snippets/tidbits/X32node lines from file
 // v 1.34: fixed comparison with wrong text
 // v 1.35: fixed meters case by cloning xfdump() in this file
+// v 1.36: fixed meters data length error
 //
 
 #include <stdlib.h>
@@ -200,9 +201,9 @@ void Xdump(char *buf, int len, int debug)
 						printf("%d chrs: ", n);
 						for (j = 0; j < n; j++) printf("%c ", buf[data++]);
 					} else {
+						n = endian.i1;
 						// Display blob depending on command
 						if(strncmp(buf, "/meters/", 8) == 0) {
-							n = endian.i1 * 2;
 							printf("%d rta: \n", n);
 							for (j = 0; j < n; j++) {
 								// data as short ints, little-endian format
@@ -211,7 +212,6 @@ void Xdump(char *buf, int len, int debug)
 								printf("%07.2f ", endian.f1);
 							}
 						} else {
-							n = endian.i1;
 							printf("%d flts: ", n);
 							for (j = 0; j < n; j++) {
 								// floats are little-endian format
@@ -387,7 +387,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with XR18 server
-	printf(" XR18_Command - v1.35 - (c)2014-17 Patrick-Gilles Maillot\n\nConnecting to XR18.");
+	printf(" XR18_Command - v1.36 - (c)2014-17 Patrick-Gilles Maillot\n\nConnecting to XR18.");
 //
 	keep_on = 1;
 	xremote_on = X32verbose;	// Momentarily save X32verbose
