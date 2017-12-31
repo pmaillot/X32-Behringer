@@ -31,7 +31,9 @@
  * 			Modifications to preset and resource files contents and handling
  * Ver 2.51: bug fix. Some channels could be set to > 32 for X32... which obviously was wrong
  * Ver 2.52: small fix on rounding the fader values to X32 known ones
-  *           also enables filtering what is sent to X32 from REAPER
+ *           also enables filtering what is sent to X32 from REAPER
+ * Ver 2.6: Adding capability to set REAPER markers from bank C buttons (exclusive from Transport)
+ * Ver 2.61: Fixed the fact that Marker insert request was sent twice, and added a possible bank C color :)
  *
  */
 #include <stdio.h>
@@ -157,15 +159,18 @@ int play_1 = 0;
 int MainLoopOn = 1;		// main loop flag
 int Xconnected = 0;		// 1 when communication is running
 int Xverbose, Xdelay;	// verbose, List of Action and delay
-int Xtransport_on = 1;	// whether transport is enabled or not (bank C)
+int Xtransport_on = 0;	// whether transport is enabled or not (bank C)
+int XMkerbt_on = 0;		// Marker Button number on or not (bank C)
 int Xchbank_on = 0;		// whether we use Channel bank select and not Loops in bank C
 int	Xchbkof = 0;		// channel bank number
 int Xselected = 1;		// X32 channel currently selected
 int Xmaster_on = 1;		// whether master is enabled or not
 int TrackSendOffset = 0;// offset to manage REAPER track sends logical numbering
+int XbankCcol = 0;		// Bank C color (is set when reading .ini file)
 //
 int XMbankup;			// user "bank up" selected button [5..12]
 int XMbankdn;			// user "bank down" selected button [5..12]
+int XMkerbtn;			// Marker Button number
 //
 int Xtrk_min = 0;		// Input min track number for Reaper/X32
 int Xtrk_max = 0;		// Input max track number for Reaper/X32
@@ -229,7 +234,7 @@ int main(int argc, char **argv) {
 
 	strcpy(S_X32_IP, "");
 	strcpy(S_Hst_IP, "");
-	printf("X32Reaper - v2.52 - (c)2015 Patrick-Gilles Maillot\n\n");
+	printf("X32Reaper - v2.61 - (c)2015 Patrick-Gilles Maillot\n\n");
 	// load resource file
 	if ((res_file = fopen("./.X32Reaper.ini", "r")) != NULL) { // ignore Width and Height
 		fscanf(res_file, "%d %d %d %d %d\n", &i, &j, &Xverbose, &Xdelay, &Xcsend);
@@ -241,13 +246,13 @@ int main(int argc, char **argv) {
 		S_SndPort[strlen(S_SndPort) - 1] = 0;
 		fgets(S_RecPort, sizeof(S_RecPort), res_file);
 		S_RecPort[strlen(S_RecPort) - 1] = 0;
-		fscanf(res_file, "%d %d %d\n", &Xtransport_on, &Xchbank_on, &Xmaster_on);
+		fscanf(res_file, "%d %d %d %d %d\n", &Xtransport_on, &Xchbank_on, &XMkerbt_on, &XbankCcol, &Xmaster_on);
 		fscanf(res_file, "%d %d %d %d %d %d %d %d %d %d %d\n",
 			&Xtrk_min, &Xtrk_max, &Xaux_min, &Xaux_max,
 			&Xfxr_min, &Xfxr_max, &Xbus_min, &Xbus_max,
 			&Xdca_min, &Xdca_max, &TrackSendOffset);
 		for (i = 0; i < 8; i++) fscanf(res_file, "%d %d\n", &Rdca_min[i], &Rdca_max[i]);
-		fscanf(res_file, "%d %d %d\n", &XMbankup, &XMbankdn, &Xchbkof);
+		fscanf(res_file, "%d %d %d %d\n", &XMbankup, &XMbankdn, &XMkerbtn, &Xchbkof);
 		//
 		if (Xchbank_on) {
 			//
@@ -685,15 +690,19 @@ void X32UsrCtrlC() {
 			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 'i', &zero);
 			SEND_TOX(Xb_s, Xb_ls)
 		}
-		//
-		// Color : black
-		Xb_ls = Xfprint(Xb_s, 0, "/config/userctrl/C/color", 'i', &zero);
-		SEND_TOX(Xb_s, Xb_ls)
-		//
-		// Select X32 Bank C
-		Xb_ls = Xfprint(Xb_s, 0, "/-stat/userbank", 'i', &two);
-		SEND_TOX(Xb_s, Xb_ls)
 	} else {
+		if (XMkerbt_on) {
+			//
+			// update/change REAPER Marker button.
+			//
+			sprintf(Xb_r, "/config/userctrl/C/btn/%d", XMkerbtn);
+			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 's', MN[XMkerbtn - 5]);
+			SEND_TOX(Xb_s, Xb_ls)
+			sprintf(Xb_r, "/-stat/userpar/%2d/value", 12 + XMkerbtn);
+			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 'i', &zero);
+			SEND_TOX(Xb_s, Xb_ls)
+		}
+		//
 		if(Xchbank_on) {
 			//
 			// Only update/change bank up and bank down buttons.
@@ -713,14 +722,15 @@ void X32UsrCtrlC() {
 			sprintf(Xb_r, "/-stat/userpar/%2d/value", 12 + XMbankdn);
 			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 'i', &zero);
 			SEND_TOX(Xb_s, Xb_ls)
-			//
-			// Not we do non set/force the user bank color to black
-			// in that case. Leave it to the user to choose.
-			//
-			// Select X32 Bank C
-			Xb_ls = Xfprint(Xb_s, 0, "/-stat/userbank", 'i', &two);
-			SEND_TOX(Xb_s, Xb_ls)
 		}
+	}
+	if (Xtransport_on || XMkerbt_on || Xchbank_on) {
+		// Color : black
+		Xb_ls = Xfprint(Xb_s, 0, "/config/userctrl/C/color", 'i', &XbankCcol);
+		SEND_TOX(Xb_s, Xb_ls)
+		// Select X32 Bank C
+		Xb_ls = Xfprint(Xb_s, 0, "/-stat/userbank", 'i', &two);
+		SEND_TOX(Xb_s, Xb_ls)
 	}
 	//
 	// Finally, if we're connected and the CH bank flag is set,
@@ -789,6 +799,8 @@ void X32ParseX32Message() {
 //
 // or if transport is OFF and chbank is on:
 //		2 buttons chosen by the user
+//
+// if transport is OFF : 1 button for REAPER Marker setting, chosen by the user
 //
 	Rb_ls = 0;
 	if (strncmp(Xb_r, "/ch/", 4) == 0) {
@@ -1321,10 +1333,17 @@ void X32ParseX32Message() {
 				}
 			} else {
 				if (endian.ii == 0) { 	// Take into account only button UP transition
+					// REAPER Marker Button?
+					cnum -= 12;	// Bank C buttons
+					if (cnum == XMkerbtn) {
+						// Set REAPER Marker at current REAPER cursor position
+						Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40157");
+						SEND_TOR(Rb_s, Rb_ls)
+						Rb_ls = 0;
+					}
 					if (Xchbank_on) {	// Transport is OFF
 						//
 						// ChBank buttons are two Bank C numbers between 5 to 12, OSC # between 17 to 24
-						cnum -= 12;	// Bank C buttons
 						if (cnum == XMbankup) {
 							// Channel Bank UP
 							if (Xchbkof < (Xtrk_max - 1) / 32) {
@@ -1333,8 +1352,8 @@ void X32ParseX32Message() {
 							}
 						} else if (cnum == XMbankdn) {
 							// Channel Bank DOWN
-								if (Xchbkof > 0) {	// 0 is the lowest accepted value
-									Xchbkof -= 1;
+							if (Xchbkof > 0) {	// 0 is the lowest accepted value
+								Xchbkof -= 1;
 								XUpdateBkCh();
 							}
 						}
@@ -1815,3 +1834,4 @@ void X32ParseReaperMessage() {
 	} while (bundle);
 	return;
 }
+
