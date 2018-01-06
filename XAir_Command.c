@@ -1,9 +1,9 @@
 //
-// XR18_Command.c
+// XAir_Command.c
 //
 //  Created on: Sep 19, 2014
 //
-//      XR18_Command: a simple udp client for XR18 sending commands and getting answers
+//      XAir_Command: a simple udp client for XR12, 16 or 18 sending commands and getting answers
 //
 //      Author: Patrick-Gilles Maillot
 //
@@ -17,7 +17,7 @@
 // v 1.34: fixed comparison with wrong text
 // v 1.35: fixed meters case by cloning xfdump() in this file
 // v 1.36: fixed meters data length error
-//
+// v 1.37: addresses limitations in certain C compilers wit getopt()
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -77,48 +77,48 @@ int X32verbose = 1;
 // Macros:
 //
 #define RPOLL													\
-	do {															\
-		FD_ZERO (&ufds);											\
-		FD_SET (Xfd, &ufds);										\
+	do {														\
+		FD_ZERO (&ufds);										\
+		FD_SET (Xfd, &ufds);									\
 		p_status = select(Xfd+1, &ufds, NULL, NULL, &timeout);	\
 	} while (0);
 //
-#define RECV																	\
-do {																			\
+#define RECV																\
+do {																		\
 	r_len = recvfrom(Xfd, r_buf, BSIZE, 0, 0, 0);							\
-	if (X32verbose) {Xfdump("X->", r_buf, r_len, X32debug); fflush(stdout);}	\
+	if (X32verbose) {Xfdump("X->", r_buf, r_len, X32debug); fflush(stdout);}\
 } while (0);
 //
-#define SEND																	\
-do {																			\
-	if (X32verbose) {Xfdump("->X", s_buf, s_len, X32debug); fflush(stdout);}	\
+#define SEND																\
+do {																		\
+	if (X32verbose) {Xfdump("->X", s_buf, s_len, X32debug); fflush(stdout);}\
 	if (s_delay) millisleep (s_delay);										\
 	if (sendto (Xfd, s_buf, s_len, 0, Xip_addr, Xip_len) < 0) {				\
-		perror ("Error while sending data");									\
-		exit (EXIT_FAILURE);													\
+		perror ("Error while sending data");								\
+		exit (EXIT_FAILURE);												\
 	}																		\
 } while(0);
 //
 #define XREMOTE()															\
-do {																			\
+do {																		\
 	if (xremote_on) {														\
 		now = time(NULL); 													\
 		if (now > before + XREMOTE_TIMEOUT) { 								\
 			if (X32debug) {Xfdump("->X", xremote, 12, 0); fflush(stdout);}	\
 			if (sendto (Xfd, xremote, 12, 0, Xip_addr, Xip_len) < 0) {		\
 				perror ("coundn't send data to XR18");						\
-				exit (EXIT_FAILURE);											\
+				exit (EXIT_FAILURE);										\
 			}																\
 			before = now;													\
 		}																	\
 	}																		\
 } while (0);
 //
-#define CHECKXR18()			\
-	do {						\
+#define CHECKXR()			\
+	do {					\
 		RPOLL 				\
 		if (p_status > 0) {	\
-			RECV				\
+			RECV			\
 		}					\
 	} while (p_status > 0);
 //
@@ -126,12 +126,12 @@ do {																			\
 #define TESTINPUT()																						\
 	else if (strcmp(input_line, "exit") == 0) keep_on = 0;												\
 	else if (strcmp(input_line, "quit") == 0) keep_on = 0;												\
-	else if (strcmp(input_line, "xremote") == 0) printf(":: xremote is %s\n",((xremote_on)?"on":"off"));	\
-	else if (strcmp(input_line, "xremote off") == 0) 	xremote_on = 0;										\
-	else if (strcmp(input_line, "xremote on") == 0) 	xremote_on = 1;										\
-	else if (strcmp(input_line, "verbose") == 0) printf(":: verbose is %s\n",((X32verbose)?"on":"off"));	\
-	else if (strcmp(input_line, "verbose off") == 0) 	X32verbose = 0;										\
-	else if (strcmp(input_line, "verbose on") == 0) 	X32verbose = 1;										\
+	else if (strcmp(input_line, "xremote") == 0) printf(":: xremote is %s\n",((xremote_on)?"on":"off"));\
+	else if (strcmp(input_line, "xremote off") == 0) 	xremote_on = 0;									\
+	else if (strcmp(input_line, "xremote on") == 0) 	xremote_on = 1;									\
+	else if (strcmp(input_line, "verbose") == 0) printf(":: verbose is %s\n",((X32verbose)?"on":"off"));\
+	else if (strcmp(input_line, "verbose off") == 0) 	X32verbose = 0;									\
+	else if (strcmp(input_line, "verbose on") == 0) 	X32verbose = 1;									\
 
 
 // specific to XR series: xdump and xfdump are copied/included here as meters are different (more consistent)
@@ -262,9 +262,10 @@ char				r_buf[BSIZE];
 char				s_buf[BSIZE];
 //
 int					xremote_on;
-char				xremote[12] = "/xremote"; // automatic trailing zeroes
+char				xremote[12] = "/xremote";			// automatic trailing zeroes
 int					l_index;
 char				input_line[LINEMAX + 4], input_ch;
+int					input_intch;						// addresses limitations in certain C compilers wit getopt()
 int					keep_on, do_keyboard, s_delay, filein;
 FILE*				fdk = NULL;
 time_t				before, now;
@@ -280,8 +281,8 @@ unsigned long 		mode;
 socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 #endif
 //
-// Initialize communication with XR18 server at IP ip and PORT port
-// Set default values to match your XR18 desk
+// Initialize communication with XR server at IP ip and PORT port
+// Set default values to match your XR desk
 	strcpy (Xip_str, "192.168.0.64");
 	strcpy (Xport_str, "10024");
 //
@@ -289,8 +290,10 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 	filein = 0;
 	do_keyboard = 1;
 	s_delay = 10;
-	while ((input_ch = getopt(argc, argv, "i:d:k:f:s:t:v:h")) != (char)0xff) {
-		switch (input_ch) {
+// Removed "s" option as it's not support by XAir series
+//	while ((input_intch = getopt(argc, argv, "i:d:k:f:s:t:v:h")) != -1) {
+	while ((input_intch = getopt(argc, argv, "i:d:k:f:t:v:h")) != -1) {
+		switch (input_ch = (char)input_intch) {
 		case 'i':
 			strcpy(Xip_str, optarg );
 			break;
@@ -304,10 +307,10 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 		case 'k':
 			sscanf(optarg, "%d", &do_keyboard);
 			break;
-		case 's':
-			filein = 2;
-			sscanf(optarg, "%s", input_line);
-			break;
+//		case 's':
+//			filein = 2;
+//			sscanf(optarg, "%s", input_line);
+//			break;
 		case 't':
 			sscanf(optarg, "%d", &s_delay);
 			break;
@@ -316,16 +319,16 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			break;
 		default:
 		case 'h':
-			printf("usage: XR18_command [-i X32 console ipv4 address]\n");
+			printf("usage: XAir_Command [-i X32 console ipv4 address]\n");
 			printf("                    [-d 0/1, [0], debug option]\n");
 			printf("                    [-v 0/1  [1], verbose option]\n");
 			printf("                    [-k 0/1  [1], keyboard mode on]\n");
 			printf("                    [-t int  [10], delay between batch commands in ms]\n");
-			printf("                    [-s file, reads X32node formatted data lines from 'file']\n");
+//			printf("                    [-s file, reads X32node formatted data lines from 'file']\n");
 			printf("                    [-f file, sets batch mode on, getting input data from 'file']\n");
 			printf("                     default IP is 192.168.0.64\n\n");
-			printf(" If option -s file is used, the program reads data from the provided file \n");
-			printf(" until EOF has been reached, and exits after that.\n\n");
+//			printf(" If option -s file is used, the program reads data from the provided file \n");
+//			printf(" until EOF has been reached, and exits after that.\n\n");
 			printf(" If option -f file is used, the program runs in batch mode, taking data from\n");
 			printf(" the provided file until EOF has been reached, or 'exit' or 'kill' entered.\n\n");
 			printf(" If not killed or no -f option, the program runs in standard mode, taking data\n");
@@ -387,7 +390,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with XR18 server
-	printf(" XR18_Command - v1.36 - (c)2014-17 Patrick-Gilles Maillot\n\nConnecting to XR18.");
+	printf(" XAir_Command - v1.37 - (c)2014-18 Patrick-Gilles Maillot\n\nConnecting to XR18.");
 //
 	keep_on = 1;
 	xremote_on = X32verbose;	// Momentarily save X32verbose
@@ -434,7 +437,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 						s_len = Xcparse(s_buf, input_line);
 						SEND			// send batch command
 					}
-					CHECKXR18()			// Check if XR18 sent something back
+					CHECKXR()			// Check if XR sent something back
 				} else {
 					keep_on = 0;
 				}
@@ -452,8 +455,8 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 					s_len = Xsprint(s_buf, 0, 's', "/");
 					s_len = Xsprint(s_buf, s_len, 's', ",s");
 					s_len = Xsprint(s_buf, s_len, 's', input_line);
-					SEND				// send data to XR18
-					CHECKXR18()		// XR18 will echo back the line
+					SEND				// send data to XR
+					CHECKXR()		// XR18 will echo back the line
 				}
 			}
             printf ("---end of file\n");
@@ -515,7 +518,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 					}
 				}
 			}
-			CHECKXR18()			// Check if XR18 sent something back
+			CHECKXR()			// Check if XR sent something back
 		}
 	}
 	close(Xfd);
