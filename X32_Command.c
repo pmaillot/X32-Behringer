@@ -15,6 +15,7 @@
 // v 1.31: added 's' flag to read/send scene/snippets/tidbits/X32node lines from file
 // v 1.32: longer timeout when read/send scene/snippets/tidbits/X32node lines from file
 // v 1.33: added netinet/in.h include (freeBSD support)
+// v 1.34: addresses limitations in certain C compilers wit getopt()
 //
 
 #include <stdlib.h>
@@ -146,6 +147,7 @@ int					xremote_on;
 char				xremote[12] = "/xremote"; // automatic trailing zeroes
 int					l_index;
 char				input_line[LINEMAX + 4], input_ch;
+int					input_intch;						// addresses limitations in certain C compilers wit getopt()
 int					keep_on, do_keyboard, s_delay, filein;
 FILE*				fdk = NULL;
 time_t				before, now;
@@ -170,8 +172,8 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 	filein = 0;
 	do_keyboard = 1;
 	s_delay = 10;
-	while ((input_ch = getopt(argc, argv, "i:d:k:f:s:t:v:h")) != (char)0xff) {
-		switch (input_ch) {
+	while ((input_intch = getopt(argc, argv, "i:d:k:f:s:t:v:h")) != -1) {
+		switch (input_ch = input_intch) {
 		case 'i':
 			strcpy(Xip_str, optarg );
 			break;
@@ -268,7 +270,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with X32 server
-	printf(" X32_Command - v1.32 - (c)2014-15 Patrick-Gilles Maillot\n\nConnecting to X32.");
+	printf(" X32_Command - v1.34 - (c)2014-18 Patrick-Gilles Maillot\n\nConnecting to X32.");
 //
 	keep_on = 1;
 	xremote_on = X32verbose;	// Momentarily save X32verbose
