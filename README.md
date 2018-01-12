@@ -499,10 +499,7 @@ X32PunchControl enables the missing link between your DAW software and X32, unde
 
 X32PunchControl will record all X32 OSC commands respective of mixing, channels and FX controls, routing, etc. into a file of time-stamped records.
 These records can later be played again, in sync with the audio from DAW to X32, thanks to the recorded time stamp and the MIDI time code from the DAW to X32PunchControl.
-These records can also be modified in real time when playing DAW audio and the already recorded data, via standard punch in/out operations. This way you can incrementally enhance your mix, by applying successive modifications. When re-positioning the DAW song cursor prior or further to the current position, X32PunchControl will manage keeping up with 
-
-
-the DAW software, replaying (catching up) OSC commands to ensure the X32 state is what it should be at the cursor position, so your mix, controls, effects are all correctly set.
+These records can also be modified in real time when playing DAW audio and the already recorded data, via standard punch in/out operations. This way you can incrementally enhance your mix, by applying successive modifications. When re-positioning the DAW song cursor prior or further to the current position, X32PunchControl will manage keeping up with the DAW software, replaying (catching up) OSC commands to ensure the X32 state is what it should be at the cursor position, so your mix, controls, effects are all correctly set.
 
 In all cases the data is always recorded in real time to a file. X32PunchControl typically uses 2 files, one for reading only (if a previous recording has taken place) and one for writing only. When done, the “writing” file becomes the “reading” file for the next update or play X32PunchControl session.
 In order to start from a known state of settings, routing, etc., X32PunchControl enables loading an X32 scene file from the X32 scene library section.
