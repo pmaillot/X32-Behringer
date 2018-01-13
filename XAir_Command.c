@@ -3,7 +3,7 @@
 //
 //  Created on: Sep 19, 2014
 //
-//      XAir_Command: a simple udp client for XR18 sending commands and getting answers
+//      XAir_Command: a simple udp client for XR12, 16 or 18 sending commands and getting answers
 //
 //      Author: Patrick-Gilles Maillot
 //
@@ -18,7 +18,6 @@
 // v 1.35: fixed meters case by cloning xfdump() in this file
 // v 1.36: fixed meters data length error
 // v 1.37: addresses limitations in certain C compilers wit getopt()
-// v 1.38: better management of input chars to match compilers differences
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -391,7 +390,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with XR18 server
-	printf(" XAir_Command - v1.38 - (c)2014-18 Patrick-Gilles Maillot\n\nConnecting to XR18.");
+	printf(" XAir_Command - v1.37 - (c)2014-18 Patrick-Gilles Maillot\n\nConnecting to XR18.");
 //
 	keep_on = 1;
 	xremote_on = X32verbose;	// Momentarily save X32verbose
@@ -474,12 +473,12 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 		    // build command by reading keyboard characters (from stdin)
 #ifdef __WIN32__
 			if (kbhit()) {
-				input_intch = _getch();
+				input_ch = _getch();
 #else
-				input_intch = getc(stdin);
+			input_ch = getc(stdin);
 			{
 #endif
-				if (input_intch == EOL) {
+				if (input_ch == EOL) {
 					if (l_index) {
 #ifdef __WIN32__
 						printf("\n");
@@ -499,14 +498,14 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 					}
 				} else {
 					if (l_index < LINEMAX) {
-						// parse input_intch values, building new command
-						if (input_intch != NO_CHAR) {
+						// parse input_ch values, building new command
+						if (input_ch != NO_CHAR) {
 #ifdef __WIN32__
-							printf("%c", (char)input_intch);
+							printf("%c", input_ch);
 #endif
-							input_line[l_index++] = (char)input_intch;
+							input_line[l_index++] = input_ch;
 						}
-						if (input_intch == BACKSPACE) {
+						if (input_ch == BACKSPACE) {
 #ifdef __WIN32__
 							printf(" \b");
 #endif
