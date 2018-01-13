@@ -16,6 +16,7 @@
 // v 1.32: longer timeout when read/send scene/snippets/tidbits/X32node lines from file
 // v 1.33: added netinet/in.h include (freeBSD support)
 // v 1.34: addresses limitations in certain C compilers wit getopt()
+// v 1.35: better management of input chars to match compilers differences
 //
 
 #include <stdlib.h>
@@ -270,7 +271,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with X32 server
-	printf(" X32_Command - v1.34 - (c)2014-18 Patrick-Gilles Maillot\n\nConnecting to X32.");
+	printf(" X32_Command - v1.35 - (c)2014-18 Patrick-Gilles Maillot\n\nConnecting to X32.");
 //
 	keep_on = 1;
 	xremote_on = X32verbose;	// Momentarily save X32verbose
@@ -353,12 +354,12 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 		    // build command by reading keyboard characters (from stdin)
 #ifdef __WIN32__
 			if (kbhit()) {
-				input_ch = _getch();
+				input_intch = _getch();
 #else
-			input_ch = getc(stdin);
+				input_intch = getc(stdin);
 			{
 #endif
-				if (input_ch == EOL) {
+				if (input_intch == EOL) {
 					if (l_index) {
 #ifdef __WIN32__
 						printf("\n");
@@ -378,14 +379,14 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 					}
 				} else {
 					if (l_index < LINEMAX) {
-						// parse input_ch values, building new command
-						if (input_ch != NO_CHAR) {
+						// parse input_intch values, building new command
+						if (input_intch != NO_CHAR) {
 #ifdef __WIN32__
-							printf("%c", input_ch);
+							printf("%c", (char)input_intch);
 #endif
-							input_line[l_index++] = input_ch;
+							input_line[l_index++] = (char)input_intch;
 						}
-						if (input_ch == BACKSPACE) {
+						if (input_intch == BACKSPACE) {
 #ifdef __WIN32__
 							printf(" \b");
 #endif
