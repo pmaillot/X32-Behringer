@@ -17,6 +17,7 @@
 // v 1.33: added netinet/in.h include (freeBSD support)
 // v 1.34: addresses limitations in certain C compilers with getopt()
 // v 1.35: kb input is now treated as int
+// v 1.36: following changes to X32_cparse.c
 //
 
 #include <stdlib.h>
@@ -166,7 +167,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // Initialize communication with X32 server at IP ip and PORT port
 // Set default values to match your X32 desk
-	strcpy (Xip_str, "192.168.0.64");
+	strcpy (Xip_str, "192.168.1.70");
 	strcpy (Xport_str, "10023");
 //
 // Manage arguments
@@ -271,7 +272,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with X32 server
-	printf(" X32_Command - v1.35 - (c)2014-18 Patrick-Gilles Maillot\n\nConnecting to X32.");
+	printf(" X32_Command - v1.36 - (c)2014-18 Patrick-Gilles Maillot\n\nConnecting to X32.");
 //
 	keep_on = 1;
 	xremote_on = X32verbose;	// Momentarily save X32verbose

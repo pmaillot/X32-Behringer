@@ -2,11 +2,19 @@
  * Xcparse.c
  *
  *  Created on: Oct 8, 2014
+<<<<<<< HEAD
  *      Author: patrick
  *
  *  Modified Jan 17, 2018
  *		by Ted Rippert
  *		Added test for multiple spaces between values
+=======
+ *      Author: Patrick-Gilles Maillot
+ *
+ *      Fixes after bugs reported by Ted Rippert on better handling of
+ *      groups after quoted strings
+ *
+>>>>>>> 86ed4805776db0b58bbc08678653519d1bceaaf0
  */
 
 #include <string.h>
@@ -23,7 +31,7 @@ extern int Xsprint(char *bd, int index, char format, void *bs);
 int
 Xcparse(char* buf, char* input) {
 
-int     start_comma, end_comma, start_values, i, k, input_len;
+int     start_comma, end_comma, txt_start, i, k, input_len;
 char    input_line[512], ccase, ccend;
 
 union littlebig {
@@ -33,7 +41,8 @@ union littlebig {
 } endian;
 
 
-    strcpy(input_line, input);
+// make a local copy of the input string as we'll modify some characters during parsing.
+	strcpy(input_line, input);
     start_comma = 0;
     input_len = strlen(input_line);
 //    jump to next comma, and replace spaces by 0, prior to comma
@@ -48,34 +57,26 @@ union littlebig {
     i = 0;
     i = Xsprint(buf, i, 's', input_line);
     if (start_comma) {
-//
 // Set command (",s|i|f" is present)
 // look for end of formatters (s,i,f)
         k = start_comma + 1;
-        while (k < input_len) {
-            if ((input_line[k] != 's') &&
-                (input_line[k] != 'i') &&
-                (input_line[k] != 'f')) break;
-            k += 1;
-        }
-// Prepare formatters command block
-        while(k < input_len) {
-            if (input_line[k] == SPACE) {
-                input_line[k] = 0;
-                break;
-            }
-            k += 1;
-        }
+        while ((k < input_len) && ((input_line[k] == 's') ||
+        						   (input_line[k] == 'i') ||
+								   (input_line[k] == 'f'))) k++;
+// Prepare command formatters' block
+        input_line[k] = 0;
         i = Xsprint(buf, i, 's', input_line+start_comma);
-//
-// k point at the first value
-// start_values points to first value, too
-// process formatters (between start_comma and end_comma)
-        start_comma += 1;
-        end_comma = k;
-        start_values = k + 1;
+// k points to first value of data block (text, int or float)
+// process formatters (between start_comma and end_comma) to parse blocks
+        start_comma += 1;	// skip the formatters' leading comma
+        end_comma = k;		// last identified formatter
+// manage blocks according to formatters
         while (start_comma < end_comma) {
+        	// ignore spaces before new block (text, int or float)
+        		k += 1;
+            while ((k < input_len) && (input_line[k] == SPACE)) k++;
             ccase = input_line[start_comma++];
+<<<<<<< HEAD
             switch (ccase) {
                 case 's':
                     // change next space char to \0 to mark end of string
@@ -138,6 +139,43 @@ union littlebig {
                     break;
             }
         }
+=======
+            // ignore white spaces out of quotes (single or double)
+			switch (ccase) {
+				case 's':
+					// change next SPACE char to \0 to mark end of string
+					// if the string must have spaces in it, it should start with " or '; "" can be used
+					// in the string to depict an empty substring (String must start with a ' in that case).
+					// String delimiters must be the same (" or ').
+					txt_start = k;
+					if ((input_line[k] == QUOTE) || (input_line[k] == SQUOTE)) {
+						ccend = input_line[k];
+						k += 1;
+						txt_start += 1;
+						while ((k < input_len) && (input_line[k] != ccend)) k++;
+					} else {
+						while ((k < input_len) && (input_line[k] != SPACE)) k++;
+					}
+					input_line[k] = 0;
+					i = Xsprint(buf, i, 's', input_line+txt_start);
+					break;
+				case 'i':
+					// read integer and move pointer k to the end of the data just read
+					sscanf(input_line+k, "%d", &endian.i1);
+					i = Xsprint(buf, i, 'i', endian.c1);
+					while ((k < input_len) && (input_line[k] != SPACE)) k++;
+					break;
+				case 'f':
+					// read float and move pointer k to the end of the data just read
+					sscanf(input_line+k, "%f", &endian.f1);
+					i = Xsprint(buf, i, 'f', endian.c1);
+					while ((k < input_len) && (input_line[k] != SPACE)) k++;
+					break;
+				default:
+					break;
+			}
+		}
+>>>>>>> 86ed4805776db0b58bbc08678653519d1bceaaf0
     }
     return i;
 }
