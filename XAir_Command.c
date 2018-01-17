@@ -19,6 +19,7 @@
 // v 1.36: fixed meters data length error
 // v 1.37: addresses limitations in certain C compilers wit getopt()
 // v 1.38: kb input is now treated as int
+// v 1.39: following changes to X32_cparse.c
 //
 #include <stdlib.h>
 #include <stdio.h>
@@ -391,7 +392,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with XR18 server
-	printf(" XAir_Command - v1.38 - (c)2014-18 Patrick-Gilles Maillot\n\nConnecting to XR18.");
+	printf(" XAir_Command - v1.39 - (c)2014-18 Patrick-Gilles Maillot\n\nConnecting to XR18.");
 //
 	keep_on = 1;
 	xremote_on = X32verbose;	// Momentarily save X32verbose
