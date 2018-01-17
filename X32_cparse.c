@@ -3,6 +3,10 @@
  *
  *  Created on: Oct 8, 2014
  *      Author: patrick
+ *
+ *  Modified Jan 17, 2018
+ *		by Ted Rippert
+ *		Added test for multiple spaces between values
  */
 
 #include <string.h>
@@ -82,7 +86,7 @@ union littlebig {
                 	// in the string to depict an empty substring (start with a ' in that case).
                 	// String must end with the same character it started.
                     k = start_values;
-                    if ((input_line[k] == QUOTE) ||(input_line[k] == SQUOTE)) {
+                    if ((input_line[k] == QUOTE) || (input_line[k] == SQUOTE)) {
                     	ccend = input_line[k];
                         k += 1;
                         while(k < input_len) {
@@ -93,11 +97,17 @@ union littlebig {
                             k += 1;
                         }
                         i = Xsprint(buf, i, 's', input_line+start_values+1);
+                        if (input_line[k+1] == SPACE) k += 1;
+                        while(k < input_len && input_line[k] == SPACE) {
+                            input_line[k] = 0;
+                            if (input_line[k+1] != SPACE) break;
+                            k += 1;
+                        }
                     } else {
                         while(k < input_len) {
                             if (input_line[k] == SPACE) {
                                 input_line[k] = 0;
-                                break;
+                                if (input_line[k+1] != SPACE) break;
                             }
                             k += 1;
                         }
