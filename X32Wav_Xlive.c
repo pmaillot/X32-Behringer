@@ -21,6 +21,8 @@
  *	ver 0.92: got away from large memory block allocation; slower but can handle larger files
  *	ver 0.93: optimizations in fwrite use
  *	ver 0.94: initialization of a variable (fill_chls) was forgotten
+ *	ver 0.95: limiting session name to 19 chrs + \0
+ *	ver 0.96: .wav files in X-Live! sessions are base16 naming based: ..09, 0A, 0B..0F, 10,..
  */
 
 #include <stdio.h>
@@ -215,7 +217,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 0.94 - ©2017 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 0.96 - ©2017 - Patrick-Gilles Maillot"));
 		TextOut(hdc, 128, 50, str1, wsprintf(str1, "Enter Session Name:"));
 		TextOut(hdc, 128, 90, str1, wsprintf(str1, "Enter Markers:"));
 		DeleteObject(htmp);
@@ -602,13 +604,11 @@ int	MergeWavFiles(char* name_str, int num_markers, float* markers) {
 	audio_bytes = (long long)total_length * 4 * (long long)wheader.num_channels;	// total number of bytes to process
 	//
 	// trim to 32kB boundary
-//	if (audio_bytes % (32 * 1024))
-//		audio_bytes -= (audio_bytes % (32 * 1024));
 	audio_bytes &= 0xfffffffffff8000;
 	//
 	// How many files of 4GB (max) for our session?
 	nb_takes = 0;
-	while (audio_bytes >= max_take_size){
+	while (audio_bytes >= max_take_size) {
 		take_size[nb_takes] = max_take_size / 4;	// in 32bit samples
 		nb_takes += 1;
 		audio_bytes -= max_take_size;
@@ -653,11 +653,9 @@ int	MergeWavFiles(char* name_str, int num_markers, float* markers) {
 				fwrite(&Zero, sizeof(*Zero), 1, Xout);
 			for (i = 0; i < 24; i++)
 				fwrite(&Zero, sizeof(*Zero), 1, Xout);
-			if ((i = strlen(name_str)) < 20) {
-				fwrite(name_str, i, 1, Xout);
-			} else {
-				fwrite(name_str, 20, 1, Xout);
-			}
+			i = strlen(name_str);
+			if (i > 19) i = 19;
+			fwrite(name_str, i, 1, Xout);
 			// complete to 2kbytes with 0's
 			while(ftell(Xout) < 2048)
 				fwrite(&Zero, sizeof(char), 1, Xout);
@@ -666,7 +664,7 @@ int	MergeWavFiles(char* name_str, int num_markers, float* markers) {
 			// create take waves
 			for (i = 0; i < nb_takes; i++) {
 				strcpy(SessBinName, SessDirName);
-				sprintf(SessWavName, "/%08d.wav", i + 1);
+				sprintf(SessWavName, "/%08X.wav", i + 1);
 				strcat(SessBinName, SessWavName);
 				if ((Xout = fopen(SessBinName, "wb")) != NULL) {
 					wheader.wavsize = take_size[i] * 4 + 44 + wheader.Junk_bytes;
@@ -756,6 +754,6 @@ int	MergeWavFiles(char* name_str, int num_markers, float* markers) {
 		fclose(Xin[i]);
 	}
 #endif
-	// End of using or not malloc
+	//
 	return k;
 }
