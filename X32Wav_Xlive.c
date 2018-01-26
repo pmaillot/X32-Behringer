@@ -23,6 +23,7 @@
  *	ver 0.94: initialization of a variable (fill_chls) was forgotten
  *	ver 0.95: limiting session name to 19 chrs + \0
  *	ver 0.96: .wav files in X-Live! sessions are base16 naming based: ..09, 0A, 0B..0F, 10,..
+ *	ver 0.97: added call to SetCurrentDirectory to ensure the current directory is set
  */
 
 #include <stdio.h>
@@ -217,7 +218,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 0.96 - ©2017 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 0.97 - ©2017 - Patrick-Gilles Maillot"));
 		TextOut(hdc, 128, 50, str1, wsprintf(str1, "Enter Session Name:"));
 		TextOut(hdc, 128, 90, str1, wsprintf(str1, "Enter Markers:"));
 		DeleteObject(htmp);
@@ -289,7 +290,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				ofn.nFilterIndex = 1;
 				ofn.lpstrFileTitle = NULL;
 				ofn.nMaxFileTitle = 0;
-				ofn.lpstrTitle = (LPCTSTR) "Select a directory whith wav files to merge\0";
+				ofn.lpstrTitle = (LPCTSTR) "Select first wav file to set directory\0";
 				ofn.lpstrInitialDir = NULL;
 				ofn.Flags = OFN_PATHMUSTEXIST;
 				//
@@ -300,8 +301,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 					i = strlen(Xpath);
 					while (i && (Xpath[i] != '\\')) --i;
 					Xpath[i] = 0;
-					if (MessageBox(NULL, Xpath, "Source directory: ", MB_OK) == IDOK) {
-						// the message is purely informative
+					if (i > 0) {
+						if (MessageBox(NULL, Xpath, "Source directory: ", MB_OK) == IDOK) {
+							// the message is purely informative
+							SetCurrentDirectory(Xpath);
+						}
+					} else {
+						MessageBox(NULL, "Invalid directory!\n", NULL, MB_OK);
 					}
 				}
 				break;
