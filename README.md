@@ -133,7 +133,7 @@ This X32 utility enables a functionality not included with the X-Live! expansion
 
 OSC messages are fast and enable real-time remote controls to take place on X32; I wrote a set of transport capabilities to optimize the use of X32 with REAPER, and I’m using the same approach here in changing the destination of one of the User Assign rotary knob into an audio Jog. In the case of REAPER, the knobs control the REAPER slider, and an ingenious zoom function in REAPER enable moving precisely to very fast within the audio track(s). In the present case, there’s no zoom functionality, nor a cursor to move; as a result it was rather painful to move say 10ms at a time. I decided to use a second rotary knob to set the value of the time delta. The current version of the application enables a variation between 10ms and 2m41s
 
-You will need to be either in “Play” or “PPause” mode on the X-Live! in order for knob #1 to enable you to navigate in your SD card audio stream; As mentioned earlier, knob #3 will make you move faster within the audio. The explanations as to why knob #1 and #3 rather than other values are in the documentation, part of the .zip compiled utility on my website.
+You will need to be either in “Play” or “PPause” mode on the X-Live! in order for knob #1 to enable you to navigate in your SD card audio stream; As mentioned earlier, knob #3 will make you move faster within the audio. The explanations as to why I used knobs #1 and #3 rather than other values are in the documentation, part of the .zip compiled utility on my website.
 
 
 ### X32Tap ###
