@@ -24,6 +24,8 @@
  *	ver 0.95: limiting session name to 19 chrs + \0
  *	ver 0.96: .wav files in X-Live! sessions are base16 naming based: ..09, 0A, 0B..0F, 10,..
  *	ver 0.97: added call to SetCurrentDirectory to ensure the current directory is set
+ *	ver 0.98: listed Wave files in File open dialog
+ *	ver 0.99: fixed remaining size of data for last session wav file (typically not 4GB)
  */
 
 #include <stdio.h>
@@ -218,7 +220,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 0.97 - ©2017 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 0.99 - ©2017 - Patrick-Gilles Maillot"));
 		TextOut(hdc, 128, 50, str1, wsprintf(str1, "Enter Session Name:"));
 		TextOut(hdc, 128, 90, str1, wsprintf(str1, "Enter Markers:"));
 		DeleteObject(htmp);
@@ -286,7 +288,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				// use the contents of szFile to initialize itself.
 				ofn.lpstrFile[0] = '\0';
 				ofn.nMaxFile = sizeof(Xpath);
-				ofn.lpstrFilter = "*.wav\0\0";
+				ofn.lpstrFilter = "Wave file\0*.wav\0\0";
 				ofn.nFilterIndex = 1;
 				ofn.lpstrFileTitle = NULL;
 				ofn.nMaxFileTitle = 0;
@@ -681,6 +683,7 @@ int	MergeWavFiles(char* name_str, int num_markers, float* markers) {
 					for (j = 0; j < 460 / 4; j++) {
 						fwrite("    ", 4, 1, Xout);
 					}
+					r_audio_bytes = take_size[i] * 4;
 					fwrite("data", 4, 1, Xout);
 					fwrite(&r_audio_bytes, sizeof(r_audio_bytes), 1, Xout);
 					for (j = 0; j < (wheader.Junk_bytes - 468) / 4; j++) {
