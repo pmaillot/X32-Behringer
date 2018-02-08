@@ -124,6 +124,56 @@ With all data ready, it is time to click on the “Merge” button, which will l
 Be patient! Merging large audio files takes time. The program will display the elapsed time at the end of the process. The directory created by the utility can be copied in the X-Live! directory of an SD card to be used with the expansion board, so you can enjoy your mix using the X32.
 
 
+
+### X32Wav_XLive ###
+![X32XLive_Wav.jpg](https://sites.google.com/site/patrickmaillot/x32/X32Xlive_Wav.jpg)
+
+Split / Explode X-Live! multi-channel WAV files from a recorded session into individual, single channel WAV files.
+
+
+This X32 utility takes multi-channel wave files from a recorded X-Live! session directory and extract an arbitrary amount of channels (user defined names can be assigned) to individual wave files. Audio data can be extracted as 16bit, 24bit [default], or 32 bit samples of data.
+
+XLive! sessions are made of 8, 16 or 32 channel wave files. The user selects a Session directory and chooses a directory where single channel files will be generated (or Exploded to use REAPER's notation). One can decide to extract less than the actual number of channels from the Session, as these are sometimes containing empty files to build up to the 8, 16 or 32 channels of XLive! multi-channel session files.
+Each destination file can be named per user choice, and destination files can be made of 8, 16, 24, or 32 bits samples; (source files are always 24bit samples in a 32bit container). Destination file names can also be automatically filled using an X32 scene file. Once established, a name can be edited (simple modification) by getting its name, editing the name and setting the name.
+
+Files are exploded following each 4GB session file; if there are for ex. 2 wav files in the session (on 4BG and the next one < 4GB), and the user called for 2 channels to be extracted, naming them "AA" and "BB", this will result in the following file set after extraction:
+AA.wav
+BB.wav
+with AA.wav and BB.wav accumulating the single wave file sections of the two section files used as source.
+
+In case of inconsistencies or errors, messages are reported at the GUI level. Upon termination, the time needed to explode files is provided. Be patient... Exploding multi-channel wav files takes time, even with optimizations for ex ~22s for extracting 5 24bit channels out of a 5.2GB 8-channel XLive! Session
+
+
+Command Line version:
+A command-line version of the tool can be obtained from the source file. Below the -h (help) for the utility, which offers the same options the Windows GUI version does:
+
+```
+$ ./X32Xlive_Wav -h
+X32Xlive_Wav - ver 0.20 - ©2018 - Patrick-Gilles Maillot
+
+usage: X32Xlive_wav [-d dir [./]: Mono wave files path]
+                    [-n 1..32 [0]: number of channels to explode to mono wave files]
+                    [-c 8/16/24/32 [24]: sample size]
+                    [-s file []: optional scene file]
+                    [-w #,name, [,]: ch. number ',' followed by respective wave file name]
+                    Xlive! Session
+
+       X32Xlive_wav will take into account all command-line parameter and run its
+       'magic', generating mono-wave files from the XLive! session given as input.
+       Sample size conversion may take place depending on the -c option.
+       Channel/Wave or file names can be set all at once if a scene file is provided
+       using the -f parameter, or set one at a time or edited if parameters -1...-32
+       are used with appropriate names
+
+       Example:
+       X32Xlive_wav -n 3 -d ~ -c 16 -s ~/myscene -w 3,new_name ~/ABCD12345678
+       will extract as 16bit samples the first 3 channels contained in XLive! session
+       ABCD12345678 in the home directory, into 3 separate wave files placed in the home
+       directory with names taken from the X32 scene file 'myscene', and setting or overriding
+       the 3rd wave file name with 'new_name'
+$
+
+```
 ### X32Jog4Xlive ###
 ![X32Jog4XLive.jpg](https://sites.google.com/site/patrickmaillot/x32/X32Jog4XLive.jpg)
 
