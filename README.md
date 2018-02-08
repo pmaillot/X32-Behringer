@@ -147,6 +147,7 @@ In case of inconsistencies or errors, messages are reported at the GUI level. Up
 Command Line version:
 A command-line version of the tool can be obtained from the source file. Below the -h (help) for the utility, which offers the same options the Windows GUI version does:
 
+```
 $ ./X32Xlive_Wav -h
 X32Xlive_Wav - ver 0.20 - ©2018 - Patrick-Gilles Maillot
 
@@ -172,6 +173,7 @@ usage: X32Xlive_wav [-d dir [./]: Mono wave files path]
        the 3rd wave file name with 'new_name'
 $
 
+```
 ### X32Jog4Xlive ###
 ![X32Jog4XLive.jpg](https://sites.google.com/site/patrickmaillot/x32/X32Jog4XLive.jpg)
 
