@@ -27,6 +27,9 @@
 #include <string.h>
 #include <time.h>
 
+#define QUOTE  '"'
+#define SQUOTE '\''
+
 #ifdef __WIN32__
 #include <winsock2.h>
 #include <conio.h>
@@ -453,17 +456,43 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 				if ((input_line[0] != '#') && (strlen(input_line) > 1)) {
 					input_line[strlen(input_line) - 1] = 0;	// avoid trailing '\n'
 				    char *inptr = input_line;
-				    char inword[256];
+				    char inword[128];
+				    char argwords[128];
 				    int  posn, cmdend;
+				    int inquote=0;
 					int argnum=0;
-				    sscanf(inptr, "%255s%n", inword, &posn);
+				    sscanf(inptr, "%127s%n", inword, &posn);
 				    cmdend = posn;
 				    inptr += posn;
-				    strcpy(s_buf, inword);strcat(s_buf, " ");
-			        while (sscanf(inptr, "%255s%n", inword, &posn) == 1)
+				    s_len = Xsprint(s_buf, 0, 's', inword);
+				    r_len = 0;
+			        while (sscanf(inptr, "%127s%n", inword, &posn) == 1)
 			        {
-			            argnum+=1;
-			            inptr += posn;
+			        		inptr += posn;
+			        		if (inquote == 1) {
+			        			strcat(argwords, inword);
+			        			if ((inword[strlen(inword)-1] == QUOTE) || (inword[strlen(inword)-1] == SQUOTE)) {
+				            		argwords[strlen(argwords)-1] = 0;
+				            		strcpy(inword, argwords);
+				            		inquote = 0;
+			        			} else {
+				        			strcat(argwords, " ");
+			        			}
+			        		}
+			            if ((inword[0] == QUOTE) || (inword[0] == SQUOTE)) {
+			            		inquote = 1;
+			            		strcpy(argwords, inword+1);
+			            		if ((inword[strlen(inword)-1] == QUOTE) || (inword[strlen(inword)-1] == SQUOTE)) {
+				            		argwords[strlen(argwords)-1] = 0;
+				            		strcpy(inword, argwords);
+				            		inquote = 0;
+			            		}
+			            		strcat(argwords, " ");
+			            }
+			            if (inquote == 0) {
+			            		argnum+=1;
+			            		r_len = Xsprint(r_buf, r_len, 's', inword);
+			            }
 			        }
 			        inword[0] = ',';
 			        for(int i = 1; i <= argnum; i = i + 1 ) {
@@ -471,10 +500,9 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			              posn = i;
 			        }
 			        inword[posn+1] = 0;
-			        strcat(s_buf, inword);strcat(s_buf, " ");
-					strcat(s_buf, input_line+cmdend);
-					strcpy(r_buf, s_buf);
-					s_len = Xcparse(s_buf, r_buf);
+			        s_len = Xsprint(s_buf, s_len, 's', inword);
+					memcpy(s_buf+s_len, r_buf, r_len * sizeof(char));
+					s_len += r_len;
 					SEND				// send data to XR
 					CHECKXR()		// XR18 will echo back the line
 				}
