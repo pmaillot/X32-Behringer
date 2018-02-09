@@ -504,7 +504,9 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 					memcpy(s_buf+s_len, r_buf, r_len * sizeof(char));
 					s_len += r_len;
 					SEND				// send data to XR
-					CHECKXR()		// XR18 will echo back the line
+					if (X32verbose) {    // No use checking for a response if not printing them
+						CHECKXR()		// XR18 will echo back the line
+					}
 				}
 			}
             printf ("---end of file\n");
