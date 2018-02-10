@@ -20,6 +20,7 @@
 // v 1.37: addresses limitations in certain C compilers wit getopt()
 // v 1.38: kb input is now treated as int
 // v 1.39: following changes to X32_cparse.c
+// v 1.40: Restore -s "node format" option for XAir mixers
 //
 #include <stdlib.h>
 #include <stdio.h>
@@ -458,6 +459,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 				    char *inptr = input_line;
 				    char inword[128];
 				    char argwords[128];
+				    char quotetype;
 				    int  posn, cmdend;
 				    int inquote=0;
 					int argnum=0;
@@ -469,27 +471,30 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			        while (sscanf(inptr, "%127s%n", inword, &posn) == 1)
 			        {
 			        		inptr += posn;
-			        		if (inquote == 1) {
-			        			strcat(argwords, inword);
-			        			if ((inword[strlen(inword)-1] == QUOTE) || (inword[strlen(inword)-1] == SQUOTE)) {
-				            		argwords[strlen(argwords)-1] = 0;
-				            		strcpy(inword, argwords);
-				            		inquote = 0;
-			        			} else {
-				        			strcat(argwords, " ");
-			        			}
-			        		}
-			            if ((inword[0] == QUOTE) || (inword[0] == SQUOTE)) {
-			            		inquote = 1;
-			            		strcpy(argwords, inword+1);
-			            		if ((inword[strlen(inword)-1] == QUOTE) || (inword[strlen(inword)-1] == SQUOTE)) {
-				            		argwords[strlen(argwords)-1] = 0;
-				            		strcpy(inword, argwords);
-				            		inquote = 0;
-			            		}
-			            		strcat(argwords, " ");
-			            }
-			            if (inquote == 0) {
+
+						if (((inword[0] == QUOTE) || (inword[0] == SQUOTE)) && (inquote == 0)) {
+								quotetype = inword[0];
+								inquote = 1;
+								if (inword[strlen(inword)-1] == quotetype) {
+									strcpy(argwords, inword+1);
+									argwords[strlen(argwords)-1] = 0;
+									strcpy(inword, argwords);
+									inquote = 0;
+								}
+								strcat(argwords, " ");
+						}
+						if (inquote == 1) {
+							if (inword[0] == quotetype) strcpy(argwords, inword+1);
+							else strcat(argwords, inword);
+							if (inword[strlen(inword)-1] == quotetype) {
+								argwords[strlen(argwords)-1] = 0;
+								strcpy(inword, argwords);
+								inquote = 0;
+							} else {
+								strcat(argwords, " ");
+							}
+						}
+				        	if (inquote == 0) {
 			            		argnum+=1;
 			            		r_len = Xsprint(r_buf, r_len, 's', inword);
 			            }
