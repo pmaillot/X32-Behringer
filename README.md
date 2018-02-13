@@ -174,6 +174,22 @@ usage: X32Xlive_wav [-d dir [./]: Mono wave files path]
 $
 
 ```
+
+### X32cpXliveMarkers ###
+![X32cpXliveMarkers.jpg](https://sites.google.com/site/patrickmaillot/x32/X32cpXliveMarkers.jpg)
+
+Reads markers from an XLive! session/SE_LOG.BIN file and send data to the clipboard.
+
+X32cpXliveMarkers copies an XLive! Session set of makers to the clipboard. An XLive! Session can have up
+to 100 markers. When importing audio to a DAW (I use REAPER), there is no support for importing XLive!
+Session markers… until now.
+
+With all parameters set, the user just clicks on “Copy” to load all session markers to the clipboard. It is then
+just a matter of using the proper REAPER function to import these markers into a REAPER project. Under
+REAPER, this is possible thanks to the Extensions→Marker utilities→Import marker set from clipboard
+menu which is part of the REAPER SWS extensions.
+
+
 ### X32Jog4Xlive ###
 ![X32Jog4XLive.jpg](https://sites.google.com/site/patrickmaillot/x32/X32Jog4XLive.jpg)
 
