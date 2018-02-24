@@ -28,6 +28,7 @@
  *	ver 0.99: fixed remaining size of data for last session wav file (typically not 4GB)
  *	ver 1.00: Better GUI interface (directory & marker select) and small bug in logging markers
  *	ver 1.10: Added command line interface
+ *	ver 1.20: removed malloc support (not used) / accepts Pro-tools generated files
  *
  */
 
@@ -42,31 +43,42 @@
 #include <Shlobj.h>		// Windows shell functions
 #define MESSAGE(s1,s2)	\
 			MessageBox(NULL, s1, s2, MB_OK);
+#define zeromem(a1, a2) \
+		ZeroMemory(a1, a2);
 #else
 #include <sys/stat.h>
 #include <sys/types.h>
 #define MAX_PATH 256	// file name/path size
 #define MESSAGE(s1,s2)	\
 			printf("%s - %s\n",s2, s1);
+#define zeromem(a1, a2) \
+		memset(a1, NULL, a2);
 #define min(a,b) 		\
 			(((a)<(b))?(a):(b))
 #endif
 //
-//
-//#define Use_malloc	// comment if not using large malloc blocks (recommended);
-						// set, to use malloc blocks which make the program faster, but may
-						// require 64bits compile and a large amount of available RAM
+#define riff 0x66666972
+#define RIFF 0x46464952
+#define wave 0x65766177
+#define WAVE 0x45564157
+#define fmt  0x20746D66
+#define FMT  0x20544D46
+#define junk 0x6B6E756A
+#define JUNK 0x4B4E554A
+#define data 0x61746164
+#define DATA 0x41544144
+#define bext 0x74786562
+#define BEXT 0x54584542
+#define minf 0x666E696D
+#define MINF 0x464E494D
+#define elm1 0x316D6C65
+#define ELM1 0x314D4C45
+#define blnk 0x20202020
 //
 typedef union {
 	char			s[4];
 	unsigned int	i;
 } i4chr;
-//
-i4chr	uRIFF, uriff;
-i4chr	uFMT, ufmt;
-i4chr	uWAVE, uwave;
-i4chr	uJUNK, ujunk;
-i4chr	uDATA, udata;
 //
 // Private functions
 int	MergeWavFiles(int num_markers, float* markers);
@@ -114,21 +126,14 @@ unsigned int	session_name;			// session name built from yymmhhmm in hex form (on
 unsigned int	audio_len;				// data size; ensuring a single value
 unsigned int	fmt_size;				// size of "fmt " sub chunk
 unsigned int	dwAvgBytesPerSec;		// average bytes per second (all channels)
+unsigned int	samp_rate;				// sample rate (48000 or 44100)
 unsigned int	TmpData;				// used for fast char[4] comparisons (using a 32bit word)
 unsigned short	wav_format;				// WAVE format (expected to be PCM = 1)
 unsigned short	wBlockAlign;			// block alignment
 unsigned short	bits_per_samp;			// bits per sample (24)
 unsigned short	wav_chs;				// numb of channels os source file (expected to be 1)
-#ifdef Use_malloc
-// Using large malloc blocks
-unsigned int	WavFileSize[32];		// size of *WavFileData (source wave file)
-unsigned char 	*WavFileData[32];		// wave data buffer for each wav file
-int				WaveDataIndex[32];		// current read index in *WavFileData (source wave file)
-#else
-// Not using large malloc blocks
-unsigned char 	WavHeader[36];			// wave file header
+unsigned int 	Chunk;					// 32 bits just read
 unsigned int	JunkSize;				// size in bytes of Junk chunk
-#endif
 //
 time_t			now;					// time
 struct tm 		*current_time;			// year...second structure
@@ -142,7 +147,7 @@ struct {								// 32k header (0x8000 in size)
 	unsigned int	Riff;				// = "Riff";
 	unsigned int	wavsize; 			// size of WAVE sub-chunk
 	unsigned int	Wave; 				// = "WAVE"
-	unsigned int	fmt;				// = "fmt ";
+	unsigned int	ufmt;				// = "fmt ";
 	unsigned int	Sixteen;			// = 16;
 	unsigned short	One;				// = 1;
 	unsigned short	num_channels;		// number of channels in multichannel data (8, 16 or 32)
@@ -157,6 +162,7 @@ struct {								// 32k header (0x8000 in size)
 //unsigned int 	wavsize;				// size of WAVE sub-chunk
 int				MList_File;				// Default (1) is "List of Markers"; (0) is "File Path"
 int				Zero[32] = {0};			// 0 (32 times)
+unsigned int	blank = blnk;
 //
 long long		audio_bytes;			// size of audio data (multi channels)
 unsigned int	r_audio_bytes;			// audio data remainder on 32bits for file writing
@@ -246,7 +252,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 1.10 - ©2017-18 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 1.20 - ©2017-18 - Patrick-Gilles Maillot"));
 		TextOut(hdc, 128, 57, str1, wsprintf(str1, "Session Name:"));
 		TextOut(hdc, 128, 90, str1, wsprintf(str1, "Markers:"));
 		DeleteObject(htmp);
@@ -308,6 +314,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				// Select Source Directory (must contain .wav files)
 				// Select Source Directory (must contain session files)
 				Xspath[0] = 0; // no/empty directory name
+				ZeroMemory(&bi, sizeof(bi));
 				bi.hwndOwner = hwnd;
 				bi.pidlRoot = 0;
 				bi.pszDisplayName = Xspath;
@@ -392,25 +399,17 @@ int main(int argc, char **argv) {
 #else
 	int input_intch, i;
 #endif
+	zeromem(&take_size, sizeof(take_size));
+	zeromem(&imarker_vec, sizeof(imarker_vec));
 	//
 	// Init structures
 	// some initializations needed
-	strncpy(uriff.s, "riff",4);
-	strncpy(uRIFF.s, "RIFF",4);
-	strncpy(uwave.s, "wave",4);
-	strncpy(uWAVE.s, "WAVE",4);
-	strncpy(ufmt.s, "fmt ",4);
-	strncpy(uFMT.s, "FMT ",4);
-	strncpy(ujunk.s, "junk",4);
-	strncpy(uJUNK.s, "JUNK",4);
-	strncpy(udata.s, "data",4);
-	strncpy(uDATA.s, "DATA",4);
 	MList_File = 1;						// Default is "List of Markers"
 	no_markers = 0;
-	wheader.Riff = uRIFF.i;
+	wheader.Riff = RIFF;
 	wheader.wavsize = 0;
-	wheader.Wave = uWAVE.i;
-	wheader.fmt = ufmt.i;
+	wheader.Wave = WAVE;
+	wheader.ufmt = fmt;
 	wheader.Sixteen = 16;
 	wheader.One = 1;
 	wheader.num_channels = 0;
@@ -418,7 +417,7 @@ int main(int argc, char **argv) {
 	wheader.dwAvgBytesPerSec = 0;
 	wheader.wBlockAlign = 0;
 	wheader.Thirtytwo = 32;
-	wheader.Junk = uJUNK.i;
+	wheader.Junk = JUNK;
 	wheader.Junk_bytes= 32716;
 	//
 #ifdef _WIN32
@@ -447,7 +446,7 @@ int main(int argc, char **argv) {
 				break;
 			default:
 			case 'h':
-				printf("X32Wav_Xlive - ver 1.10 - ©2018 - Patrick-Gilles Maillot\n\n");
+				printf("X32Wav_Xlive - ver 1.20 - ©2018 - Patrick-Gilles Maillot\n\n");
 				printf("usage: X32Wav_Xlive [-f Marker file []: file containing markers]\n");
 				printf("                    [-m marker, [,]: marker time in increasing order values]\n");
 				printf("                    <Session dir> <Session name>\n\n");
@@ -498,18 +497,13 @@ return 0;
 int	MergeWavFiles(int num_markers, float* markers) {
 	int				numb_chls;
 	int				fill_chls;			// numb_chls + fill_chls = 32
-	int				i, j, k;
-	unsigned int 	PassNumber;
-#ifdef Use_malloc
-// Using large malloc blocks
-	int				l;
-#endif
+	int				i, j;
+	unsigned int 	k, PassNumber;
 	//
 	//
 	ftime (&start);
 	numb_chls = 0;
 	for (i = 0; i < 32; i++) {
-
 		sprintf(Xspath + slen, "./ch_%d.wav", i + 1);
 		if ((Xin[i] = fopen(Xspath, "rb")) == NULL) {
 			numb_chls = i;
@@ -534,181 +528,93 @@ int	MergeWavFiles(int num_markers, float* markers) {
 	}
 	// read wav files
 	for (i = 0; i < numb_chls; i++) {
-		// analyze file
 		//
-#ifdef Use_malloc
-// Using large malloc blocks
-		if (fseek(Xin[i], 0, SEEK_END) == 0) {
-			WavFileSize[i] = ftell(Xin[i]);						// determine file size
-			fseek(Xin[i], 0, SEEK_SET);  						// rewind(f);
-			WavFileData[i] = malloc(WavFileSize[i]);			// allocate buffer
-			fread(WavFileData[i], WavFileSize[i], 1, Xin[i]);	// read file into buffer
-		}
-		fclose(Xin[i]);
+		// Parse header (36 or more bytes) example below for 16bits/44.1kHz audio
+		// size 	Sample Value 	Description
+		// 4 	"Riff" 	Marks the file as a Riff file. Characters are each 1 byte long.
+		// 4 	File size (integer) 	Size of the overall file - 8 bytes, in bytes (32-bit integer). Typically, you'd fill this in after creation.
+		// 4 	"WAVE" 	File Type Header. For our purposes, it always equals "WAVE".
 		//
-		if (strncmp((char *)WavFileData[i], "Riff", 4) != 0) {
+		// also:
+		// 4 	"fmt " 	Format chunk marker. Includes trailing null
+		// 4  	Length of fmt data
+		// 2 	1 	Type of format (1 is PCM) - 2 byte integer
+		// 2 	2 	Number of Channels - 2 byte integer
+		// 4 	44100 	Sample Rate - 32 byte integer. Common values are 44100 (CD), 48000 (DAT). Sample Rate = Number of Samples per second, or Hertz.
+		// 4 	176400 	(Sample Rate * BitsPerSample * Channels) / 8.
+		// 2 	4 	(BitsPerSample * Channels) / 8. (1: 8 bit mono)(2: 8 bit stereo/16 bit mono)(4: 16 bit stereo)
+		// 2 	16 	Bits per sample
+		//
+		// also:
+		// 4	"junk", "bext", "elm1", "minf"
+		// 4	if junk junk size -> n
+		//
+		// also:
+		// 4 	"data" 	"data" chunk header. Marks the beginning of the data section.
+		// 4 	File size (data) 	Size of the data section.
+		fread(&Chunk, sizeof(Chunk), 1, Xin[i]);					// Chunk: RIFF/riff?
+		if ((Chunk != RIFF) && (Chunk != riff)) {
 			sprintf(str1, "ch_%d.wav is not a Riff file!\n", i + 1);
-			MessageBox(NULL, str1, NULL, MB_OK);
-			return -1;
-		}
-		file_size[i] = *(unsigned int *)(WavFileData[i]+4);
-		if ((*(unsigned int *)(WavFileData[i]+8) != uWAVE.i) &&
-			(*(unsigned int *)(WavFileData[i]+8) != uwave.i)) {
-			sprintf(str1, "ch_%d.wav is not a WAVE file!\n", i + 1);
 			MESSAGE(str1, NULL);
 			return -1;
 		}
-		// go through sub-chunks
-		k = 12;
-		PassNumber = 0;
-		while (PassNumber != 2) {
-			TmpData = *((unsigned int *)(WavFileData[i]+k));
-			k += 4;
-			if ((TmpData == uFMT.i) || (TmpData == ufmt.i)) {
-				fmt_size = *(unsigned int *)(WavFileData[i]+k);
-				if (fmt_size != 16) {
-					sprintf(str1, "ch_%d.wav wrong fmt size!\n", i + 1);
-					MESSAGE(str1, NULL);
-					return -1;
-				}
-				wav_format = *(unsigned short *)(WavFileData[i]+k+4);
+		fread(&file_size[i], sizeof(unsigned int), 1, Xin[i]);		// size
+		k = 8;
+		while (k) {
+			fread(&Chunk, sizeof(Chunk), 1, Xin[i]);				// Chunk
+			switch (Chunk) {
+			case WAVE: case wave:									// wave
+				k += 4;												// skip word
+				break;
+			case FMT: case fmt:										// fmt
+				fread(&fmt_size, sizeof(fmt_size), 1, Xin[i]);		// fmt chunk size
+				fread(&wav_format, sizeof(wav_format), 1, Xin[i]);	// wave format: PCM
 				if (wav_format != 1) {
 					sprintf(str1, "ch_%d.wav WAV format not supported!\n", i + 1);
 					MESSAGE(str1, NULL);
 					return -1;
 				}
-				wav_chs = *(unsigned short *)(WavFileData[i]+k+6);
+				fread(&wav_chs, sizeof(wav_chs), 1, Xin[i]);		// # of channels
 				if (wav_chs != 1) {
 					sprintf(str1, "multichannels ch_%d.wav not supported\n", i + 1);
 					MESSAGE(str1, NULL);
 					return -1;
 				}
-				wav_samp_rate[i] = *(unsigned int *)(WavFileData[i]+k+8);
-				if ((wav_samp_rate[i] != 44100) && (wav_samp_rate[i] != 48000)) {
+				fread(&samp_rate, sizeof(samp_rate), 1, Xin[i]);				// sample rate
+				if ((samp_rate != 44100) && (samp_rate != 48000)) {
 					sprintf(str1, "ch_%d.wav WAV sample rate not supported!\n", i + 1);
 					MESSAGE(str1, NULL);
 					return -1;
 				}
-				dwAvgBytesPerSec = *(unsigned int *)(WavFileData[i]+k+12);
-				wBlockAlign = *(unsigned short *)(WavFileData[i]+k+16);
-				bits_per_samp = *(unsigned short *)(WavFileData[i]+k+18);
+				wav_samp_rate[i] = samp_rate;
+				fread(&dwAvgBytesPerSec, sizeof(dwAvgBytesPerSec), 1, Xin[i]);	// av. bytes per sec.
+				fread(&wBlockAlign, sizeof(wBlockAlign), 1, Xin[i]);			// alignment
+				fread(&bits_per_samp, sizeof(bits_per_samp), 1, Xin[i]);		// bits per sample
 				if (bits_per_samp != 24) {
 					sprintf(str1, "ch_%d.wav WAV bit resolution not supported!\n", i + 1);
 					MESSAGE(str1, NULL);
 					return -1;
 				}
-				k += 20;
-				PassNumber += 1;
-			} else if ((TmpData == uJUNK.i) || (TmpData == ujunk.i)) {
-				k += *(int *)(WavFileData[i]+k) + 4;
-			} else if ((TmpData == uDATA.i) || (TmpData == udata.i)) {
-				data_size[i] = *(unsigned int *)(WavFileData[i]+k);
-				k += 4;
-				WaveDataIndex[i] = k;
-				k += data_size[i];
-				PassNumber += 1;
-			} else {
-				k += *(int *)(WavFileData[i]+k) + 4;
-			}
-		}
-#else
-// Not using large malloc blocks
-		//
-		// Read header (36 bytes) example below for 16bits/44.1kHz audio
-		// index 	Sample Value 	Description
-		// 0 - 3 	"Riff" 	Marks the file as a Riff file. Characters are each 1 byte long.
-		// 4 - 7 	File size (integer) 	Size of the overall file - 8 bytes, in bytes (32-bit integer). Typically, you'd fill this in after creation.
-		// 8 -11 	"WAVE" 	File Type Header. For our purposes, it always equals "WAVE".
-		// 12-15 	"fmt " 	Format chunk marker. Includes trailing null
-		// 16-19 	16 	Length of format data as listed above
-		// 20-21 	1 	Type of format (1 is PCM) - 2 byte integer
-		// 22-23 	2 	Number of Channels - 2 byte integer
-		// 24-27 	44100 	Sample Rate - 32 byte integer. Common values are 44100 (CD), 48000 (DAT). Sample Rate = Number of Samples per second, or Hertz.
-		// 28-31 	176400 	(Sample Rate * BitsPerSample * Channels) / 8.
-		// 32-33 	4 	(BitsPerSample * Channels) / 8. (1: 8 bit mono)(2: 8 bit stereo/16 bit mono)(4: 16 bit stereo)
-		// 34-35 	16 	Bits per sample
-		//
-		// Then:
-		// 36-39	"junk" or "data" (if "data", 0 ->n)
-		// 40-41	if junk junk size -> n
-		// 36+n-39+n 	"data" 	"data" chunk header. Marks the beginning of the data section.
-		// 40+n-43+n 	File size (data) 	Size of the data section.
-		fread(WavHeader, 36, 1, Xin[i]);	// read file header into buffer
-		if ((*(unsigned int *)(WavHeader+0) != uRIFF.i) &&
-			(*(unsigned int *)(WavHeader+0) != uriff.i)) {
-			sprintf(str1, "ch_%d.wav is not a Riff file!\n", i + 1);
-			MESSAGE(str1, NULL);
-			return -1;
-		}
-		file_size[i] = *(unsigned int *)(WavHeader+4);
-		if ((*(unsigned int *)(WavHeader+8) != uWAVE.i) &&
-			(*(unsigned int *)(WavHeader+8) != uwave.i)) {
-			sprintf(str1, "ch_%d.wav is not a WAVE file!\n", i + 1);
-			MESSAGE(str1, NULL);
-			return -1;
-		}
-		// go through sub-chunks
-		k = 12;
-		while (k < 36) {
-			TmpData = *(unsigned int *)(WavHeader+k);
-			k += 4;
-			if ((TmpData == uFMT.i) || (TmpData == ufmt.i)) {
-				fmt_size = *(unsigned int *)(WavHeader+k);
-				if (fmt_size != 16) {
-					sprintf(str1, "ch_%d.wav wrong fmt size!\n", i + 1);
-					MESSAGE(str1, NULL);
-					return -1;
-				}
-				wav_format = *(unsigned short *)(WavHeader+k+4);
-				if (wav_format != 1) {
-					sprintf(str1, "ch_%d.wav WAV format not supported!\n", i + 1);
-					MESSAGE(str1, NULL);
-					return -1;
-				}
-				wav_chs = *(unsigned short *)(WavHeader+k+6);
-				if (wav_chs != 1) {
-					sprintf(str1, "multichannels ch_%d.wav not supported\n", i + 1);
-					MESSAGE(str1, NULL);
-					return -1;
-				}
-				wav_samp_rate[i] = *(unsigned int *)(WavHeader+k+8);
-				if ((wav_samp_rate[i] != 44100) && (wav_samp_rate[i] != 48000)) {
-					sprintf(str1, "ch_%d.wav WAV sample rate not supported!\n", i + 1);
-					MESSAGE(str1, NULL);
-					return -1;
-				}
-				wheader.dwAvgBytesPerSec = *(unsigned int *)(WavHeader+k+12);
-				wheader.wBlockAlign = *(unsigned short *)(WavHeader+k+16);
-				bits_per_samp = *(unsigned short *)(WavHeader+k+18);
-				if (bits_per_samp != 24) {
-					sprintf(str1, "ch_%d.wav WAV bit resolution not supported!\n", i + 1);
-					MESSAGE(str1, NULL);
-					return -1;
-				}
-				k += 20;
-			} else {
-				sprintf(str1, "ch_%d.wav not a wav file!\n", i + 1);
+				k += (fmt_size + 8);						// evaluate data to skip
+				fseek(Xin[i], k, SEEK_SET);					// Jump to next chunk
+				break;
+			case JUNK: case junk: case BEXT: case bext:
+			case MINF: case minf: case ELM1: case elm1:		// don't care cases
+				fread(&JunkSize, sizeof(JunkSize), 1, Xin[i]);
+				k += (JunkSize + 8);						// evaluate data to skip
+				fseek(Xin[i], k, SEEK_SET);					// Jump to next chunk
+				break;
+			case DATA: case data:							// "data"
+				fread(&data_size[i], sizeof(data_size[i]), 1, Xin[i]);	// read data chunk size
+				k = 0;										// stop parsing
+				break;
+			default:
+				sprintf(str1, "ch_%d.wav is not a WAVE file!\n", i + 1);
 				MESSAGE(str1, NULL);
 				return -1;
+				break;
 			}
 		}
-		// At that point k >= 36; we read data as we go
-		// expect "data" and/or "junk" chunks
-		PassNumber = 1;
-		while (PassNumber) {
-			fread(&TmpData, sizeof(TmpData), 1, Xin[i]);	// read TmpData
-			k += 4;
-			if ((TmpData == uDATA.i) || (TmpData == udata.i)) {
-				fread(&data_size[i], sizeof(data_size[i]), 1, Xin[i]);	// read data chunk size
-				PassNumber = 0;		// k +=4; // but don't need k anymore
-			} else {
-				fread(&JunkSize, sizeof(JunkSize), 1, Xin[i]);	// consider Junk chunk
-				k += (JunkSize + 4);
-				// Jump to next chunk
-				fseek(Xin[i], k, SEEK_SET);
-			}
-		}
-#endif
 	}
 	//
 	//	check that all files are of equal lengths and sample rates
@@ -790,7 +696,7 @@ int	MergeWavFiles(int num_markers, float* markers) {
 				fwrite(&Zero, sizeof(*Zero), 1, Xout);
 			// write session name (16 chars max)
 			// session name is in str1 (global var)
-			fwrite(str1, i, 1, Xout);
+			fwrite(str1, strlen(str1), 1, Xout);
 			// complete to 2kbytes with 0's
 			while(ftell(Xout) < 2048)
 				fwrite(&Zero, sizeof(char), 1, Xout);
@@ -823,19 +729,8 @@ int	MergeWavFiles(int num_markers, float* markers) {
 					if (fill_chls){
 						for (k = 0; k < PassNumber; k++) {
 							for (j = 0; j < numb_chls; j++) {
-#ifdef Use_malloc
-// Using large malloc blocks
-								l = WaveDataIndex[j];
-								sample.s[1] = WavFileData[i][l];
-								sample.s[2] = WavFileData[i][l+1];
-								sample.s[3] = WavFileData[i][l+2];
-								WaveDataIndex[j] += 3;
-								fwrite(&sample.i, sizeof(sample.i), 1, Xout);
-#else
-// Not using large malloc blocks
 								fread(&sample.s[1], 3, 1, Xin[j]);	// read 3 bytes audio sample
 								fwrite(&sample.i, sizeof(sample.i), 1, Xout);
-#endif
 							}
 							// Complete number of channels with 0's
 							fwrite(Zero, sizeof(*Zero), fill_chls, Xout);
@@ -843,19 +738,8 @@ int	MergeWavFiles(int num_markers, float* markers) {
 					} else {
 						for (k = 0; k < PassNumber; k++) {
 							for (j = 0; j < numb_chls; j++) {
-#ifdef Use_malloc
-// Using large malloc blocks
-								l = WaveDataIndex[j];
-								sample.s[1] = WavFileData[i][l];
-								sample.s[2] = WavFileData[i][l+1];
-								sample.s[3] = WavFileData[i][l+2];
-								WaveDataIndex[j] += 3;
-								fwrite(&sample.i, sizeof(sample.i), 1, Xout);
-#else
-// Not using large malloc blocks
 								fread(&sample.s[1], 3, 1, Xin[j]);	// read 3 bytes audio sample
 								fwrite(&sample.i, sizeof(sample.i), 1, Xout);
-#endif
 							}
 						}
 					}
@@ -876,18 +760,9 @@ int	MergeWavFiles(int num_markers, float* markers) {
 		k = -1;
 	}
 	//
-#ifdef Use_malloc
-// Using large malloc blocks
-	// free allocated memory buffers
-	for (i = 0; i < numb_chls; i++) {
-		free(WavFileData[i]);
-	}
-#else
-// Not using large malloc blocks
 	for (i = 0; i < numb_chls; i++) {
 		fclose(Xin[i]);
 	}
-#endif
 	//
 	return k;
 }
