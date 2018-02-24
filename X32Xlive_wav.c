@@ -48,6 +48,7 @@
  *	ver. 0.10: first release, including optimizations for exploding files
  *	ver. 0.20: added command line version (using ifdefs), keeping most options active
  *	ver. 0.30: capability to set/change session internal name (reported by the Card interface)
+ *	ver. 0.31: Session name reporting was 1 character off
  *
  */
 
@@ -256,7 +257,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.30 - ©2018 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.31 - ©2018 - Patrick-Gilles Maillot"));
 
 		DeleteObject(htmp);
 		DeleteObject(hfont);
@@ -307,6 +308,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			case 2:
 				// Select Source Directory (must contain session files)
 				Xspath[0] = 0; // no/empty directory name
+				ZeroMemory(&bi, sizeof(bi));
 				bi.hwndOwner = hwnd;
 				bi.pidlRoot = 0;
 				bi.pszDisplayName = Xspath;
@@ -330,11 +332,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				}
 				// Get and display session name
 				strcat(Xspath + strlen(Xspath), "SE_LOG.BIN");
+				if (SBIN) fclose(SBIN);
+				SBIN = NULL;
 				if ((SBIN = fopen(Xspath, "r+")) == NULL) {
 					MESSAGE(NULL, "Error opening session log file");
 					return 1;
 				} else {
-					fseek(SBIN, 1553, SEEK_SET);
+					fseek(SBIN, 1552, SEEK_SET);
 					fread(Sname, 16, 1, SBIN);
 					SetWindowText(hwndSName, (LPSTR)(Sname));
 				}
@@ -351,6 +355,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			case 4:
 				// Select Destination Directory (must contain session files)
 				Xdpath[0] = 0; // no/empty directory name
+				ZeroMemory(&bi, sizeof(bi));
 				bi.hwndOwner = hwnd;
 				bi.pidlRoot = 0;
 				bi.pszDisplayName = Xdpath;
@@ -497,6 +502,7 @@ int main(int argc, char **argv) {
 	Sname[0] = 0;			// no new name
 	dlen = 2;				// string lengths for paths are global
 	slen = 0;				// so they can be reused in sequential calls to "Explode"
+	SBIN = NULL;
 	//
 	wheader.Riff = uRIFF.i;
 	wheader.wavsize = 0;
@@ -559,7 +565,7 @@ int main(int argc, char **argv) {
 				break;
 			default:
 			case 'h':
-				printf("X32Xlive_Wav - ver 0.30 - ©2018 - Patrick-Gilles Maillot\n\n");
+				printf("X32Xlive_Wav - ver 0.31 - ©2018 - Patrick-Gilles Maillot\n\n");
 				printf("usage: X32Xlive_wav [-d dir [./]: Mono wave files path]\n");
 				printf("                    [-m name []: Sets or Replaces Session name read from source]\n");
 				printf("                    [-n 1..32 [0]: number of channels to explode to mono wave files]\n");
