@@ -49,6 +49,7 @@
  *	ver. 0.20: added command line version (using ifdefs), keeping most options active
  *	ver. 0.30: capability to set/change session internal name (reported by the Card interface)
  *	ver. 0.31: Session name reporting was 1 character off
+ *	ver. 0.32: Added optional progress bar
  *
  */
 
@@ -94,6 +95,7 @@ WINBASEAPI HWND WINAPI GetConsoleWindow(VOID);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 //
 HINSTANCE		hInstance = 0;
+HWND			hwndCProg, hwndProg;
 HWND			hwndInDir, hwndOutDir, hwndSource, hwndDestin, hwndsample;
 HWND			hwndNbChan, hwndChannels, hwndSetCh, hwndGetCh, hwndChNum;
 HWND			hwndChName, hwndInScn, hwndScene, hwndSNSet, hwndSName;
@@ -125,6 +127,7 @@ int				nbchans;				// number of channels [1 to 32]
 int				chan_id;				// current channel number [1 to 32]
 int				sampsel;				// sample selection factor
 int				dlen, slen;				// string lengths used in exploding function
+int				cprog;					// Progress bar check-box status (default is 1/checked)
 char			str0[8];				// used for Windows strings conversions
 char			str1[MAX_PATH];			// used for Windows strings conversions
 char			Sname[32];				// keeps session name from log file
@@ -163,6 +166,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 	wc.hCursor = LoadCursor(0, IDC_ARROW);
 //
 	RegisterClassW(&wc);
+//
 	CreateWindowW(wc.lpszClassName,
 		L"X32Xlive_Wav - Explode X-Live! multichannel WAV files",
 		WS_OVERLAPPED | WS_VISIBLE | WS_MINIMIZEBOX | WS_SYSMENU, 100, 140,
@@ -191,6 +195,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	switch (msg) {
 	case WM_CREATE:
 		//
+		hwndCProg = CreateWindowW(L"button", L"", BS_CHECKBOX | WS_VISIBLE | WS_CHILD,
+				452, 4, 16, 16, hwnd, (HMENU)9, NULL, NULL);
+		SendMessage(hwndCProg, BM_SETCHECK, cprog, 0);
+
+		hwndProg =  CreateWindow("msctls_progress32", NULL,
+                WS_CHILD | WS_VISIBLE | PBS_SMOOTH, 468, 4, 71, 16,
+				hwnd, (HMENU) 0, hInstance, NULL);
+
+		SendMessage(hwndProg, PBM_SETRANGE, 0, MAKELPARAM(0, 80));
+		SendMessage(hwndProg, PBM_SETSTEP, (WPARAM)5, 0);
+
 		hwndMerge = CreateWindow("button", "Explode",
 				WS_VISIBLE | WS_CHILD, 432, 4*LINEHI-1, 109, 3*LINEHI-3, hwnd, (HMENU )1, NULL, NULL);
 
@@ -257,7 +272,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.31 - ©2018 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.32 - ©2018 - Patrick-Gilles Maillot"));
 
 		DeleteObject(htmp);
 		DeleteObject(hfont);
@@ -289,6 +304,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				if (Xspath[0]) {
 					if (Xdpath[0]) {
 						if (nbchans) {
+							SendMessage(hwndProg, PBM_SETPOS, 0, 0);
 							//
 							// At this point, we're ready to unpack/explode the session files
 							// into separate wav files. Call the dedicated function.
@@ -451,6 +467,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 					MessageBox(NULL, "Error while parsing Scene file!", NULL, MB_OK);
 				}
 				break;
+			case 9:
+				cprog ^= 1;
+				SendMessage(hwndCProg, BM_SETCHECK, cprog, 0);
+				break;
 			}
 		}
 		break;
@@ -502,6 +522,7 @@ int main(int argc, char **argv) {
 	Sname[0] = 0;			// no new name
 	dlen = 2;				// string lengths for paths are global
 	slen = 0;				// so they can be reused in sequential calls to "Explode"
+	cprog = 1;				// progress bar 'on'
 	SBIN = NULL;
 	//
 	wheader.Riff = uRIFF.i;
@@ -676,6 +697,7 @@ int	ExplodeWavFile() {
 int				i, k, l, m, n, op;
 int				fnum, n8_16_32;
 unsigned int	src_samples;		// nb of audio samples in src file
+unsigned int	smplstep;			// progress bar update
 i4chr			sdata[OP2 * 32];	// to accommodate to up to multiple of OP2
 unsigned char	ob1[OP2 * 3];		// 16 and 24bit temp buffer
 unsigned int	obuf[OP2];			// 32bit temp buffer
@@ -753,66 +775,156 @@ FILE			*Sfile;
 		op = OP2;
 		while ((src_samples & (op - 1)) != 0) op /= 2;
 		// manage multiple (OP2) 32bit samples at a time depending on the sample size
-		switch (sampsel) {
-		case 4:									// generate 32bit samples
-			n = 4 * op;
-			for (k = 0; k < src_samples; k += op) {
-				// read op 32bit source samples at a time
-				fread(sdata, n8_16_32 * n, 1, Sfile);
-				// write requested samples to output file(s)
-				for (l = 0; l < nbchans; l++) {
-					for (m = 0; m < op; m++) {
-						obuf[m] = sdata[n8_16_32 * m + l].i;
+		// check for progress bar or not first
+		if (cprog) {
+			// display / use progress bar
+			smplstep = (src_samples / 70 / op * 5) * op;
+			switch (sampsel) {
+			case 4:									// generate 32bit samples
+				n = 4 * op;
+				for (k = 0; k < src_samples; k += op) {
+			        if (k % smplstep == 0) {
+			        	SendMessage(hwndProg, PBM_STEPIT, 0, 0);
+			        	PeekMessage(&wMsg, NULL, 0, 0, PM_REMOVE);
+						TranslateMessage(&wMsg);
+						DispatchMessage(&wMsg);
+			        }
+			        // read op 32bit source samples at a time
+					fread(sdata, n8_16_32 * n, 1, Sfile);
+					// write requested samples to output file(s)
+					for (l = 0; l < nbchans; l++) {
+						for (m = 0; m < op; m++) {
+							obuf[m] = sdata[n8_16_32 * m + l].i;
+						}
+						fwrite(obuf, n, 1, Wfile[l]);
 					}
-					fwrite(obuf, n, 1, Wfile[l]);
 				}
-			}
-			break;
-		case 3:									// generate 24bit samples
-			for (k = 0; k < src_samples; k += op) {
-				// read op 32bit source samples at a time
-				fread(sdata, n8_16_32 * 4 * op, 1, Sfile);
-				// write requested samples to output file(s)
-				for (l = 0; l < nbchans; l++) {
-					for (m = 0, n= 0; m < op; m++) {
-						ob1[n++] = sdata[n8_16_32 * m + l].s[1];
-						ob1[n++] = sdata[n8_16_32 * m + l].s[2];
-						ob1[n++] = sdata[n8_16_32 * m + l].s[3];
+				break;
+			case 3:									// generate 24bit samples
+				for (k = 0; k < src_samples; k += op) {
+			        if (k % smplstep == 0) {
+			        	SendMessage(hwndProg, PBM_STEPIT, 0, 0);
+			        	PeekMessage(&wMsg, NULL, 0, 0, PM_REMOVE);
+						TranslateMessage(&wMsg);
+						DispatchMessage(&wMsg);
+			        }
+					// read op 32bit source samples at a time
+					fread(sdata, n8_16_32 * 4 * op, 1, Sfile);
+					// write requested samples to output file(s)
+					for (l = 0; l < nbchans; l++) {
+						for (m = 0, n= 0; m < op; m++) {
+							ob1[n++] = sdata[n8_16_32 * m + l].s[1];
+							ob1[n++] = sdata[n8_16_32 * m + l].s[2];
+							ob1[n++] = sdata[n8_16_32 * m + l].s[3];
+						}
+						fwrite(ob1, n, 1, Wfile[l]);
 					}
-					fwrite(ob1, n, 1, Wfile[l]);
 				}
-			}
-			break;
-		case 2:									// generate 16bit samples
-			for (k = 0; k < src_samples; k += op) {
-				// read op 32bit source samples at a time
-				fread(sdata, n8_16_32 * 4 * op, 1, Sfile);
-				// write requested samples to output file(s)
-				for (l = 0; l < nbchans; l++) {
-					for (m = 0, n= 0; m < op; m++) {
-						ob1[n++] = sdata[n8_16_32 * m + l].s[2];
-						ob1[n++] = sdata[n8_16_32 * m + l].s[3];
+				break;
+			case 2:									// generate 16bit samples
+				for (k = 0; k < src_samples; k += op) {
+			        if (k % smplstep == 0) {
+			        	SendMessage(hwndProg, PBM_STEPIT, 0, 0);
+			        	PeekMessage(&wMsg, NULL, 0, 0, PM_REMOVE);
+						TranslateMessage(&wMsg);
+						DispatchMessage(&wMsg);
+			        }
+			        // read op 32bit source samples at a time
+					fread(sdata, n8_16_32 * 4 * op, 1, Sfile);
+					// write requested samples to output file(s)
+					for (l = 0; l < nbchans; l++) {
+						for (m = 0, n= 0; m < op; m++) {
+							ob1[n++] = sdata[n8_16_32 * m + l].s[2];
+							ob1[n++] = sdata[n8_16_32 * m + l].s[3];
+						}
+						fwrite(ob1, n, 1, Wfile[l]);
 					}
-					fwrite(ob1, n, 1, Wfile[l]);
 				}
-			}
-			break;
-		case 1:									// generate 8bit samples
-			// want to know how bad it is on 8 bits? :)
-			for (k = 0; k < src_samples; k += op) {
-				// read op 32bit source samples at a time
-				fread(sdata, n8_16_32 * 4 * op, 1, Sfile);
-				// write requested samples to output file(s)
-				for (l = 0; l < nbchans; l++) {
-					for (m = 0, n= 0; m < op; m++) {
-						ob1[n++] = sdata[n8_16_32 * m + l].s[3];
+				break;
+			case 1:									// generate 8bit samples
+				// want to know how bad it is on 8 bits? :)
+				for (k = 0; k < src_samples; k += op) {
+			        if (k % smplstep == 0) {
+			        	SendMessage(hwndProg, PBM_STEPIT, 0, 0);
+			        	PeekMessage(&wMsg, NULL, 0, 0, PM_REMOVE);
+						TranslateMessage(&wMsg);
+						DispatchMessage(&wMsg);
+			        }
+			        // read op 32bit source samples at a time
+					fread(sdata, n8_16_32 * 4 * op, 1, Sfile);
+					// write requested samples to output file(s)
+					for (l = 0; l < nbchans; l++) {
+						for (m = 0, n= 0; m < op; m++) {
+							ob1[n++] = sdata[n8_16_32 * m + l].s[3];
+						}
+						fwrite(ob1, n, 1, Wfile[l]);
 					}
-					fwrite(ob1, n, 1, Wfile[l]);
 				}
+				break;
 			}
-			break;
+		} else {
+			// do not use/display progress bar
+			switch (sampsel) {
+			case 4:									// generate 32bit samples
+				n = 4 * op;
+				for (k = 0; k < src_samples; k += op) {
+			        // read op 32bit source samples at a time
+					fread(sdata, n8_16_32 * n, 1, Sfile);
+					// write requested samples to output file(s)
+					for (l = 0; l < nbchans; l++) {
+						for (m = 0; m < op; m++) {
+							obuf[m] = sdata[n8_16_32 * m + l].i;
+						}
+						fwrite(obuf, n, 1, Wfile[l]);
+					}
+				}
+				break;
+			case 3:									// generate 24bit samples
+				for (k = 0; k < src_samples; k += op) {
+					// read op 32bit source samples at a time
+					fread(sdata, n8_16_32 * 4 * op, 1, Sfile);
+					// write requested samples to output file(s)
+					for (l = 0; l < nbchans; l++) {
+						for (m = 0, n= 0; m < op; m++) {
+							ob1[n++] = sdata[n8_16_32 * m + l].s[1];
+							ob1[n++] = sdata[n8_16_32 * m + l].s[2];
+							ob1[n++] = sdata[n8_16_32 * m + l].s[3];
+						}
+						fwrite(ob1, n, 1, Wfile[l]);
+					}
+				}
+				break;
+			case 2:									// generate 16bit samples
+				for (k = 0; k < src_samples; k += op) {
+			        // read op 32bit source samples at a time
+					fread(sdata, n8_16_32 * 4 * op, 1, Sfile);
+					// write requested samples to output file(s)
+					for (l = 0; l < nbchans; l++) {
+						for (m = 0, n= 0; m < op; m++) {
+							ob1[n++] = sdata[n8_16_32 * m + l].s[2];
+							ob1[n++] = sdata[n8_16_32 * m + l].s[3];
+						}
+						fwrite(ob1, n, 1, Wfile[l]);
+					}
+				}
+				break;
+			case 1:									// generate 8bit samples
+				// want to know how bad it is on 8 bits? :)
+				for (k = 0; k < src_samples; k += op) {
+					// read op 32bit source samples at a time
+					fread(sdata, n8_16_32 * 4 * op, 1, Sfile);
+					// write requested samples to output file(s)
+					for (l = 0; l < nbchans; l++) {
+						for (m = 0, n= 0; m < op; m++) {
+							ob1[n++] = sdata[n8_16_32 * m + l].s[3];
+						}
+						fwrite(ob1, n, 1, Wfile[l]);
+					}
+				}
+				break;
+			}
 		}
-
+//
 // all case code - no optimization
 //			for (k = 0; k < src_samples; k++) {
 //				// read 1 32bit source sample at a time
@@ -864,4 +976,3 @@ FILE			*Sfile;
 	MESSAGE(str1, "Done!");
 	return 0;
 }
-
