@@ -259,70 +259,70 @@ int CopytoClipboard() {
 	//		1553:	<name (user)> 16 char max name
 	//		...		<filler = 0> = fill with 0 until address 2047, inclusive
 	//
-		len = 0;
-		if ((Xin = fopen(Xspath, "r")) != NULL) {
-			// jump to Markers
-			fread(buffer, sizeof(buffer), 1, Xin);
-			samprate = *(unsigned int *)(buffer + 8);
-			nbmarker = *(unsigned int *)(buffer + 20);
-			if (nbmarker) {
-				switch (SendMessage(hwndtype, CB_GETCURSEL,(WPARAM) 0, (LPARAM) 0) + 1) {
-				case 1:			// (REAPER)
-					nbmarker += 1;
-					// allocate enough memory for the markers
-					if ((bufmarker = malloc(nbmarker * 64 * sizeof(char))) != NULL) {
-						for (i = 1; i < nbmarker; i++) {
-							fread(&marker, sizeof(marker), 1, Xin);
-							// build REAPER marker 'file'
-							sprintf(bufmarker + len, "%d %f %s%d 0 -1.0 0\n", i, (float)marker / samprate, mhead, i);
-							len += strlen(bufmarker + len);
-						}
-					} else {
-						MESSAGE("Memory error", NULL);
-						return 1;
+	len = 0;
+	if ((Xin = fopen(Xspath, "r")) != NULL) {
+		// jump to Markers
+		fread(buffer, sizeof(buffer), 1, Xin);
+		samprate = *(unsigned int *)(buffer + 8);
+		nbmarker = *(unsigned int *)(buffer + 20);
+		if (nbmarker) {
+			switch (SendMessage(hwndtype, CB_GETCURSEL,(WPARAM) 0, (LPARAM) 0) + 1) {
+			case 1:			// (REAPER)
+				nbmarker += 1;
+				// allocate enough memory for the markers
+				if ((bufmarker = malloc(nbmarker * 64 * sizeof(char))) != NULL) {
+					for (i = 1; i < nbmarker; i++) {
+						fread(&marker, sizeof(marker), 1, Xin);
+						// build REAPER marker 'file'
+						sprintf(bufmarker + len, "%d %f %s%d 0 -1.0 0\n", i, (float)marker / samprate, mhead, i);
+						len += strlen(bufmarker + len);
 					}
-					break;
-				case 2:			// Audition
-					nbmarker += 1;
-					// allocate enough memory for the markers
-					if ((bufmarker = malloc(nbmarker * 64 * sizeof(char))) != NULL) {
-						for (i = 1; i < nbmarker; i++) {
-							fread(&marker, sizeof(marker), 1, Xin);
-							xmk = (float)marker / samprate;
-							xmkh = (int)xmk / 3600;
-							xmkm = (int)xmk / 60;
-							xmks = (int)xmk % 60;
-							xmkt = (int)((xmk - (int)xmk) * 100 / 4); //conversion for 25fps
-							// build REAPER marker 'file'
-							sprintf(bufmarker + len, "%s%d, %02d:%02d:%02d:%02d, 00:00:00:00, 25fps, Cue, -\n",
-									mhead, i, xmkh, xmkm, xmks, xmkt);
-							len += strlen(bufmarker + len);
-						}
-					} else {
-						MESSAGE("Memory error", NULL);
-						return 1;
-					}
-					break;
+				} else {
+					MESSAGE("Memory error", NULL);
+					return 1;
 				}
+				break;
+			case 2:			// Audition
+				nbmarker += 1;
+				// allocate enough memory for the markers
+				if ((bufmarker = malloc(nbmarker * 64 * sizeof(char))) != NULL) {
+					for (i = 1; i < nbmarker; i++) {
+						fread(&marker, sizeof(marker), 1, Xin);
+						xmk = (float)marker / samprate;
+						xmkh = (int)xmk / 3600;
+						xmkm = (int)xmk / 60;
+						xmks = (int)xmk % 60;
+						xmkt = (int)((xmk - (int)xmk) * 100 / 4); //conversion for 25fps
+						// build REAPER marker 'file'
+						sprintf(bufmarker + len, "%s%d, %02d:%02d:%02d:%02d, 00:00:00:00, 25fps, Cue, -\n",
+								mhead, i, xmkh, xmkm, xmks, xmkt);
+						len += strlen(bufmarker + len);
+					}
+				} else {
+					MESSAGE("Memory error", NULL);
+					return 1;
+				}
+				break;
 			}
-			// allocate global memory
-			hdst = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, (len + 1) * sizeof(TCHAR));
-			dst = (TCHAR*)GlobalLock(hdst);
-			memcpy(dst, bufmarker, len * sizeof(TCHAR));
-			dst[len] = 0;
-			GlobalUnlock(hdst);
-			// set clipboard data
-			if (!OpenClipboard(NULL)) return GetLastError();
-			EmptyClipboard();
-			if (!SetClipboardData(CF_TEXT, hdst)) return GetLastError();
-			CloseClipboard();
-			// free resources
-			free(bufmarker);
-			fclose(Xin);
-			Xin = NULL;
-		} else {
-			MESSAGE(NULL, "No Markers");
 		}
+		// allocate global memory
+		hdst = GlobalAlloc(GMEM_MOVEABLE | GMEM_DDESHARE, (len + 1) * sizeof(TCHAR));
+		dst = (TCHAR*)GlobalLock(hdst);
+		memcpy(dst, bufmarker, len * sizeof(TCHAR));
+		dst[len] = 0;
+		GlobalUnlock(hdst);
+		// set clipboard data
+		if (!OpenClipboard(NULL)) return GetLastError();
+		EmptyClipboard();
+		if (!SetClipboardData(CF_TEXT, hdst)) return GetLastError();
+		CloseClipboard();
+		// free resources
+		free(bufmarker);
+		fclose(Xin);
+		Xin = NULL;
+	} else {
+		MESSAGE(NULL, "No Markers");
+	}
 	return 0;
 }
 
