@@ -103,7 +103,7 @@ Examples:
 ```
 
 ### X32Wav_XLive ###
-![X32Wav_XLive.jpg](https://sites.google.com/site/patrickmaillot/x32/X32Wav_Xlive1.jpg)
+![X32Wav_XLive.jpg](https://sites.google.com/site/patrickmaillot/x32/X32Wav_Xlive.jpg)
 
 This X32 utility aims at creating X-Live! compatible files from standard wave files; The typical use would be to enable playback using the X-Live! expansion board SD card(s) of already available multi-channel wave files such as those recorded from the X-USB interface or exported from a DAW software.
 
@@ -126,7 +126,7 @@ Be patient! Merging large audio files takes time. The program will display the e
 
 
 ### X32Wav_XLive ###
-![X32XLive_Wav.jpg](https://sites.google.com/site/patrickmaillot/x32/X32Xlive_Wav.jpg)
+![X32XLive_Wav.jpg](https://sites.google.com/site/patrickmaillot/x32/X32Xlive_Wav1.jpg)
 
 Split / Explode X-Live! multi-channel WAV files from a recorded session into individual, single channel WAV files.
 
