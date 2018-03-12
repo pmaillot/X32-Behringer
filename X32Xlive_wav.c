@@ -50,6 +50,8 @@
  *	ver. 0.30: capability to set/change session internal name (reported by the Card interface)
  *	ver. 0.31: Session name reporting was 1 character off
  *	ver. 0.32: Added optional progress bar
+ *	ver. 0.33: provide default channel names at memory reserve/malloc time
+ *	ver. 0.34: bug fixes, added a "Reset" button
  *
  */
 
@@ -57,23 +59,28 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdlib.h>
-#include <sys/timeb.h>	// precise timing functions
+#include <time.h>
+#include <sys/timeb.h>	// more precise timing functions
 #ifdef _WIN32
 #include <winsock2.h>	// Windows functions for std GUI & sockets
 #include <Shlobj.h>		// Windows shell functions
 #define MESSAGE(s1,s2)	\
 			MessageBox(NULL, s1, s2, MB_OK);
+#define zeromem(a1, a2) \
+		ZeroMemory(a1, a2);
 #else
 #define MAX_PATH 256	// file name/path size
 #define MESSAGE(s1,s2)	\
 			printf("%s - %s\n",s2, s1);
+#define zeromem(a1, a2) \
+		memset(a1, NULL, a2);
 #define min(a,b) 		\
 			(((a)<(b))?(a):(b))
 #endif
 //
-#define NAMSIZ 16		// name string size
-#define MAXLR 512		// max size for reading scene lines
-#define OP2 64			// max optimization value [must be a power of 2]
+#define NAMSIZ	16		// name string size
+#define MAXLR	512		// max size for reading scene lines
+#define OP2		64		// max optimization value [must be a power of 2]
 //
 typedef union {
 	char			s[4];
@@ -95,11 +102,11 @@ WINBASEAPI HWND WINAPI GetConsoleWindow(VOID);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 //
 HINSTANCE		hInstance = 0;
-HWND			hwndCProg, hwndProg;
+HWND			hwndCProg, hwndProg, hwndClean;
 HWND			hwndInDir, hwndOutDir, hwndSource, hwndDestin, hwndsample;
 HWND			hwndNbChan, hwndChannels, hwndSetCh, hwndGetCh, hwndChNum;
 HWND			hwndChName, hwndInScn, hwndScene, hwndSNSet, hwndSName;
-HWND			hwndMerge;
+HWND			hwndXplod;
 HFONT			hfont, htmp;
 HDC				hdc, hdcMem;
 HBITMAP			hBmp;
@@ -116,7 +123,7 @@ ITEMIDLIST 		*pidl;				// dir item list
 //
 char			Xspath[MAX_PATH];		// file path, used for source directory where to source wav files
 char			Xdpath[MAX_PATH];		// file path, used for destination directory where to save wav files
-char			Spath[MAX_PATH];			// file path, used for scene file name
+char			Spath[MAX_PATH];		// file path, used for scene file name
 //
 struct timeb	start,end;				// precise timers (well... to the ms)
 //
@@ -128,7 +135,7 @@ int				chan_id;				// current channel number [1 to 32]
 int				sampsel;				// sample selection factor
 int				dlen, slen;				// string lengths used in exploding function
 int				cprog;					// Progress bar check-box status (default is 1/checked)
-char			str0[8];				// used for Windows strings conversions
+char			str0[16];				// used for Windows strings conversions
 char			str1[MAX_PATH];			// used for Windows strings conversions
 char			Sname[32];				// keeps session name from log file
 char			*ChNamTable;			// Channel name table pointer (Table is n x 16 chars)
@@ -150,7 +157,11 @@ struct {
 	unsigned int 	Data;				// = "data" or "JUNK";
 	unsigned int 	Dbytes;				// = data size or if JUNK: 32716, or (1024*32) - 52
 } wheader, rheader, theader;
-
+//
+struct tm 		session_time;			// year...second structure
+unsigned int	session_uint;			// uint conversion of the above
+unsigned int	session_uuin;			// uint conversion of the above
+//
 char			*sampsizes[] = {"8", "16", "24", "32","\0"};
 //
 #ifdef _WIN32
@@ -206,8 +217,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		SendMessage(hwndProg, PBM_SETRANGE, 0, MAKELPARAM(0, 80));
 		SendMessage(hwndProg, PBM_SETSTEP, (WPARAM)5, 0);
 
-		hwndMerge = CreateWindow("button", "Explode",
-				WS_VISIBLE | WS_CHILD, 432, 4*LINEHI-1, 109, 3*LINEHI-3, hwnd, (HMENU )1, NULL, NULL);
+		hwndXplod = CreateWindow("button", "Explode",
+				WS_VISIBLE | WS_CHILD, 432, 5*LINEHI-1, 109, 2*LINEHI-3, hwnd, (HMENU )1, NULL, NULL);
+
+		hwndClean = CreateWindow("button", "Reset",
+				WS_VISIBLE | WS_CHILD, 432, 4*LINEHI-1, 109, LINEHI-3, hwnd, (HMENU )10, NULL, NULL);
 
 		hwndInDir = CreateWindow("button", "Session Directory",
 				WS_VISIBLE | WS_CHILD, 128, LINEHI, 150, 20, hwnd, (HMENU )2, NULL, NULL);
@@ -272,7 +286,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.32 - ©2018 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.34 - ©2018 - Patrick-Gilles Maillot"));
 
 		DeleteObject(htmp);
 		DeleteObject(hfont);
@@ -320,13 +334,14 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				} else {
 					MessageBox(NULL, "Select Session dir. first!", NULL, MB_OK);
 				}
+				SendMessage(hwndProg, PBM_SETPOS, 0, 0);
 				break;
 			case 2:
 				// Select Source Directory (must contain session files)
-				Xspath[0] = 0; // no/empty directory name
-				ZeroMemory(&bi, sizeof(bi));
+				zeromem(Xspath, sizeof(Xspath));
+				zeromem(&bi, sizeof(bi));
 				bi.hwndOwner = hwnd;
-				bi.pidlRoot = 0;
+				bi.pidlRoot = NULL;
 				bi.pszDisplayName = Xspath;
 				bi.lpszTitle = "Select source/session directory";
 				bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_USENEWUI;
@@ -354,9 +369,25 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 					MESSAGE(NULL, "Error opening session log file");
 					return 1;
 				} else {
+					// display session name or default timestamp (if no name)
 					fseek(SBIN, 1552, SEEK_SET);
 					fread(Sname, 16, 1, SBIN);
-					SetWindowText(hwndSName, (LPSTR)(Sname));
+					if (Sname[0]) {
+						SetWindowText(hwndSName, (LPSTR)(Sname));
+					} else {
+						for (i = 0; i < 8; i++) str0[i] = str1[strlen(str1) - 8 + i];
+						sscanf(str0, "%8x", &session_uint);
+						// decode Session name
+						session_time.tm_year = (int)((session_uint >> 25) - 20);
+						session_time.tm_mon =  (int)((session_uint & 0x1FFFFFF) >> 21);
+						session_time.tm_mday = (int)((session_uint & 0x1FFFFF) >> 16);
+						session_time.tm_hour = (int)((session_uint & 0xFFFF) >> 11);
+						session_time.tm_min =  (int)((session_uint & 0x7FF) >> 5);
+						session_time.tm_sec =  (int)((session_uint & 0x1F) << 1);
+						sprintf(str1, "%02d-%02d-%02d %02d:%02d:%02d", session_time.tm_year, session_time.tm_mon,
+								session_time.tm_mday, session_time.tm_hour, session_time.tm_min, session_time.tm_sec);
+						SetWindowText(hwndSName, (LPSTR)(str1));
+					}
 				}
 				break;
 			case 3:
@@ -370,10 +401,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				break;
 			case 4:
 				// Select Destination Directory (must contain session files)
-				Xdpath[0] = 0; // no/empty directory name
-				ZeroMemory(&bi, sizeof(bi));
+				zeromem(Xdpath, sizeof(Xdpath));
+				zeromem(&bi, sizeof(bi));
 				bi.hwndOwner = hwnd;
-				bi.pidlRoot = 0;
+				bi.pidlRoot = NULL;
 				bi.pszDisplayName = Xdpath;
 				bi.lpszTitle = "Select destination directory";
 				bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_USENEWUI;
@@ -406,6 +437,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 					if ((ChNamTable = malloc(nbchans * NAMSIZ * sizeof(char))) == 0) {
 						MessageBox(NULL, "Memory allocation error!", NULL, MB_OK);
 						nbchans = 0;
+					} else {
+						// create and assign default channel names
+						for (i = 0; i < nbchans; i++) {
+							sprintf(str1, "Xlive_Wav_%d", i + 1);
+							strcpy(ChNamTable + i * NAMSIZ, str1);
+						}
 					}
 				}
 				break;
@@ -432,9 +469,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				}
 				break;
 			case 8:
-				// Select Source Directory (must contain .wav files)
-				Spath[0] = 0; // no/empty file name
-				ZeroMemory(&ofn, sizeof(ofn));
+				// Select Source Directory (must contain .scn files)
+				zeromem(Spath, sizeof(Spath));
+				zeromem(&ofn, sizeof(ofn));
+				GetWindowText(hwndScene, str1, GetWindowTextLength(hwndScene) + 1);
 				ofn.lStructSize = sizeof(ofn);
 				ofn.hwndOwner = hwnd;
 				ofn.lpstrFile = Spath;
@@ -447,7 +485,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				ofn.lpstrFileTitle = NULL;
 				ofn.nMaxFileTitle = 0;
 				ofn.lpstrTitle = (LPCTSTR) "Select a Scene file\0";
-				ofn.lpstrInitialDir = NULL;
+				ofn.lpstrInitialDir = str1;
 				ofn.Flags = OFN_PATHMUSTEXIST;
 				//
 				// Display the Open dialog box.
@@ -469,6 +507,27 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				break;
 			case 9:
 				cprog ^= 1;
+				SendMessage(hwndCProg, BM_SETCHECK, cprog, 0);
+				break;
+			case 10:
+				// reset all data & fileds to their initial state
+				zeromem(Spath, sizeof(Spath));
+				zeromem(Xspath, sizeof(Xspath));
+				zeromem(Xdpath, sizeof(Xdpath));
+				zeromem(str1, sizeof(str1));
+				zeromem(&ofn, sizeof(ofn));
+				if (ChNamTable) free(ChNamTable);
+				ChNamTable = NULL;
+				SendMessage(hwndsample, CB_SETCURSEL, (WPARAM)2, (LPARAM)0);
+				SendMessage(hwndProg, PBM_SETPOS, 0, 0);
+				SetWindowText(hwndSource, (LPSTR)str1);
+				SetWindowText(hwndDestin, (LPSTR)str1);
+				SetWindowText(hwndSName, (LPSTR)str1);
+				SetWindowText(hwndChannels, (LPSTR)str1);
+				SetWindowText(hwndChNum, (LPSTR)str1);
+				SetWindowText(hwndChName, (LPSTR)str1);
+				SetWindowText(hwndScene, (LPSTR)str1);
+				cprog = 1;
 				SendMessage(hwndCProg, BM_SETCHECK, cprog, 0);
 				break;
 			}
@@ -516,14 +575,17 @@ int main(int argc, char **argv) {
 	sampsel = 3;			// 1: 8 bits, 2: 16 bits, 3: 24 bits (default), 4: 32 bits
 	ChNamTable = 0;			// table of names
 	nbchans = 0;			// nb of channels to consider
-	Spath[0] = 0;			// no scene
 	strcpy(Xdpath, "./");	// default destination = here
-	Xspath[0] = 0;			// no default source
-	Sname[0] = 0;			// no new name
 	dlen = 2;				// string lengths for paths are global
 	slen = 0;				// so they can be reused in sequential calls to "Explode"
 	cprog = 1;				// progress bar 'on'
 	SBIN = NULL;
+	//
+	zeromem(Spath, sizeof(Spath));
+	zeromem(Sname, sizeof(Sname));
+	zeromem(Xspath, sizeof(Xspath));
+	zeromem(Xdpath, sizeof(Xdpath));
+	zeromem(str1, sizeof(str1));
 	//
 	wheader.Riff = uRIFF.i;
 	wheader.wavsize = 0;
