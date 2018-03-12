@@ -29,6 +29,7 @@
  *	ver 1.00: Better GUI interface (directory & marker select) and small bug in logging markers
  *	ver 1.10: Added command line interface
  *	ver 1.20: removed malloc support (not used) / accepts Pro-tools generated files
+ *	ver 1.21: enabled no session name (so defaults to time stamp, as on X32)
  *
  */
 
@@ -252,7 +253,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 1.20 - ©2017-18 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 1.21 - ©2017-18 - Patrick-Gilles Maillot"));
 		TextOut(hdc, 128, 57, str1, wsprintf(str1, "Session Name:"));
 		TextOut(hdc, 128, 90, str1, wsprintf(str1, "Markers:"));
 		DeleteObject(htmp);
@@ -270,50 +271,46 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				if (Xspath[0]) {
 					// read Session name
 					GetWindowText(hwndSession, str1, GetWindowTextLength(hwndSession) + 1);
-					if (str1[0]) {
-						// limkt session name to 16 chars
-						str1[min(16, strlen(str1))] = '\0';
-						// manage markers
-						GetWindowText(hwndMarkers, str2, GetWindowTextLength(hwndMarkers) + 1);
-						if (MList_File) {
-							// Markers are given as a list of floats
-							j = 0;
-							for (no_markers = 0; no_markers < 100; no_markers++) {
-								if ((i = (sscanf(str2 + j,"%f", &(marker_vec[no_markers])))) != EOF) {
-									while ((str2[j] == ' ') || (str2[j] == '.') || ((str2[j] > '/') && (str2[j] < ':'))) j++;
-									j++;
-								} else break;
-							}
-						} else {
-							// Markers to be read from file containing floats
-							if ((Xout = fopen(str2, "r")) != NULL) {
-								while ((i = (fscanf(Xout,"%f", &(marker_vec[no_markers])))) != EOF) {
-									no_markers += 1;
-								}
-								fclose(Xout);
-							} else {
-								no_markers = 0;
-								MESSAGE("Can't find Markers File", NULL);
-							}
-						}
-						marker_vec[no_markers] = 0.0;	// the last marker must be 0.0
-						//
-						// launch Merge!
-						if ((i = MergeWavFiles(no_markers, marker_vec)) > 0) {
-							sprintf(str1, "Elapsed time: %dms", i);
-							MESSAGE(str1, "Done!");
-						} else {
-							MESSAGE("Something went wrong!", NULL);
+					// limit session name to 16 chars
+					str1[min(16, strlen(str1))] = '\0';
+					// manage markers
+					GetWindowText(hwndMarkers, str2, GetWindowTextLength(hwndMarkers) + 1);
+					if (MList_File) {
+						// Markers are given as a list of floats
+						j = 0;
+						for (no_markers = 0; no_markers < 100; no_markers++) {
+							if ((i = (sscanf(str2 + j,"%f", &(marker_vec[no_markers])))) != EOF) {
+								while ((str2[j] == ' ') || (str2[j] == '.') || ((str2[j] > '/') && (str2[j] < ':'))) j++;
+								j++;
+							} else break;
 						}
 					} else {
-						MESSAGE("No Session Name!", NULL);
+						// Markers to be read from file containing floats
+						if ((Xout = fopen(str2, "r")) != NULL) {
+							while ((i = (fscanf(Xout,"%f", &(marker_vec[no_markers])))) != EOF) {
+								no_markers += 1;
+							}
+							fclose(Xout);
+						} else {
+							no_markers = 0;
+							MESSAGE("Can't find Markers File", NULL);
+						}
+					}
+					marker_vec[no_markers] = 0.0;	// the last marker must be 0.0
+					//
+					// launch Merge!
+					if ((i = MergeWavFiles(no_markers, marker_vec)) > 0) {
+						sprintf(str1, "Elapsed time: %dms", i);
+						MESSAGE(str1, "Done!");
+					} else {
+						MESSAGE("Something went wrong!", NULL);
 					}
 				}
 				break;
 			case 2:
 				// Select Source Directory (must contain .wav files)
 				// Select Source Directory (must contain session files)
-				Xspath[0] = 0; // no/empty directory name
+				ZeroMemory(Xspath, sizeof(Xspath));
 				ZeroMemory(&bi, sizeof(bi));
 				bi.hwndOwner = hwnd;
 				bi.pidlRoot = 0;
@@ -343,7 +340,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				break;
 			case 4:
 				// Select marker file
-				Mpath[0] = 0; // no/empty file name
+				ZeroMemory(Mpath, sizeof(Mpath));
 				ZeroMemory(&ofn, sizeof(ofn));
 				ofn.lStructSize = sizeof(ofn);
 				ofn.hwndOwner = hwnd;
@@ -399,8 +396,9 @@ int main(int argc, char **argv) {
 #else
 	int input_intch, i;
 #endif
-	zeromem(&take_size, sizeof(take_size));
-	zeromem(&imarker_vec, sizeof(imarker_vec));
+	zeromem(take_size, sizeof(take_size));
+	zeromem(imarker_vec, sizeof(imarker_vec));
+	zeromem(str1, sizeof(str1));
 	//
 	// Init structures
 	// some initializations needed
@@ -446,7 +444,7 @@ int main(int argc, char **argv) {
 				break;
 			default:
 			case 'h':
-				printf("X32Wav_Xlive - ver 1.20 - ©2018 - Patrick-Gilles Maillot\n\n");
+				printf("X32Wav_Xlive - ver 1.21 - ©2018 - Patrick-Gilles Maillot\n\n");
 				printf("usage: X32Wav_Xlive [-f Marker file []: file containing markers]\n");
 				printf("                    [-m marker, [,]: marker time in increasing order values]\n");
 				printf("                    <Session dir> <Session name>\n\n");
@@ -474,18 +472,14 @@ int main(int argc, char **argv) {
 		strcpy(Xspath, argv[optind]);
 		slen = strlen(Xspath);
 		Xspath[slen++] = '/';
-		if (argv[++optind]) {
-			strcpy(str1, argv[optind]);
-			if ((i = MergeWavFiles(no_markers, marker_vec)) > 0) {
-				sprintf(str1, "Elapsed time: %dms", i);
-				MESSAGE(str1, "Done!");
-			} else {
-				MESSAGE("Something went wrong!", NULL);
-			}
-			return (i);
+		if (argv[++optind]) strcpy(str1, argv[optind]);
+		if ((i = MergeWavFiles(no_markers, marker_vec)) > 0) {
+			sprintf(str1, "Elapsed time: %dms", i);
+			MESSAGE(str1, "Done!");
 		} else {
-			printf("no session directory!\n");
+			MESSAGE("Something went wrong!", NULL);
 		}
+		return (i);
 	} else {
 		printf("no-op\n");
 	}
@@ -696,7 +690,8 @@ int	MergeWavFiles(int num_markers, float* markers) {
 				fwrite(&Zero, sizeof(*Zero), 1, Xout);
 			// write session name (16 chars max)
 			// session name is in str1 (global var)
-			fwrite(str1, strlen(str1), 1, Xout);
+			// if no session name, write null bytes
+			if (str1[0]) fwrite(str1, strlen(str1), 1, Xout);
 			// complete to 2kbytes with 0's
 			while(ftell(Xout) < 2048)
 				fwrite(&Zero, sizeof(char), 1, Xout);
