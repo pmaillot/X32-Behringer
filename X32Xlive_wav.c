@@ -73,7 +73,7 @@
 #define MESSAGE(s1,s2)	\
 			printf("%s - %s\n",s2, s1);
 #define zeromem(a1, a2) \
-		memset(a1, NULL, a2);
+		memset((void*)a1, 0, a2);
 #define min(a,b) 		\
 			(((a)<(b))?(a):(b))
 #endif
@@ -116,6 +116,7 @@ MSG				wMsg;				// Windows msg event
 OPENFILENAME	ofn;       			// common dialog box structure
 BROWSEINFO 		bi;					// Windows Shell structure
 ITEMIDLIST 		*pidl;				// dir item list
+unsigned int		smplstep;			// progress bar update
 #endif
 //
 #define NLINES	6					// number of active lines of the window
@@ -759,7 +760,6 @@ int	ExplodeWavFile() {
 int				i, k, l, m, n, op;
 int				fnum, n8_16_32;
 unsigned int	src_samples;		// nb of audio samples in src file
-unsigned int	smplstep;			// progress bar update
 i4chr			sdata[OP2 * 32];	// to accommodate to up to multiple of OP2
 unsigned char	ob1[OP2 * 3];		// 16 and 24bit temp buffer
 unsigned int	obuf[OP2];			// 32bit temp buffer
@@ -838,6 +838,7 @@ FILE			*Sfile;
 		while ((src_samples & (op - 1)) != 0) op /= 2;
 		// manage multiple (OP2) 32bit samples at a time depending on the sample size
 		// check for progress bar or not first
+#ifdef _WIN32
 		if (cprog) {
 			// display / use progress bar
 			smplstep = (src_samples / 70 / op * 5) * op;
@@ -925,6 +926,7 @@ FILE			*Sfile;
 				break;
 			}
 		} else {
+#endif
 			// do not use/display progress bar
 			switch (sampsel) {
 			case 4:									// generate 32bit samples
@@ -985,7 +987,9 @@ FILE			*Sfile;
 				}
 				break;
 			}
+#ifdef _WIN32
 		}
+#endif
 //
 // all case code - no optimization
 //			for (k = 0; k < src_samples; k++) {
