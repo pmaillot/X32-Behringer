@@ -53,7 +53,7 @@
 #define MESSAGE(s1,s2)	\
 			printf("%s - %s\n",s2, s1);
 #define zeromem(a1, a2) \
-		memset(a1, NULL, a2);
+		memset((void *)a1, 0, a2);
 #define min(a,b) 		\
 			(((a)<(b))?(a):(b))
 #endif
