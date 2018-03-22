@@ -7,6 +7,12 @@
 //  Created on: 14 févr. 2015
 //      Author: Patrick-Gilles Maillot
 //
+//  History:
+//
+//	ver 0.2: bug fixes
+//	ver 0.3: update a few things, preparing for a Windows-based use of some of the functions
+//
+//
 //
 // Used here:
 //
@@ -34,7 +40,6 @@
 #include <unistd.h>
 #include <string.h>
 #include <time.h>
-#include <malloc.h>
 
 #ifdef __WIN32__
 #include <winsock2.h>
@@ -61,6 +66,12 @@ typedef enum {
 	ROUT,			// "Rou"
 	CHAN,			// "Chn"
 } type;
+
+typedef enum {
+	STOP,
+	PAUSE,
+	PLAY,
+} state;
 
 char* fTypeSTR[] = { "Unk", "Vol", "Par", "Dir", "Wav", "Shw", "Scn", "Snp",
 		"Eff", "Prf", "Rou", "Chn" };
@@ -124,30 +135,30 @@ int X32verbose = 0;
 #define fTalloc 		malloc(sizeof(fNode));
 #define fTfree(a)		free(a);
 //
-#define RPOLL															\
-	do {																\
-		FD_ZERO (&ufds);												\
-		FD_SET (Xfd, &ufds);											\
-		p_status = select(Xfd+1,&ufds,NULL,NULL,&timeout);				\
+#define RPOLL													\
+	do {														\
+		FD_ZERO (&ufds);										\
+		FD_SET (Xfd, &ufds);									\
+		p_status = select(Xfd+1,&ufds,NULL,NULL,&timeout);		\
 	} while (0);
 
 //
 //
 
-#define RECV																	\
-do {																			\
-	r_len = recvfrom(Xfd, r_buf, BSIZE, 0, 0, 0);							\
+#define RECV													\
+do {															\
+	r_len = recvfrom(Xfd, r_buf, BSIZE, 0, 0, 0);				\
 	if (X32verbose) {Xfdump("X->", r_buf, r_len, X32debug);}	\
 } while (0);
 
-#define SEND																	\
-do {																			\
+#define SEND													\
+do {															\
 	if (X32verbose) {Xfdump("->X", s_buf, s_len, X32debug);}	\
-	if (s_delay) millisleep(s_delay);											\
-	if (sendto(Xfd, s_buf, s_len, 0, Xip_addr, Xip_len) < 0) {			\
-		perror("Error while sending data");										\
-		exit(EXIT_FAILURE);														\
-	}																			\
+	if (s_delay) millisleep(s_delay);							\
+	if (sendto(Xfd, s_buf, s_len, 0, Xip_addr, Xip_len) < 0) {	\
+		perror("Error while sending data");						\
+		exit(EXIT_FAILURE);										\
+	}															\
 } while(0);
 
 //
@@ -171,14 +182,14 @@ char	tmpstr[32];
 fPtr	fTreetop, fTree;
 int		fLpos, fNum, fNameLength;
 int		fUSB_not_Mounted = 1;
-int		fTape_is_on = 0;
+state	f_State = STOP;
 
 union {
 	char cc[128];
 	int ii[128 / sizeof(int)];
 } X32prompt;
 
-Endian endian;						// used for endian conversions
+Endian endian;					// used for endian conversions
 Endian Xmounted = { "$:" };		// default/mounted root prompt
 Endian Xnot_mounted = { ">:" };	// default/non mounted root prompt
 
@@ -187,7 +198,7 @@ struct timeval timeout;
 fd_set ufds;
 #ifdef __WIN32__
 WSADATA wsa;
-int Xip_len = sizeof(Xip);	// length of addresses
+int Xip_len = sizeof(Xip);			// length of addresses
 unsigned long mode;
 #else
 socklen_t Xip_len = sizeof(Xip);	// length of addresses
@@ -207,6 +218,7 @@ int fSetPrompt() {
 	}
 	return 1;
 }
+
 //
 // parse file name and return pointer to associated tree node
 //
@@ -277,6 +289,7 @@ type fParse(char *name) {
 	for (i = fLen; i > -1; i--) {
 		if (name[i] == '.') {
 			i += 1;
+			//
 			// we use strcasecmp() for comparing strings; This is part of the gnu
 			// libc and works similarly to strcmp(), but will not differentiate
 			// lower and upper case characters. In other words "wav" and "WAV" are
@@ -348,13 +361,10 @@ int f_umount() {
 // stop (current wav play) command
 //
 int f_stop() {
-	if (fTape_is_on) {
-		s_len = Xfprint(s_buf, 0, "/-stat/tape/state", 'i', &zero);
-		SEND
-	}else {
-		printf ("No WAV file playing or selected\n");fflush(stdout);
-	}
-	fTape_is_on = 0;
+	// must be able to send 'stop' whatever the state of the system
+	s_len = Xfprint(s_buf, 0, "/-stat/tape/state", 'i', &zero);
+	SEND
+	f_State = STOP;
 	return 1;
 }
 
@@ -362,9 +372,10 @@ int f_stop() {
 // pause (current wav play) command
 //
 int f_pause() {
-	if (fTape_is_on) {
+	if (f_State == PLAY) {
 		s_len = Xfprint(s_buf, 0, "/-stat/tape/state", 'i', &one);
 		SEND
+		f_State = PAUSE;
 	} else {
 		printf ("No WAV file playing or selected\n");fflush(stdout);
 	}
@@ -375,9 +386,10 @@ int f_pause() {
 // resume (current wav play) command
 //
 int f_resume() {
-	if (fTape_is_on) {
+	if (f_State == PAUSE) {
 		s_len = Xfprint(s_buf, 0, "/-stat/tape/state", 'i', &two);
 		SEND
+		f_State = PLAY;
 	} else {
 		printf ("No WAV file playing or selected\n");fflush(stdout);
 	}
@@ -390,7 +402,7 @@ int f_resume() {
 void f_free() {
 
 	//
-	// Erase previous tree if it exists
+	// Erase current tree if it exists
 	fTree = fTreetop;
 	while (fTree) {
 		if (fTree->fName)
@@ -405,15 +417,16 @@ void f_free() {
 
 //
 // delete and rebuild tree of current directory
+// returns the number of entries found or a negative number
+// of entries if the list somehow was truncated
 //
 int f_tree() {
 	int nFiles = 0;
-
-//
-// returns the number of files found, or 0
-//
+	int e_end = 0;
+	//
+	// returns the number of files found, or 0
+	//
 	f_free();
-
 	//
 	// USB stick is mounted - Check number of entries
 	s_len = Xsprint(s_buf, 0, 's', "/-usb/dir/maxpos");
@@ -443,6 +456,7 @@ int f_tree() {
 			if (p_status > 0) {
 				RECV
 				if (strcmp(r_buf, tmpstr) == 0) {
+					e_end = 0;
 					j = 24;
 					if (*(r_buf + 24) != 0) {
 						if (fTree) {
@@ -462,7 +476,14 @@ int f_tree() {
 					}
 				}
 			} else {
-				return i; // early end!
+				// arbitrarily set number of attempts to 5
+				if (e_end > 5) {
+					return -i; // early end!
+				} else {
+					e_end += 1;
+					// attempt to recover the missed comm
+					i -= 1; // do it again!
+				}
 			}
 		}
 	}
@@ -481,7 +502,12 @@ int f_ls() {
 	fXor = fLpos = 0;
 	//
 	// USB stick is mounted - Check number of entries
-	if ((num_files = f_tree()) > 0) {
+	num_files = f_tree();
+	if (num_files < 0) {
+		num_files = -num_files;
+		printf("/!\\ Truncated list!\n");
+	}
+	if (num_files) {
 		fTree = fTreetop;
 		while (fTree) {
 			if ((fTree->fType == VOLUME) || (fTree->fType == DIR)
@@ -497,7 +523,7 @@ int f_ls() {
 					fLpos = sizeof("123-123: ") + strlen(fTree->fName);
 				} else {
 					// Print right column
-					while (fLpos < 40) {
+					while (fLpos < 48) {
 						fLpos += 8;
 						printf("\t");
 					};
@@ -526,6 +552,7 @@ int f_cd(int fNum) {
 	while (fTree) {
 		if (fTree->index == fNum) {
 			if (fTree->fType == DIR || fTree->fType == PARENT) {
+				//
 				// execute that directory index is equiv to cd to directory
 				s_len = Xfprint(s_buf, 0, "/-action/recselect", 'i', &fNum);
 				SEND
@@ -538,6 +565,7 @@ int f_cd(int fNum) {
 	printf("Directory not found!\n");fflush(stdout);
 	return 1;
 }
+
 //
 // change directory from file name
 //
@@ -575,8 +603,22 @@ int f_play(int fNum) {
 				// select file index is equivalent to play file
 				s_len = Xfprint(s_buf, 0, "/-action/recselect", 'i', &fNum);
 				SEND
-				fTape_is_on = 1;
+				f_State = PLAY;
 				return 1;
+			} else {
+				if (fTree->fType == NIL) {
+					printf("Unknown type, Sure? ");
+					if (gets(tmpstr) != NULL) {			// read input line (wait mode)
+						if (tmpstr[0] == 'y' || tmpstr[0] == 'Y') {
+							//
+							// select file index is equivalent to play file
+							s_len = Xfprint(s_buf, 0, "/-action/recselect", 'i', &fNum);
+							SEND
+							f_State = PLAY;
+							return 1;
+						}
+					}
+				}
 			}
 		}
 		fTree = fTree->fNext;
@@ -594,11 +636,24 @@ int f_playName(char* str) {
 		if (fTree->fType == WAV) {
 			//
 			// select file index is equivalent to play file
-			s_len = Xfprint(s_buf, 0, "/-action/recselect", 'i',
-					&(fTree->index));
+			s_len = Xfprint(s_buf, 0, "/-action/recselect", 'i', &(fTree->index));
 			SEND
-			fTape_is_on = 1;
+			f_State = PLAY;
 			return 1;
+		} else {
+			if (fTree->fType == NIL) {
+				printf("Unknown type, Sure? ");
+				if (gets(tmpstr) != NULL) {			// read input line (wait mode)
+					if (tmpstr[0] == 'y' || tmpstr[0] == 'Y') {
+						//
+						// select file index is equivalent to play file
+						s_len = Xfprint(s_buf, 0, "/-action/recselect", 'i', &(fTree->index));
+						SEND
+						f_State = PLAY;
+						return 1;
+					}
+				}
+			}
 		}
 	}
 	printf("File not found!\n");fflush(stdout);
@@ -656,7 +711,8 @@ int f_loadName(char* str) {
 // display help
 //
 int f_help() {
-	printf("  ls:                 List directory contents (with id and type)\n");
+	printf("  ls                  List directory contents (with id and type)\n");
+	printf("  dir                 List directory contents (with id and type)\n");
 	printf("  cd <id> | <name>    Change directory (prompt is updated)\n");
 	printf("  load <id> | <name>  Load or Run file (scene, snippet, etc.)\n");
 	printf("  run <id> | <name>   Load or Run file (scene, snippet, etc.)\n");
@@ -705,7 +761,8 @@ int main(int argc, char **argv) {
 			printf("              [-t <delay>, delay in ms between commands]\n");
 			printf("                   default IP: 192.168.0.64\n\n");
 			printf("Launch shell to accept the following commands applied to the X32 USB drive:\n");
-			printf("  ls:                 List directory contents (with id and type)\n");
+			printf("  ls                  List directory contents (with id and type)\n");
+			printf("  dir                 List directory contents (with id and type)\n");
 			printf("  cd <id> | <name>    Change directory (prompt is updated)\n");
 			printf("  load <id> | <name>  Load or Run file (scene, snippet, etc.)\n");
 			printf("  run <id> | <name>   Load or Run file (scene, snippet, etc.)\n");
@@ -737,20 +794,18 @@ int main(int argc, char **argv) {
 	}
 	//
 	// Construct the server sockaddr_in structure
-	memset(&Xip, 0, sizeof(Xip));		// Clear struct
-	Xip.sin_family = AF_INET;			// Internet/IP
+	memset(&Xip, 0, sizeof(Xip));				// Clear struct
+	Xip.sin_family = AF_INET;					// Internet/IP
 	Xip.sin_addr.s_addr = inet_addr(Xip_str);	// IP address
-	Xip.sin_port = htons(atoi(Xport_str));	// server port
+	Xip.sin_port = htons(atoi(Xport_str));		// server port
 	//
 	//register for receiving X32 console updates
 	// Non blocking mode
-
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 500000; //Set timeout for non blocking recvfrom(): 500ms
-
 	//
 	// All done.
-	printf(" X32USB - v0.2 - (c)2015-17 Patrick-Gilles Maillot\n\n");
+	printf(" X32USB - v0.3 - (c)2015-17 Patrick-Gilles Maillot\n\n");
 	//
 	// Let's send and receive messages
 	// Establish logical connection with X32 server
@@ -785,25 +840,27 @@ int main(int argc, char **argv) {
 			//
 			// Parse commands
 			if (strncmp(tmpstr, "ls", 2) == 0)
-				keep_on = f_ls();	// directory list command
+				keep_on = f_ls();						// directory list command
+			else if (strncmp(tmpstr, "dir", 3) == 0)
+				keep_on = 0;							// directory list command
 			else if (strncmp(tmpstr, "exit", 4) == 0)
-				keep_on = 0;	// exit command
+				keep_on = 0;							// exit command
 			else if (strncmp(tmpstr, "quit", 4) == 0)
-				keep_on = 0;	// exit command
+				keep_on = 0;							// exit command
 			else if (strncmp(tmpstr, "umount", 6) == 0)
-				keep_on = f_umount();	// unmount stick command
+				keep_on = f_umount();					// unmount stick command
 			else if (strncmp(tmpstr, "stop", 4) == 0)
-				keep_on = f_stop();	// stop (current wav play) command
+				keep_on = f_stop();						// stop (current wav play) command
 			else if (strncmp(tmpstr, "pause", 5) == 0)
-				keep_on = f_pause(); // pause (current wav play) command
+				keep_on = f_pause(); 					// pause (current wav play) command
 			else if (strncmp(tmpstr, "resume", 6) == 0)
-				keep_on = f_resume(); // resume (current wav play) command
-			else if (strncmp(tmpstr, "cd", 2) == 0) // change directory commands
+				keep_on = f_resume(); 					// resume (current wav play) command
+			else if (strncmp(tmpstr, "cd", 2) == 0) 	// change directory commands
 				if (sscanf(tmpstr + 2, "%d", &fNum) == 1)
 					keep_on = f_cd(fNum);
 				else
 					keep_on = f_cdName(tmpstr + 2);
-			else if (strncmp(tmpstr, "play", 4) == 0)// play USB wav file commands
+			else if (strncmp(tmpstr, "play", 4) == 0)	// play USB wav file commands
 				if (sscanf(tmpstr + 4, "%d", &fNum) == 1)
 					keep_on = f_play(fNum);
 				else
@@ -821,7 +878,7 @@ int main(int argc, char **argv) {
 			else if (strncmp(tmpstr, "help", 4) == 0)
 				keep_on = f_help();
 			else
-				keep_on = fSetPrompt();		// set/update default prompt
+				keep_on = fSetPrompt();					// set/update default prompt
 		} else {
 			keep_on = 0;
 			printf("command read error\n"); fflush(stdout);
