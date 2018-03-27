@@ -52,6 +52,7 @@
  *	ver. 0.32: Added optional progress bar
  *	ver. 0.33: provide default channel names at memory reserve/malloc time
  *	ver. 0.34: bug fixes, added a "Reset" button
+ *	ver. 0.35: fixes in command line version to enable default channel names and session name handling
  *
  */
 
@@ -287,7 +288,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.34 - ©2018 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.35 - ©2018 - Patrick-Gilles Maillot"));
 
 		DeleteObject(htmp);
 		DeleteObject(hfont);
@@ -609,7 +610,7 @@ int main(int argc, char **argv) {
 	wWinMain(hInstance, hPrevInstance, pCmdLine, nCmWfile);
 #else
 	// manage command-line parameters
-	nchange = 0;
+	nchange = -1;
 	while ((input_intch = getopt(argc, argv, "d:m:n:c:s:w:h")) != -1) {
 		switch ((char)input_intch) {
 			case 'd':
@@ -619,7 +620,10 @@ int main(int argc, char **argv) {
 				break;
 			case 'm':
 				strcpy(Sname, optarg);
-				nchange = min(16, strlen(Sname));
+				i = strlen(Sname);
+				nchange = min(16, i);
+				while (i < 16) Sname[i++] = '\0';
+				printf("nchange %d, Sname %s\n", nchange, Sname);
 				break;
 			case 'n':
 				sscanf(optarg, "%d", &nbchans);
@@ -627,6 +631,12 @@ int main(int argc, char **argv) {
 				if ((ChNamTable = malloc(nbchans * NAMSIZ * sizeof(char))) == 0) {
 					MESSAGE("Memory allocation error!", NULL);
 					nbchans = 0;
+				} else {
+					// create and assign default channel names
+					for (i = 0; i < nbchans; i++) {
+						sprintf(str1, "Xlive_Wav_%d", i + 1);
+						strcpy(ChNamTable + i * NAMSIZ, str1);
+					}
 				}
 				break;
 			case 'c':
@@ -649,7 +659,7 @@ int main(int argc, char **argv) {
 				break;
 			default:
 			case 'h':
-				printf("X32Xlive_Wav - ver 0.31 - ©2018 - Patrick-Gilles Maillot\n\n");
+				printf("X32Xlive_Wav - ver 0.35 - ©2018 - Patrick-Gilles Maillot\n\n");
 				printf("usage: X32Xlive_wav [-d dir [./]: Mono wave files path]\n");
 				printf("                    [-m name []: Sets or Replaces Session name read from source]\n");
 				printf("                    [-n 1..32 [0]: number of channels to explode to mono wave files]\n");
@@ -662,13 +672,18 @@ int main(int argc, char **argv) {
 				printf("       Sample size conversion may take place depending on the -c option.\n");
 				printf("       Channel/Wave or file names can be set all at once if a scene file is provided\n");
 				printf("       using the -f parameter, or set one at a time or edited if parameters -1...-32\n");
-				printf("       are used with appropriate names\n\n");
+				printf("       are used with appropriate names\nNote: option -n must appear before any -w or -s\n");
+				printf("             options\n\n");
 				printf("       Example:\n");
 				printf("       X32Xlive_wav -n 3 -d ~ -c 16 -s ~/myscene -w 3,new_name ~/ABCD12345678\n");
-				printf("       will extract as 16bit samples the first 3 channels contained in XLive! session\n");
-				printf("       ABCD12345678 in the home directory, into 3 separate wave files placed in the home\n");
-				printf("       directory with names taken from the X32 scene file 'myscene', and setting or overriding\n");
-				printf("       the 3rd wave file name with 'new_name'\n\n");
+				printf("         will extract as 16bit samples the first 3 channels contained in XLive! session\n");
+				printf("         ABCD12345678 in the home directory, into 3 separate wave files placed in the home\n");
+				printf("         directory with names taken from the X32 scene file 'myscene', and setting or overriding\n");
+				printf("         the 3rd wave file name with 'new_name'\n\n");
+				printf("       X32Xlive_wav -n 8 -d ~ ~/ABCD12345678\n");
+				printf("         will extract as 24bit samples the first 8 channels contained in XLive! session\n");
+				printf("         ABCD12345678 in the home directory, into 8 separate wave files placed in the home\n");
+				printf("         directory with names Xlive_Wav_1.wav to Xlive_Wav_8.wav\n\n");
 				return(0);
 			break;
 		}
@@ -676,27 +691,44 @@ int main(int argc, char **argv) {
 	// run the program
 	if (nbchans) {
 		if (Spath[0]) {
-			if (	SetNamesFromScene()) return -1;
+			if (SetNamesFromScene()) return -1;
 		}
 		// no confirmation, no warning, just go ahead... the magic of CLI :)
 		for (i = 0; i < nbchans; i++) printf("ch: %d, filename: %s\n", i, ChNamTable + i * NAMSIZ);
 		if (argv[optind]) {
 			strcpy(Xspath, argv[optind]);
+			strcpy(str1, Xspath);
 			slen = strlen(Xspath);
 			Xspath[slen++] = '/';
-			if (nchange) {
-				// Get and display session name
-				strcat(Xspath + dlen, "SE_LOG.BIN");
-				if ((SBIN = fopen(Xspath, "w")) == NULL) {
-					MESSAGE(NULL, "Error opening session log file");
-					return 1;
-				} else {
-					fseek(SBIN, 1553, SEEK_SET);
-					fread(Sname, 16, 1, SBIN);
-				}
-				fseek(SBIN, 1552, SEEK_SET);
+			// Get and display session name
+			strcat(Xspath + slen, "SE_LOG.BIN");
+			if ((SBIN = fopen(Xspath, "r+")) == NULL) {
+				MESSAGE(NULL, "Error opening session or session log file");
+				return 1;
+			}
+			fseek(SBIN, 1552, SEEK_SET);
+			if (nchange >= 0) {
 				fflush(SBIN);
-				fwrite(Sname, nchange, 1, SBIN);
+				fwrite(Sname, 16, 1, SBIN);
+				printf("Session Name set to: \"%s\"\n",Sname);
+			} else {
+				fread(Sname, 16, 1, SBIN);
+				if (Sname[0]) {
+					printf("Session Name: %s\n",Sname);
+				} else {
+					for (i = 0; i < 8; i++) str0[i] = str1[strlen(str1) - 8 + i];
+					sscanf(str0, "%8x", &session_uint);
+					// decode Session name
+					session_time.tm_year = (int)((session_uint >> 25) - 20);
+					session_time.tm_mon =  (int)((session_uint & 0x1FFFFFF) >> 21);
+					session_time.tm_mday = (int)((session_uint & 0x1FFFFF) >> 16);
+					session_time.tm_hour = (int)((session_uint & 0xFFFF) >> 11);
+					session_time.tm_min =  (int)((session_uint & 0x7FF) >> 5);
+					session_time.tm_sec =  (int)((session_uint & 0x1F) << 1);
+					sprintf(str1, "%02d-%02d-%02d %02d:%02d:%02d", session_time.tm_year, session_time.tm_mon,
+							session_time.tm_mday, session_time.tm_hour, session_time.tm_min, session_time.tm_sec);
+					printf("Session Name: %s\n",str1);
+				}
 			}
 			return (ExplodeWavFile());
 		} else {
