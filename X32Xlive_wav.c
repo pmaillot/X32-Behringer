@@ -672,8 +672,8 @@ int main(int argc, char **argv) {
 				printf("       Sample size conversion may take place depending on the -c option.\n");
 				printf("       Channel/Wave or file names can be set all at once if a scene file is provided\n");
 				printf("       using the -f parameter, or set one at a time or edited if parameters -1...-32\n");
-				printf("       are used with appropriate names\nNote: option -n must appear before any -w or -s\n");
-				printf("             options\n\n");
+				printf("       are used with appropriate names.");
+				printf("       Note: option -n must appear before any -w or -s options.\n\n");
 				printf("       Example:\n");
 				printf("       X32Xlive_wav -n 3 -d ~ -c 16 -s ~/myscene -w 3,new_name ~/ABCD12345678\n");
 				printf("         will extract as 16bit samples the first 3 channels contained in XLive! session\n");
