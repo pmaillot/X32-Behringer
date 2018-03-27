@@ -148,10 +148,11 @@ Command Line version:
 A command-line version of the tool can be obtained from the source file. Below the -h (help) for the utility, which offers the same options the Windows GUI version does:
 
 ```
-$ ./X32Xlive_Wav -h
-X32Xlive_Wav - ver 0.20 - ©2018 - Patrick-Gilles Maillot
+$ ./X32Xlive_wav -h
+X32Xlive_Wav - ver 0.35 - ©2018 - Patrick-Gilles Maillot
 
 usage: X32Xlive_wav [-d dir [./]: Mono wave files path]
+                    [-m name []: Sets or Replaces Session name read from source]
                     [-n 1..32 [0]: number of channels to explode to mono wave files]
                     [-c 8/16/24/32 [24]: sample size]
                     [-s file []: optional scene file]
@@ -163,14 +164,20 @@ usage: X32Xlive_wav [-d dir [./]: Mono wave files path]
        Sample size conversion may take place depending on the -c option.
        Channel/Wave or file names can be set all at once if a scene file is provided
        using the -f parameter, or set one at a time or edited if parameters -1...-32
-       are used with appropriate names
+       are used with appropriate names.
+       Note: option -n must appear before any -w or -s options
 
        Example:
-       X32Xlive_wav -n 3 -d ~ -c 16 -s ~/myscene -w 3,new_name ~/ABCD12345678
-       will extract as 16bit samples the first 3 channels contained in XLive! session
-       ABCD12345678 in the home directory, into 3 separate wave files placed in the home
-       directory with names taken from the X32 scene file 'myscene', and setting or overriding
-       the 3rd wave file name with 'new_name'
+       X32Xlive_wav -n 3 -d ~ -c 16 -s ~/myscene -w 3,new_name ~/4C4B5674
+         will extract as 16bit samples the first 3 channels contained in XLive! session
+         4C4B5674 in the home directory, into 3 separate wave files placed in the home
+         directory with names taken from the X32 scene file 'myscene', and setting or overriding
+         the 3rd wave file name with 'new_name'
+
+       X32Xlive_wav -n 8 -d ~ ~/4C4B5690
+         will extract as 24bit samples the first 8 channels contained in XLive! session
+         4C4B5690 in the home directory, into 8 separate wave files placed in the home
+         directory with names Xlive_Wav_1.wav to Xlive_Wav_8.wav
 $
 
 ```
