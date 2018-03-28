@@ -30,6 +30,7 @@
  *	ver 1.10: Added command line interface
  *	ver 1.20: removed malloc support (not used) / accepts Pro-tools generated files
  *	ver 1.21: enabled no session name (so defaults to time stamp, as on X32)
+ *	ver 1.22: Improved a few calls to write()
  *
  */
 
@@ -74,10 +75,12 @@
 #define MINF 0x464E494D
 #define elm1 0x316D6C65
 #define ELM1 0x314D4C45
-#define blnk 0x20202020
+#define BLNK 0x20202020
+//
+#define FOUR 4 // sizeof(unsinged int), for 4 bytes
 //
 typedef union {
-	char			s[4];
+	char			s[FOUR];
 	unsigned int	i;
 } i4chr;
 //
@@ -162,8 +165,9 @@ struct {								// 32k header (0x8000 in size)
 //
 //unsigned int 	wavsize;				// size of WAVE sub-chunk
 int				MList_File;				// Default (1) is "List of Markers"; (0) is "File Path"
-int				Zero[32] = {0};			// 0 (32 times)
-unsigned int	blank = blnk;
+unsigned int	Zero[30] = {0};			// 0 (30 times)
+unsigned int	Data = data;			// "data" on one unsigned int
+unsigned int	Blnk = BLNK;			// "    " on one unsigned int
 //
 long long		audio_bytes;			// size of audio data (multi channels)
 unsigned int	r_audio_bytes;			// audio data remainder on 32bits for file writing
@@ -253,7 +257,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 1.21 - ©2017-18 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 1.22 - ©2017-18 - Patrick-Gilles Maillot"));
 		TextOut(hdc, 128, 57, str1, wsprintf(str1, "Session Name:"));
 		TextOut(hdc, 128, 90, str1, wsprintf(str1, "Markers:"));
 		DeleteObject(htmp);
@@ -444,24 +448,29 @@ int main(int argc, char **argv) {
 				break;
 			default:
 			case 'h':
-				printf("X32Wav_Xlive - ver 1.21 - ©2018 - Patrick-Gilles Maillot\n\n");
+				printf("X32Wav_Xlive - ver 1.22 - ©2018 - Patrick-Gilles Maillot\n\n");
 				printf("usage: X32Wav_Xlive [-f Marker file []: file containing markers]\n");
 				printf("                    [-m marker, [,]: marker time in increasing order values]\n");
-				printf("                    <Session dir> <Session name>\n\n");
-				printf("       X32Wav_Xlive will take into account all command-line parameter and run its\n");
+				printf("                    <Session dir> [<Session name>]\n\n");
+				printf("       X32Wav_Xlive will take into account all command-line parameters and run its\n");
 				printf("       'magic', generating XLive! session files from the wav data given as input.\n\n");
 				printf("       Many restrictions take place: all wav data must be similar in specs:\n");
 				printf("         - same sample rate (48k or 44.1k\n");
 				printf("         - same length\n");
 				printf("         - 24bit sample size\n");
 				printf("         - wav files have to be named ch_1.wav to ch_32.wav\n\n");
-				printf("       Example:\n");
+				printf("       Examples:\n");
 				printf("       X32Wav_Xlive -m 1.2 -m 15 ./ \"new session\"\n");
-				printf("       will create a XLive! session directory in ./ based on the date and time,\n");
-				printf("       and create a session displayed as <session name> when loaded into XLive! card\n");
-				printf("       containing a number of multi-channel wav files respective of the number of \n");
-				printf("       channels found in the source directory. Markers, if present, will be added to\n");
-				printf("       the created session\n\n");
+				printf("         creates as XLive! session directory in ./ based on the date and time,\n");
+				printf("         and creates a session displayed as \"new session\" when loaded into XLive! card\n");
+				printf("         containing a number of multi-channel wav files respective of the number of \n");
+				printf("         channels found in the source directory. Markers, if present, will be added to\n");
+				printf("         the created session\n\n");
+				printf("       X32Wav_Xlive .\n");
+				printf("         creates an XLive! session directory in . based on the date and time;\n");
+				printf("         the session is named after as its creation time stamp when loaded into XLive! card\n");
+				printf("         and contains a number of multi-channel wav files respective of the number of \n");
+				printf("         channels found in the source directory.\n");
 				return(0);
 			break;
 		}
@@ -552,7 +561,7 @@ int	MergeWavFiles(int num_markers, float* markers) {
 			MESSAGE(str1, NULL);
 			return -1;
 		}
-		fread(&file_size[i], sizeof(unsigned int), 1, Xin[i]);		// size
+		fread(&file_size[i], FOUR, 1, Xin[i]);		// size
 		k = 8;
 		while (k) {
 			fread(&Chunk, sizeof(Chunk), 1, Xin[i]);				// Chunk
@@ -635,7 +644,7 @@ int	MergeWavFiles(int num_markers, float* markers) {
     wheader.num_channels = numb_chls + fill_chls;
 	total_length = audio_len  / 3;    				// length in # of samples
 	//
-	audio_bytes = (long long)total_length * 4 * (long long)wheader.num_channels;	// total number of bytes to process
+	audio_bytes = (long long)total_length * FOUR * (long long)wheader.num_channels;	// total number of bytes to process
 	//
 	// trim to 32kB boundary
 	audio_bytes &= 0xfffffffffff8000;
@@ -643,14 +652,14 @@ int	MergeWavFiles(int num_markers, float* markers) {
 	// How many files of 4GB (max) for our session?
 	nb_takes = 0;
 	while (audio_bytes >= max_take_size) {
-		take_size[nb_takes] = max_take_size / 4;	// in 32bit samples
+		take_size[nb_takes] = max_take_size / FOUR;	// in 32bit samples
 		nb_takes += 1;
 		audio_bytes -= max_take_size;
 	}
 	// deal with the remaining data
 	r_audio_bytes = audio_bytes;					// remaining audio data for a possible last take
 	if (r_audio_bytes > 0) {
-		take_size[nb_takes] = r_audio_bytes / 4;	// size of last take in samples
+		take_size[nb_takes] = r_audio_bytes / FOUR;	// size of last take in samples
 		nb_takes += 1;
 	}
 	//
@@ -670,31 +679,34 @@ int	MergeWavFiles(int num_markers, float* markers) {
 #endif
 		strcat(Xspath + strlen(Xspath), "/SE_LOG.BIN");
 		if ((Xout = fopen(Xspath, "wb")) != NULL) {
-			fwrite(&session_name, sizeof(session_name), 1, Xout);
+			fwrite(&session_name, FOUR, 1, Xout);
 			j = wheader.num_channels;
-			fwrite(&j, sizeof(j), 1, Xout);
-			fwrite(&wheader.audio_samprate, sizeof(wheader.audio_samprate), 1, Xout);
-			fwrite(&session_name, sizeof(session_name), 1, Xout);
-			fwrite(&nb_takes, sizeof(nb_takes), 1, Xout);
-			fwrite(&num_markers, sizeof(num_markers), 1, Xout);
-			fwrite(&total_length, sizeof(total_length), 1, Xout);
-			//
-			// todo: Calls to fwrite() below could be optimized
+			fwrite(&j, FOUR, 1, Xout);
+			fwrite(&wheader.audio_samprate, FOUR, 1, Xout);
+			fwrite(&session_name, FOUR, 1, Xout);
+			fwrite(&nb_takes, FOUR, 1, Xout);
+			fwrite(&num_markers, FOUR, 1, Xout);
+			fwrite(&total_length, FOUR, 1, Xout);
+			// write take size data
 			for (i = 0; i < nb_takes; i++)
 				fwrite(&take_size[i], sizeof(int), 1, Xout);
 			for (; i < 256; i++)
-				fwrite(&Zero, sizeof(*Zero), 1, Xout);
+				fwrite(Zero, FOUR, 1, Xout);
+			//write marker data
 			for (i = 0; i < num_markers; i++)
-				fwrite(&imarker_vec[i], sizeof(unsigned int), 1, Xout);
+				fwrite(&imarker_vec[i], FOUR, 1, Xout);
 			for (; i < 125; i++)
-				fwrite(&Zero, sizeof(*Zero), 1, Xout);
+				fwrite(Zero, FOUR, 1, Xout);
 			// write session name (16 chars max)
 			// session name is in str1 (global var)
-			// if no session name, write null bytes
-			if (str1[0]) fwrite(str1, strlen(str1), 1, Xout);
-			// complete to 2kbytes with 0's
-			while(ftell(Xout) < 2048)
-				fwrite(&Zero, sizeof(char), 1, Xout);
+			// if no session name, write null bytes from str1
+			fwrite(str1, 16, 1, Xout);
+			// and fill out to 2k bytes with zeros, using zero[32], all 0.
+			fwrite(Zero, 120, 1, Xout);
+			fwrite(Zero, 120, 1, Xout);
+			fwrite(Zero, 120, 1, Xout);
+			fwrite(Zero, 120, 1, Xout);
+			//
 			fclose(Xout);
 			//
 			// create take waves
@@ -706,17 +718,17 @@ int	MergeWavFiles(int num_markers, float* markers) {
 					wheader.dwAvgBytesPerSec = wheader.audio_samprate * wheader.wBlockAlign;
 					// write wave header
 					fwrite(&wheader, sizeof(wheader), 1, Xout);
-					for (j = 0; j < 460 / 4; j++) {
-						fwrite("    ", 4, 1, Xout);
+					for (j = 0; j < 460 / FOUR; j++) {
+						fwrite(&Blnk, FOUR, 1, Xout);
 					}
 					r_audio_bytes = take_size[i] * 4;
-					fwrite("data", 4, 1, Xout);
-					fwrite(&r_audio_bytes, sizeof(r_audio_bytes), 1, Xout);
+					fwrite(&Data, FOUR, 1, Xout);
+					fwrite(&r_audio_bytes, FOUR, 1, Xout);
 					for (j = 0; j < (wheader.Junk_bytes - 468) / 4; j++) {
-						fwrite("    ", 4, 1, Xout);
+						fwrite(&Blnk, 4, 1, Xout);
 					}
-					fwrite("data", 4, 1, Xout);
-					fwrite(&r_audio_bytes, sizeof(r_audio_bytes), 1, Xout);
+					fwrite(&Data, FOUR, 1, Xout);
+					fwrite(&r_audio_bytes, FOUR, 1, Xout);
 					//
 					// writing new multichannel wav data
 					sample.s[0] = 0;
@@ -725,16 +737,16 @@ int	MergeWavFiles(int num_markers, float* markers) {
 						for (k = 0; k < PassNumber; k++) {
 							for (j = 0; j < numb_chls; j++) {
 								fread(&sample.s[1], 3, 1, Xin[j]);	// read 3 bytes audio sample
-								fwrite(&sample.i, sizeof(sample.i), 1, Xout);
+								fwrite(&sample.i, FOUR, 1, Xout);
 							}
 							// Complete number of channels with 0's
-							fwrite(Zero, sizeof(*Zero), fill_chls, Xout);
+							fwrite(Zero, FOUR * fill_chls, 1, Xout);
 						}
 					} else {
 						for (k = 0; k < PassNumber; k++) {
 							for (j = 0; j < numb_chls; j++) {
 								fread(&sample.s[1], 3, 1, Xin[j]);	// read 3 bytes audio sample
-								fwrite(&sample.i, sizeof(sample.i), 1, Xout);
+								fwrite(&sample.i, FOUR, 1, Xout);
 							}
 						}
 					}
