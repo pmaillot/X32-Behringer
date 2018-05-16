@@ -8,7 +8,7 @@
 #ifndef X32DS_NODE_H_
 #define X32DS_NODE_H_
 
-char  d_version[] = "ver. 0.94";
+char  d_version[] = "ver. 1.00";
 
 char* ds_node[] = {
 		"/-stat",
