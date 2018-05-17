@@ -731,13 +731,13 @@ main(int argc, char **argv)
 				printf("                   [-s 0/1 Scene file]\n");
 				printf("                   [-r 0/1 Routing file]\n");
 				printf("                   <Destination file name/path>\n");
-				printf("X32DeskSave save those parameters that are not handled  by shows, scenes,\n");
+				printf("X32DeskSave saves those parameters that are not handled  by shows, scenes,\n");
 				printf("snippets, cues, presets, routing or effects files... So when you connect\n");
 				printf("to your desk, it is exactly as you want it: screen, light brightness, view, etc.\n");
 				printf("You can also save scenes, routing presets or any type of file or settings based\n");
 				printf("on a pattern file (a scene, any set of commands, etc.); the -p <file> option\n");
 				printf("reads the provided file, then extracts X32 commands from it to retrieve values\n");
-				printf("values from your X32. These are saved in the file provided as destination file\n");
+				printf("from your X32. These are saved in the file provided as destination file\n");
 				printf("Option \"-d 1\" is optional and the default case. Only one of options -d, -r, -s\n");
 				printf(" or -p should be used, only the last one will be taken into account\n\n");
 				return(0);
