@@ -597,7 +597,7 @@ int X32DS_GetFile() {
     						SEND_TO(s_buf, s_len)
     						RPOLL
     						if (p_status < 0) {
-    							MESSAGE(NULL ,"Polling for data failed");
+    							MESSAGE("" ,"Polling for data failed");
     							return 0;	// Make sure we don't considered being connected
     						} else if (p_status > 0) {
     							// We have received data - process it!
@@ -611,7 +611,7 @@ int X32DS_GetFile() {
     							}
     						} else {
     							// time out... Not connected or Not an X32
-    							MESSAGE(NULL, "X32 reception timeout");
+    							MESSAGE("", "X32 reception timeout");
     							return 0;	// Make sure we don't considered being connected
     						}
     					}
@@ -749,14 +749,14 @@ main(int argc, char **argv)
 		strcpy(Xfile_w_name, getFileNameFromPath(argv[optind]));
 		Xfiles = 1;
 	} else {
-		MESSAGE(NULL, "No Destination file");
+		MESSAGE("", "No Destination file");
 		return 1;
 	}
 	if ((Xconnected = X32Connect(0, Xip_str, 20000)) == 1) {
 		XRcvClean();
 		return X32DS_GetFile();
 	}
-	MESSAGE(NULL, "No X32 found!");
+	MESSAGE("", "No X32 found!");
 	return 1;
 #endif
 }
