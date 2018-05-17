@@ -48,6 +48,7 @@
 extern int		X32Connect(int Xconnected, char* Xip_str, int btime);
 extern int		validateIP4Dotted(const char *s);
 // Private functions
+char* getFileNameFromPath(char* path);
 int X32DS_GetFile();
 void XRcvClean();
 
@@ -318,14 +319,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				//
 				// Display the Open dialog box.
 				if (GetOpenFileName(&ofn)) {
-					// remove filename from returned path so we can either save to
+					// Extract filename from returned path so we can either save to
 					// existing directory or newly created one
-					i = strlen(Xpath);
-					while (i && (Xpath[i] != '\\')) --i;
-					Xpath[i] = 0;
-					strcpy(Xfilename, Xpath + i + 1);
-					sprintf(s_buf, "Directory: %s\nFile Name: %s", Xpath, Xfilename);
-					if (MessageBox(NULL, s_buf, "Source directory & File name: ", MB_OKCANCEL) == IDOK) {
+					strcpy(Xfilename, getFileNameFromPath(Xpath));
+					if (MessageBox(NULL, Xpath, "Source file path: ", MB_OKCANCEL) == IDOK) {
 						SetWindowText(hwndfname, (LPSTR) Xfilename);
 						Xfiles = 1;
 						if (Xconnected) SetWindowText(hwndprog, (LPSTR)Xready);
@@ -359,6 +356,17 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 //
 // Private functions:
 //
+char* getFileNameFromPath(char* path)
+{
+   for(size_t i = strlen(path) - 1; i; i--) {
+        if (path[i] == '/') {
+            return &path[i+1];
+        }
+    }
+    return path;
+}
+//
+//
 int X32DS_GetFile() {
 	FILE *Xdsfile_pt = NULL;
 	char* read_status;
@@ -380,7 +388,7 @@ int X32DS_GetFile() {
 	keep_reading = 1;
 	//
 	// Open the .xds file for reading
-	if ((Xdsfile_pt = fopen(Xfilename, "r")) != NULL) {
+	if ((Xdsfile_pt = fopen(Xpath, "r")) != NULL) {
 		//
 		// At this point of the program, we read /node commands data from the file
 		// and parse them into actual X32 OSC commands we eventually send to X32.
@@ -499,7 +507,8 @@ int main(int argc, char **argv) {
 		}
 	}
 	if (argv[optind]) {
-		strcpy(Xfilename, argv[optind]);
+		strcpy(Xpath, argv[optind]);
+		strcpy(Xfilename, getFileNameFromPath(argv[optind]));
 		Xfiles = 1;
 	} else {
 		MESSAGE(NULL, "No Source file");
