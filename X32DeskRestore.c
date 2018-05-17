@@ -149,7 +149,7 @@ do {                                                    \
 #define SEND_TO(b, l)										\
 	do {													\
 		if (sendto(Xfd, b, l, 0, Xip_addr, Xip_len) < 0) {	\
-			MESSAGE(NULL, "Can't send data to X32")			\
+			MESSAGE("", "Can't send data to X32")			\
 			exit(EXIT_FAILURE);								\
 		} 													\
 	} while (0);
@@ -286,7 +286,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 						SetWindowText(hwndprog, (LPSTR)Xnotconnected);
 					}
 				} else {
-					MESSAGE(NULL, "Incorrect IP string form");
+					MESSAGE("", "Incorrect IP string form");
 				}
 				break;
 			case 2:
@@ -376,12 +376,12 @@ int X32DS_GetFile() {
 
 	// Check if Connected
 	if (!Xconnected) {
-		MESSAGE(NULL, "Not connected to X32!");
+		MESSAGE("", "Not connected to X32!");
 		return (1);
 	}
 	// Check if destination path OK
 	if (!Xfiles) {
-		MESSAGE(NULL, "No file selected");
+		MESSAGE("", "No file selected");
 		return (1);
 	}
 	err_flag = -1;		// consider we may be in an error state (early-end)
@@ -408,13 +408,13 @@ int X32DS_GetFile() {
 					// manage the echo of the command from X32, ignoring the answer
 					RPOLL
 					if (p_status < 0) {
-						MESSAGE(NULL, "Polling for data failed");
+						MESSAGE("", "Polling for data failed");
 						return 0;
 					} else if (p_status > 0) {
 						// We have received data - process it! (well... ignore it)
 						r_len = recvfrom(Xfd, r_buf, BSIZE, 0, 0, 0);
 						if (0) {
-							MESSAGE(NULL, "Unexpected answer from X32");
+							MESSAGE("", "Unexpected answer from X32");
 							return 0;
 						}
 					} else {
@@ -491,7 +491,7 @@ int main(int argc, char **argv) {
 			case 'i':
 				strcpy(Xip_str, optarg);
 				if (validateIP4Dotted(Xip_str) == 0) {
-					MESSAGE(NULL, "Invalid IP address");
+					MESSAGE("", "Invalid IP address");
 					return -1;
 				}
 				break;
@@ -511,14 +511,14 @@ int main(int argc, char **argv) {
 		strcpy(Xfilename, getFileNameFromPath(argv[optind]));
 		Xfiles = 1;
 	} else {
-		MESSAGE(NULL, "No Source file");
+		MESSAGE("", "No Source file");
 		return 1;
 	}
 	if ((Xconnected = X32Connect(0, Xip_str, 20000)) == 1) {
 		XRcvClean();
 		return X32DS_GetFile();
 	}
-	MESSAGE(NULL, "No X32 found!");
+	MESSAGE("", "No X32 found!");
 	return 1;
 #endif
 }
@@ -1186,7 +1186,3 @@ int main(int argc, char **argv) {
 //	// all OK
 //	return (0);
 //}
-
-
-
-
