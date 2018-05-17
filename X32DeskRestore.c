@@ -5,7 +5,7 @@
  *
  * ©2016 - Patrick-Gilles Maillot
  *
- * X32DeskRestore - a windows app for restoring a all -prefs and -stat
+ * X32DeskRestore - a command-line / windows app for restoring a all -prefs and -stat
  * X32 memory states from a PC HDD/file.
  *
  * Change log
@@ -14,12 +14,26 @@
  *    0.92: code refactoring - moved some functions to extern
  *    0.93: adapted to FW ver 3.04
  *    0.94: preventing window resizing
+ *    1.00: added command-line capability
  *
  */
-
-#include <winsock2.h>
+#ifdef _WIN32
+#include <winsock2.h>	// Windows functions for std GUI & sockets
 #include <Commdlg.h>
-
+#define MESSAGE(s1,s2)	\
+			MessageBox(NULL, s1, s2, MB_OK);
+#define zeromem(a1, a2) \
+		ZeroMemory(a1, a2);
+#else
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#define MAX_PATH 256	// file name/path size
+#define MESSAGE(s1,s2)	\
+			printf("%s - %s\n",s2, s1);
+#define zeromem(a1, a2) \
+		memset((void*)a1, 0, a2);
+#endif
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -51,6 +65,7 @@ void XRcvClean();
 extern int Xsprint(char *bd, int index, char format, void *bs);
 //
 //
+#ifdef _WIN32
 // Windows stuff
 WINBASEAPI HWND WINAPI GetConsoleWindow(VOID);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -66,27 +81,28 @@ BITMAP		bmp;
 MSG			wMsg;
 
 OPENFILENAME ofn;       			// common dialog box structure
-HANDLE hf;              			// file handle
+HANDLE hf;
 //
-// Global variables
-FILE *res_file;
-char Finipath[1024];			// resolved path to .ini file
-char **FinilppPart;
-int Finiretval;
-//
-int keep_running = 1;
-int wWidth = 545;				// Default window size, superseeded by data read
-int wHeight = 130;				// from .ini file
-//
-char Xip_str[20], Xpath[256];	// IP in str format; file path
-char Xfilename[32];				// used to save the selected file name
 char Xcomplete[] = "Complete";
 char Xready[] = "Ready";
 char Xerror[] = "--Error--";
 char Xnofile[] = "No file selected";
 char Xnotconnected[] = "Not Connected";
-char d_version[] = "ver. 0.94";
-
+FILE *res_file;
+char Finipath[1024];			// resolved path to .ini file
+char **FinilppPart;
+int Finiretval;
+//
+int wWidth = 545;				// Default window size, superseeded by data read
+int wHeight = 130;				// from .ini file
+#endif
+//
+// Global variables
+int keep_running = 1;
+//
+char Xip_str[20], Xpath[256];	// IP in str format; file path
+char Xfilename[32];				// used to save the selected file name
+char d_version[] = "ver. 1.00";
 int Xconnected = 0;				// flags
 int Xfiles = 0;					// file info available (valid)
 
@@ -148,9 +164,10 @@ do {                                                    \
 	do {													\
 		FD_ZERO (&ufds);									\
 		FD_SET (Xfd, &ufds);								\
-		p_status = select(Xfd,&ufds,NULL,NULL,&timeout);	\
+		p_status = select(Xfd+1,&ufds,NULL,NULL,&timeout);	\
 	} while (0);
 //
+#ifdef _WIN32
 //
 //
 // Windows main function and main loop
@@ -283,7 +300,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				strcpy(Xpath, Xnofile);
 				SetWindowText(hwndfname, (LPSTR) Xnofile);
 				// Initialize OPENFILENAME
-				ZeroMemory(&ofn, sizeof(ofn));
+				zeromem(&ofn, sizeof(ofn));
 				ofn.lStructSize = sizeof(ofn);
 				ofn.hwndOwner = hwnd;
 				ofn.lpstrFile = Xpath;
@@ -336,6 +353,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	}
 	return DefWindowProcW(hwnd, msg, wParam, lParam);
 }
+#endif
 //
 //
 //
@@ -385,7 +403,7 @@ int X32DS_GetFile() {
 						printf("Polling for data failed\n");
 						return 0;
 					} else if (p_status > 0) {
-						// We have received data - process it!
+						// We have received data - process it! (well... ignore it)
 						r_len = recvfrom(Xfd, r_buf, BSIZE, 0, 0, 0);
 						if (0) {
 							printf("Unexpected answer from X32\n");
@@ -394,7 +412,7 @@ int X32DS_GetFile() {
 					} else {
 						// time out...
 						printf("X32 reception timeout\n");
-						return 0;
+//						return 0;
 					}
 //
 // or the call to XDS_parse below
@@ -433,11 +451,15 @@ void XRcvClean() {
 }
 
 int main(int argc, char **argv) {
+#ifdef _WIN32
 	HINSTANCE hPrevInstance = 0;
 	PWSTR pCmdLine = 0;
 	int nCmdFile = 0;
-
+#else
+	int input_intch;
+#endif
 	Xip_str[0] = 0;
+#ifdef WIN32
 	// load resource file
 	if ((res_file = fopen("./.X32DeskRestore.ini", "r")) != NULL) {
 		// get and remember real path
@@ -453,6 +475,43 @@ int main(int argc, char **argv) {
 	ShowWindow(GetConsoleWindow(), SW_HIDE); // Hide console window
 	wWinMain(hInstance, hPrevInstance, pCmdLine, nCmdFile);
 	return 0;
+#else
+	strcpy(Xip_str, "192.168.1.64");
+	// manage command-line parameters
+	while ((input_intch = getopt(argc, argv, "i:h")) != -1) {
+		switch ((char)input_intch) {
+			case 'i':
+				strcpy(Xip_str, optarg);
+				if (validateIP4Dotted(Xip_str) == 0) {
+					printf("Invalid IP address\n");
+					return -1;
+				}
+				break;
+			default:
+			case 'h':
+				printf("X32DeskRestore - ver 1.00 - ©2018 - Patrick-Gilles Maillot\n\n");
+				printf("usage: X32DeskRestore [-i X32 console ipv4 address, default: 192.168.1.64]\n");
+				printf("                      <Source file name/path>\n");
+				printf("X32DeskRestore restores an X32 based on data previously saved to a file using\n");
+				printf("X32DeskSave or from a X32 Scene or an X32 Snippet file\n\n");
+				return(0);
+			break;
+		}
+	}
+	if (argv[optind]) {
+		strcpy(Xfilename, argv[optind]);
+		Xfiles = 1;
+	} else {
+		MESSAGE(NULL, "No Source file");
+		return 1;
+	}
+	if ((Xconnected = X32Connect(0, Xip_str, 20000)) == 1) {
+		XRcvClean();
+		return X32DS_GetFile();
+	}
+	MESSAGE(NULL, "No X32 found!");
+	return 1;
+#endif
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -1118,4 +1177,7 @@ int main(int argc, char **argv) {
 //	// all OK
 //	return (0);
 //}
+
+
+
 
