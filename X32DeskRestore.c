@@ -149,7 +149,7 @@ do {                                                    \
 #define SEND_TO(b, l)										\
 	do {													\
 		if (sendto(Xfd, b, l, 0, Xip_addr, Xip_len) < 0) {	\
-			printf ("Can't send data to X32\n");			\
+			MESSAGE(NULL, "Can't send data to X32")			\
 			exit(EXIT_FAILURE);								\
 		} 													\
 	} while (0);
@@ -286,7 +286,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 						SetWindowText(hwndprog, (LPSTR)Xnotconnected);
 					}
 				} else {
-					printf("Incorrect IP string form\n");
+					MESSAGE(NULL, "Incorrect IP string form");
 				}
 				break;
 			case 2:
@@ -376,12 +376,12 @@ int X32DS_GetFile() {
 
 	// Check if Connected
 	if (!Xconnected) {
-		printf("Not connected to X32!\n");
+		MESSAGE(NULL, "Not connected to X32!");
 		return (1);
 	}
 	// Check if destination path OK
 	if (!Xfiles) {
-		printf("Error: No file selected\n");
+		MESSAGE(NULL, "No file selected");
 		return (1);
 	}
 	err_flag = -1;		// consider we may be in an error state (early-end)
@@ -408,18 +408,18 @@ int X32DS_GetFile() {
 					// manage the echo of the command from X32, ignoring the answer
 					RPOLL
 					if (p_status < 0) {
-						printf("Polling for data failed\n");
+						MESSAGE(NULL, "Polling for data failed");
 						return 0;
 					} else if (p_status > 0) {
 						// We have received data - process it! (well... ignore it)
 						r_len = recvfrom(Xfd, r_buf, BSIZE, 0, 0, 0);
 						if (0) {
-							printf("Unexpected answer from X32\n");
+							MESSAGE(NULL, "Unexpected answer from X32");
 							return 0;
 						}
 					} else {
 						// time out...
-						printf("X32 reception timeout\n");
+						MESSAGE("Warning", "X32 reception timeout");
 //						return 0;
 					}
 //
@@ -440,7 +440,7 @@ int X32DS_GetFile() {
 		fclose(Xdsfile_pt);
 	} else {
 		// cannot open file
-		printf("Error opening .xds file: %s\n", Xfilename);
+		MESSAGE("Error opening .xds file:", Xfilename);
 		return (1);
 	}
 	return (err_flag);
@@ -491,7 +491,7 @@ int main(int argc, char **argv) {
 			case 'i':
 				strcpy(Xip_str, optarg);
 				if (validateIP4Dotted(Xip_str) == 0) {
-					printf("Invalid IP address\n");
+					MESSAGE(NULL, "Invalid IP address");
 					return -1;
 				}
 				break;
