@@ -3,7 +3,7 @@
  *
  *  Created on: May 6, 2016
  *
- * �2016 - Patrick-Gilles Maillot
+ * ©2016 - Patrick-Gilles Maillot
  *
  * X32DeskSave - a Command-line / windows app for saving a all -prefs and -stat
  * X32 memory states to a PC HDD.
@@ -32,8 +32,6 @@
 			printf("%s - %s\n",s2, s1);
 #define zeromem(a1, a2) \
 		memset((void*)a1, 0, a2);
-#define min(a,b) 		\
-			(((a)<(b))?(a):(b))
 #endif
 #include <stdlib.h>
 #include <stdio.h>
@@ -47,12 +45,11 @@
 #define BSIZE 512
 // External calls used
 extern int		Xsprint(char *bd, int index, char format, void *bs);
-#ifdef _WIN32
 extern int		X32Connect(int Xconnected, char* Xip_str, int btime);
 extern int		validateIP4Dotted(const char *s);
-#endif
 //
 // Private functions
+char*	getFileNameFromPath(char* path);
 int		X32DS_GetFile();
 void 	XRcvClean();
 //
@@ -74,22 +71,7 @@ MSG			wMsg;
 
 OPENFILENAME ofn;       // common dialog box structure
 HANDLE hf;              // file handle
-#endif
 //
-FILE 	*res_file;
-char	Finipath[1024];	// resolved path to .ini file
-char	**FinilppPart;
-int 	Finiretval;
-
-int		keep_running = 1;
-int		wWidth = 545;
-int		wHeight = 130;
-
-char	Xip_str[20];
-char	Xfile_w_path[256];
-char	Xfile_r_path[256];
-char	Xfile_w_name[32];	// used to save the selected file name to create
-char	Xfile_r_name[32];	// used to save the selected file name used as pattern file
 char	Xnotconnected[] = "Not Connected";
 char	Xcomplete[]     = "Complete";
 char	Xready[]        = "Ready";
@@ -117,6 +99,22 @@ char	*Xext[] = {".xds\0",
 
 char		*ActType[] = {"Choose:", "DeskSave", "Scene", "Routing", "Pattern", "\0"};
 int			Actsize = sizeof(ActType) / sizeof(char*) - 1;
+
+FILE 	*res_file;
+char	Finipath[1024];	// resolved path to .ini file
+char	**FinilppPart;
+int 	Finiretval;
+
+int		keep_running = 1;
+int		wWidth = 545;
+int		wHeight = 130;
+#endif
+//
+char	Xip_str[20];
+char	Xfile_w_path[256];
+char	Xfile_r_path[256];
+char	Xfile_w_name[32];	// used to save the selected file name to create
+char	Xfile_r_name[32];	// used to save the selected file name used as pattern file
 
 //SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Choose:");
 //SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"DeskSave");
@@ -254,22 +252,22 @@ char 	str1[64];
 			perror("Pixel bitmap file no found");
 		}
 		break;
-//
+		//
 	case WM_PAINT:
 		hdc = BeginPaint(hwnd, &ps);
-//
+		//
 		SetWindowText(hwndfname, (LPSTR)Xnofile);
 		SetWindowText(hwndipaddr, (LPSTR)Xip_str);
-//
+		//
 		hdcMem = CreateCompatibleDC(hdc);
 		SelectObject(hdcMem, hBmp);
 		BitBlt(hdc, 0, 2, 120, 100, hdcMem, 0, 0, SRCCOPY);
 		DeleteDC(hdcMem);
-//
+		//
 		SetBkMode(hdc, TRANSPARENT);
 		MoveToEx(hdc, 390, wHeight - 30, NULL);
 		LineTo(hdc, 390, 2);
-//
+		//
 		hfont = CreateFont(14, 0, 0, 0, FW_LIGHT, 0, 0, 0,
 		DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 		ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
@@ -278,18 +276,18 @@ char 	str1[64];
 		TextOut(hdc, 340, 18, str1, wsprintf(str1, d_version));
 		DeleteObject(htmp);
 		DeleteObject(hfont);
-//
+		//
 		hfont = CreateFont(16, 0, 0, 0, FW_REGULAR, 0, 0, 0,
 		DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 		ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 125, 0, str1, wsprintf(str1, "X32DeskSave - �2016 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 125, 0, str1, wsprintf(str1, "X32DeskSave - ©2016 - Patrick-Gilles Maillot"));
 		DeleteObject(htmp);
 		DeleteObject(hfont);
-//
+		//
 		EndPaint(hwnd, &ps);
 		break;
-//
+		//
 	case WM_COMMAND:
 		if (HIWORD(wParam) == BN_CLICKED) {	// user action
 			switch(LOWORD(wParam)) {
@@ -353,14 +351,10 @@ char 	str1[64];
 							// add an extension
 							strcat(Xfile_w_path, Xext[Xptype - 1]);
 						}
-						// remove filename from returned path so we can either save to
+						// Extract filename from returned path so we can either save to
 						// existing directory or newly created one
-						i = strlen(Xfile_w_path);
-						while (i && (Xfile_w_path[i] != '\\')) --i;
-						Xfile_w_path[i] = 0;
-						strcpy(Xfile_w_name, Xfile_w_path + i + 1);
-						sprintf(s_buf, "Directory: %s\nFile Name: %s", Xfile_w_path, Xfile_w_name);
-						if (MessageBox(NULL, s_buf, "Destination directory & File name: ", MB_OKCANCEL) == IDOK) {
+						strcpy(Xfile_w_name, getFileNameFromPath(Xfile_w_path));
+						if (MessageBox(NULL, Xfile_w_path, "Destination File path: ", MB_OKCANCEL) == IDOK) {
 							SetWindowText(hwndfname, (LPSTR)Xfile_w_name);
 							Xfiles = 1;
 							if (Xconnected) SetWindowText(hwndprog, (LPSTR)Xready);
@@ -452,7 +446,7 @@ int X32DS_GetFile() {
 	num_nodes = 0;
 	//
     // Open the destination file for writing
-    if ((Xfile_w_pt = fopen (Xfile_w_name, "wb")) != NULL) {
+    if ((Xfile_w_pt = fopen (Xfile_w_path, "wb")) != NULL) {
     	//
     	// Chose what set of data to query to X32
     	switch (Xptype) {
@@ -494,7 +488,6 @@ int X32DS_GetFile() {
 //			sscanf(l_read, "%i", &number);
 //			fprintf(Xfile_w_pt,"%s%s%s\n", "#2.1# 1 \"", Xfile_w_name, "\" 1 31 1");
 //    		break;
-
     	default:
     		break;
     	}
@@ -590,7 +583,7 @@ int X32DS_GetFile() {
     	case 4:	// use pattern file
     		// reading from pattern (can be any type)
     		// open pattern file as read only
-    	    if ((Xfile_r_pt = fopen (Xfile_r_name, "r")) != NULL) {
+    	    if ((Xfile_r_pt = fopen (Xfile_r_path, "r")) != NULL) {
     			while (keep_reading) {
     				if ((read_status = fgets(l_read, BSIZE, Xfile_r_pt)) != NULL) {
     					// ignore comment lines
@@ -634,7 +627,7 @@ int X32DS_GetFile() {
     			fclose(Xfile_r_pt);
     		} else {
     			// cannot open file
-    			printf("Error opening .xds file: %s\n", Xfile_r_name);
+    			printf("Error opening .xds file: %s\n", Xfile_r_path);
     			return (1);
     		}
     	    break;
@@ -645,13 +638,14 @@ int X32DS_GetFile() {
 		fclose(Xfile_w_pt);
     } else {
     	// cannot open file
-		printf ("Error creating destination file: %s\n", Xfile_w_name);
+		printf ("Error creating destination file: %s\n", Xfile_w_path);
 		return (1);
 	}
 	return (0);
 }
-
-
+//
+//
+//
 void XRcvClean() {
 //
 // empty reception buffer while data is available
@@ -663,6 +657,19 @@ void XRcvClean() {
 	} while (p_status > 0);
 	return;
 }
+//
+//
+char* getFileNameFromPath(char* path)
+{
+   for(size_t i = strlen(path) - 1; i; i--) {
+        if (path[i] == '/') {
+            return &path[i+1];
+        }
+    }
+    return path;
+}
+//
+//
 
 int
 main(int argc, char **argv)
@@ -674,9 +681,8 @@ main(int argc, char **argv)
 #else
 	int input_intch, keep_on;
 #endif
-
 	Xip_str[0] = 0;
-//
+	//
 #ifdef _WIN32
 	// load resource file
 	if ((res_file = fopen("./.X32DeskSave.ini", "r")) != NULL) {
@@ -691,18 +697,24 @@ main(int argc, char **argv)
 	}
 	ShowWindow(GetConsoleWindow(), SW_HIDE); // Hide console window
 	wWinMain(hInstance, hPrevInstance, pCmdLine, nCmdFile);
+	return 0;
 #else
 	keep_on = 1;
 	Xptype = 1;
 	strcpy(Xip_str, "192.168.1.64");
 	// manage command-line parameters
-	while ((input_intch = getopt(argc, argv, "i:p:d:s:r:f:h")) != -1) {
+	while ((input_intch = getopt(argc, argv, "i:p:d:s:r:h")) != -1) {
 		switch ((char)input_intch) {
 			case 'i':
 				strcpy(Xip_str, optarg);
+				if (validateIP4Dotted(Xip_str) == 0) {
+					printf("Invalid IP address\n");
+					return -1;
+				}
 				break;
 			case 'p':
-				strcpy(Xfile_r_name, optarg);
+				strcpy(Xfile_r_path, optarg);
+				strcpy(Xfile_r_name, getFileNameFromPath(optarg));
 				Xptype = 4;
 				break;
 			case 'd':
@@ -714,18 +726,15 @@ main(int argc, char **argv)
 			case 'r':
 				Xptype = 3;
 				break;
-			case 'f':
-				strcpy(Xfile_w_name, optarg);
-				break;
 			default:
 			case 'h':
-				printf("X32DeskSave - ver 1.00 - �2018 - Patrick-Gilles Maillot\n\n");
+				printf("X32DeskSave - ver 1.00 - ©2018 - Patrick-Gilles Maillot\n\n");
 				printf("usage: X32DeskSave [-i X32 console ipv4 address, default: 192.168.1.64]\n");
 				printf("                   [-p <pattern file> File path to pattern input file]\n");
 				printf("                   [-d 0/1 DeskSave file]\n");
 				printf("                   [-s 0/1 Scene file]\n");
 				printf("                   [-r 0/1 Routing file]\n");
-				printf("                   <Destination file name>\n");
+				printf("                   <Destination file name/path>\n");
 				printf("X32DeskSave save those parameters that are not handled  by shows, scenes,\n");
 				printf("snippets, cues, presets, routing or effects files... So when you connect\n");
 				printf("to your desk, it is exactly as you want it: screen, light brightness, view, etc.\n");
@@ -740,52 +749,19 @@ main(int argc, char **argv)
 		}
 	}
 	if (argv[optind]) {
-		strcpy(Xfile_w_name, argv[optind]);
-		printf("file name = %s\n", Xfile_w_name); fflush(stdout);
+		strcpy(Xfile_w_path, argv[optind]);
+		strcpy(Xfile_w_name, getFileNameFromPath(argv[optind]));
 		Xfiles = 1;
 	} else {
 		MESSAGE(NULL, "No Destination file");
 		return 1;
 	}
-	// Connect to X32
-	// Load the X32 address we connect to; we're a client to X32, keep it simple.
-	// Create UDP socket
-	if ((Xfd = socket (PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
-		perror ("failed to create X32 socket");
-		exit (EXIT_FAILURE);
+	if ((Xconnected = X32Connect(0, Xip_str, 20000)) == 1) {
+		XRcvClean();
+		return X32DS_GetFile();
 	}
-	// Construct  server sockaddr_in structure
-	memset (&Xip, 0, sizeof(Xip));				// Clear struct
-	Xip.sin_family = AF_INET;					// Internet/IP
-	Xip.sin_addr.s_addr = inet_addr(Xip_str);	// IP address
-	Xip.sin_port = htons(atoi("10023"));		// server port/
-	//
-	// Set receiving from X32 to non blocking mode
-	// The 500ms timeout is used for delaying the printing of '.' at startup.
-	timeout.tv_sec = 0;
-	timeout.tv_usec = 500000; //Set timeout for non blocking recvfrom(): 500ms
-	FD_ZERO(&ufds);
-	FD_SET(Xfd, &ufds);
-	s_len = Xsprint(s_buf, 0, 's', "/info");
-	while (keep_on) {
-		SEND_TO(s_buf, s_len)  		// command /info sent;
-		RPOLL 						// read data if available
-		if (p_status < 0) {
-			printf("Polling for data failed\n");
-			return 1;				// exit on receive error
-		} else if (p_status > 0) {
-			RECV_FR(r_buf, r_len) 	// We have received data - process it!
-			if (strcmp(r_buf, "/info") == 0)
-				break;		// Connected!
-		}					// ... else timeout
-		printf("."); fflush(stdout);
-	}
-	printf(" X32 Found!\n");
-	Xconnected = 1;
-	//
-	// Set 1ms timeout to get faster response from X32 (when testing for /xremote data).
-	timeout.tv_usec = 100000;
-	return X32DS_GetFile();
+	MESSAGE(NULL, "No X32 found!");
+	return 1;
 #endif
-	return 0;
 }
+
