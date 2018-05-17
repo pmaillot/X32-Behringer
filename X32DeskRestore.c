@@ -203,7 +203,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 // Windows Callbacks
 //
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-	int i;
 	char str1[64];
 
 	switch (msg) {
