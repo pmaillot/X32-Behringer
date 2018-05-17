@@ -99,6 +99,15 @@ char	*Xext[] = {".xds\0",
 
 char		*ActType[] = {"Choose:", "DeskSave", "Scene", "Routing", "Pattern", "\0"};
 int			Actsize = sizeof(ActType) / sizeof(char*) - 1;
+//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Choose:");
+//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"DeskSave");
+//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Scene");
+//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Snippet");
+//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Channel");
+//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Effects");
+//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Routing");
+//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Pattern");
+
 
 FILE 	*res_file;
 char	Finipath[1024];	// resolved path to .ini file
@@ -116,19 +125,8 @@ char	Xfile_r_path[256];
 char	Xfile_w_name[32];	// used to save the selected file name to create
 char	Xfile_r_name[32];	// used to save the selected file name used as pattern file
 
-//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Choose:");
-//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"DeskSave");
-//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Scene");
-//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Snippet");
-//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Channel");
-//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Effects");
-//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Routing");
-//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Pattern");
-
-
 int		Xconnected = 0;	// Flag indicating if we're connected to X32
 int		Xfiles = 0;		// Flag indicating if a file has been selected for saving
-int		Xfilep = 0;		// Flag indicating if a pattern file has been selected
 int		Xptype = 0;		// Flag indicating the type of file we're saving
 
 // X32 Communication buffers (in and out)
@@ -160,7 +158,7 @@ fd_set 				ufds;					// file descriptor
 #define SEND_TO(b, l)										\
 	do {													\
 		if (sendto(Xfd, b, l, 0, Xip_addr, Xip_len) < 0) {	\
-			printf ("Can't send data to X32\n");			\
+			MESSAGE("Can't send data to X32","");			\
 			exit(EXIT_FAILURE);								\
 		} 													\
 	} while (0);
@@ -303,7 +301,7 @@ char 	str1[64];
 						SetWindowText(hwndprog, (LPSTR)Xnotconnected);
 					}
 				} else {
-					printf ("Incorrect IP string form\n");
+					MESSAGE("Error", "Incorrect IP string form");
 				}
 				break;
 			case 2:
@@ -366,7 +364,6 @@ char 	str1[64];
 			    }
 				break;
 			case 4:	// pattern file file name obtained from dialog
-				Xfilep = 0;
 				// Initialize OPENFILENAME
 				ZeroMemory(&ofn, sizeof(ofn));
 				ofn.lStructSize = sizeof(ofn);
@@ -391,7 +388,6 @@ char 	str1[64];
 //					printf("Path: %s\n", Xfile_r_path);
 //					printf("Name: %s\n", Xfile_r_name);
 //					fflush(stdout);
-					Xfilep = 1;
 					SetWindowText(hwndfpatn, (LPSTR)Xfile_r_name);
 				}
 				break;
@@ -434,12 +430,12 @@ int X32DS_GetFile() {
 
 	// Check if Connected
 	if (!Xconnected) {
-		printf ("Not connected to X32!\n");
+		MESSAGE("Not connected to X32!","");
 		return (1);
 	}
 	// Check if destination path OK
 	if (!Xfiles) {
-		printf("Error: No file selected\n");
+		MESSAGE("Error", "No file selected");
 		return (1);
 	}
 	nodes_ptr = 0;
@@ -515,7 +511,7 @@ int X32DS_GetFile() {
 						fprintf(Xfile_w_pt, "%s", r_buf + j);
 					}
 				} else {
-					printf ("Error or timeout while receiving data from X32\n");
+					MESSAGE("Error or timeout", "on receiving data from X32");
 				}
 			}
 			break;
@@ -539,7 +535,7 @@ int X32DS_GetFile() {
 //						fprintf(Xfile_w_pt, "%s", r_buf + 18);
 //					}
 //				} else {
-//					printf ("Error or timeout while receiving data from X32\n");
+//					MESSAGE("Error or timeout", "on receiving data from X32");
 //				}
 //			}
 //			s_len = Xsprint(s_buf, k, 's', "/headamp/000");
@@ -553,7 +549,7 @@ int X32DS_GetFile() {
 //					fprintf(Xfile_w_pt, "%s", r_buf + 18);
 //				}
 //			} else {
-//				printf ("Error or timeout while receiving data from X32\n");
+//				MESSAGE("Error or timeout", "on receiving data from X32");
 //			}
 //    		break;
 //    	case 5:	//.efx
@@ -576,7 +572,7 @@ int X32DS_GetFile() {
 //						fprintf(Xfile_w_pt, "%s", r_buf + 18);
 //					}
 //				} else {
-//					printf ("Error or timeout while receiving data from X32\n");
+//					MESSAGE("Error or timeout", "on receiving data from X32");
 //				}
 //			}
 //    		break;
@@ -601,7 +597,7 @@ int X32DS_GetFile() {
     						SEND_TO(s_buf, s_len)
     						RPOLL
     						if (p_status < 0) {
-    							printf("Polling for data failed\n");
+    							MESSAGE(NULL ,"Polling for data failed");
     							return 0;	// Make sure we don't considered being connected
     						} else if (p_status > 0) {
     							// We have received data - process it!
@@ -615,7 +611,7 @@ int X32DS_GetFile() {
     							}
     						} else {
     							// time out... Not connected or Not an X32
-    							printf("X32 reception timeout\n");
+    							MESSAGE(NULL, "X32 reception timeout");
     							return 0;	// Make sure we don't considered being connected
     						}
     					}
@@ -627,7 +623,7 @@ int X32DS_GetFile() {
     			fclose(Xfile_r_pt);
     		} else {
     			// cannot open file
-    			printf("Error opening .xds file: %s\n", Xfile_r_path);
+    			MESSAGE("Error opening .xds file:", Xfile_r_path);
     			return (1);
     		}
     	    break;
@@ -638,7 +634,7 @@ int X32DS_GetFile() {
 		fclose(Xfile_w_pt);
     } else {
     	// cannot open file
-		printf ("Error creating destination file: %s\n", Xfile_w_path);
+		MESSAGE ("Error creating destination file:", Xfile_w_path);
 		return (1);
 	}
 	return (0);
@@ -687,7 +683,7 @@ main(int argc, char **argv)
 	// load resource file
 	if ((res_file = fopen("./.X32DeskSave.ini", "r")) != NULL) {
 		// get and remember real path
-		if((Finiretval = GetFullPathNameA("./.X32DeskSave.ini", 1024, Finipath, FinilppPart)) > 1024){
+		if((Finiretval = GetFullPathNameA("./.X32DeskSave.ini", 1023, Finipath, FinilppPart)) > 1024) {
 			printf ("Not enough space for file name\n");
 		}
 		fscanf(res_file, "%d %d\r\n", &wWidth, &wHeight);
