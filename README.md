@@ -7,7 +7,7 @@ The first one I committed is X32_Command, a simple yet very useful and powerful 
 
 
 ## COPYRIGHT ##
-All software, pictures & documentation Copyright (C) 2013-2016 Patrick-Gilles Maillot
+All software, pictures & documentation Copyright (C) 2013-2018 Patrick-Gilles Maillot
 
 All software in this repository is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -17,8 +17,7 @@ This software is distributed in the hope that it will be useful, but WITHOUT ANY
 You should have received a copy of the GNU General Public License
 
 ## Demos and documentation ##
-The software in this repository heavily relies on OSC commands sent or received to/from an X32 digital mixer, using UDP communication protocol. The latest version of the unofficial X32 OSC Protocol documentation, and compiled/built versions of the tools, demos, examples and snapshots can be found at 
-https://sites.google.com/site/patrickmaillot/x32
+The software in this repository heavily relies on OSC commands sent or received to/from an X32 digital mixer, using UDP communication protocol. The latest version of the unofficial X32 OSC Protocol documentation, and compiled/built versions of the tools, demos, examples and snapshots can be found at https://sites.google.com/site/patrickmaillot/x32.
 
 ## How do I get set up? ##
 The tools and programs proposed here are generally simple C programs, static linked applications. They will work in a Linux, OS X, or Windows terminal. Some programs are  Windows applications and rely on Windows MFC libraries and work in a Windows XP to Windows 10 environment.
