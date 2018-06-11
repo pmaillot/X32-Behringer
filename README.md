@@ -20,7 +20,10 @@ You should have received a copy of the GNU General Public License
 The software in this repository heavily relies on OSC commands sent or received to/from an X32 digital mixer, using UDP communication protocol. The latest version of the unofficial X32 OSC Protocol documentation, and compiled/built versions of the tools, demos, examples and snapshots can be found at https://sites.google.com/site/patrickmaillot/x32.
 
 ## How do I get set up? ##
-The tools and programs proposed here are generally simple C programs, static linked applications. They will work in a Linux, OS X, or Windows terminal. Some programs are  Windows applications and rely on Windows MFC libraries and work in a Windows XP to Windows 10 environment.
+The tools and programs proposed here are generally simple C programs, static linked applications. 
+First build yourself a library of 'utility' functions you will find under Xlib32. Compile all files (-c flag) found in X32lib and archive them into a library you can then static-link to the other programs.
+
+Applications and programs will work in a Linux, OS X, or Windows terminal. Some programs are  Windows applications and rely on Windows MFC libraries and work in a Windows XP to Windows 10 environment.
 
 Source code is set for 4-space tabs in Eclipse.
 
