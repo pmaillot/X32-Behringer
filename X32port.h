@@ -8,12 +8,6 @@
 #ifndef X32PORT_H_
 #define X32PORT_H_
 
-
-/* SERVIVE_PORT defines the default port number for this service
- * replace the number with a unique number > 1024
- * a reasonable number may be obtained from, say, four
- * digits of your id + 1024
- */
 #define XDEBUG				0		// 1: be verbose
 #define XPORT				10023	// hard-coded port number for X32
 #define BUFSIZE				2048
@@ -24,7 +18,7 @@
 #define SPACE ' '
 
 #define MAXMESS				8
-typedef enum{NOOP, INFO, STATUS, XREMOTE, SHOWDUMP, NODE, CH, FX} Xmes;
+typedef enum {NOOP, INFO, STATUS, XREMOTE, SHOWDUMP, NODE, CH, FX} Xmes;
 
 extern void Xdump(char *buf, int len, int debug);
 extern void Xfdump(char *header, char *buf, int len, int debug);
