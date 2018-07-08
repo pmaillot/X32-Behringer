@@ -4,39 +4,21 @@
  *  Created on: Oct 26, 2016
  *      Author: Patrick-Gilles Maillot
  *
- * Initial calculator code from:
- * http://blog.brush.co.nz/2007/11/recursive-decent/
- *
- * Modifications to include $n like parameters as ints or floats in
- * the accepted notation and parsing; also added bitwise and shift
- * operators (for ints) and the possibility to have spaces within formula
- * expressions
- *
- * Simple expression parser and calculator
- *
- * The grammar in BNF-ish notation
- * * ---for ints / MIDI-------------------
- * expression:  ['+'|'-'] shifter ['&'|'|'|'^' shifter]*
- * shifter:		pminus ['>'|'<' pminus]*
- * pminus:		dmulti ['+'|'-' dmulti]*
- * dmulti:		factor ['*'|'/' factor]*
- * factor:		'(' expression ')' | operand
- * operand:		number | '$'number
- * number:		digit [digit]*
- * ---for ints & floats / OSC-------------------
- * oxpression:  ['+'|'-'] odmulti ['+'|'-' odmulti]*
- * odmulti:		ofactor ['*'|'/' ofactor]*
- * ofactor:		'(' oxpression ')' | ooperand
- * ooperand:	number | '$'number
- * number:		digit [digit]*
  *
  *	ver 1.00:	Initial release; single, no-operation, MIDI only,  integer parameters
  *	ver 1.01:	Introduced calculator for integer parameters, isolated within '[' and ']'
  *	ver 1.02:	float parameters accepted, isolated within '[' and ']', transformed to int
  *				[0..127] before use. Accepting multiple parameters (limit = MAXPARAM)
  *	ver 1.03:	added OSC capability for both int and float type tags.
- *	ver 1.04:	fixed bugs! .
+ *	ver 1.04:	fixed bugs!
  *	ver 1.05:	fixed index error in file reader&parser.
+ *	ver 1.06:	preventing window resizing.
+ *	ver 1.07:	added the possibility to set source IP address and destination IP/Port as
+ *	            command line parameters.
+ *	ver 1.08:	midi out devices in a memory allocated array rather than fixed size
+ *	ver 1.09:	midi in and out combobox displaying 1 midi device less than found
+ *	ver 1.10:	Share calculator section with X32Midi2OSC, a RPN based solution
+ *
  */
 #include <winsock2.h>	// Windows functions for std GUI & sockets
 #include <mmsystem.h>	// Multimedia functions (such as MIDI) for Windows
@@ -61,10 +43,10 @@ typedef	union {
 	char	c_s[32];
 } Param;
 //
-union littlebig {
-    char    c1[4];
-    int     i1;
-    float   f1;
+typedef union {
+    char    cc[4];
+    int     ii;
+    float   ff;
 } endian;
 //
 // Global definitions
@@ -72,7 +54,6 @@ char				**sindex_pt = NULL;
 char				*source_pt = NULL;
 char				*s_pt;
 int					num_lines = 0;
-Param				param[MAXPARAM];			// accept MAXPARAM parameters max
 int					keep_on = 1;
 int					Xconnected = 0;				// X32 Connected
 int					XMconnected = 0;			// MIDI Connected
@@ -87,8 +68,10 @@ HMIDIOUT			MidiOutDevice;    // MIDI device interface for sending MIDI output
 MIDIHDR				MidiOutHdr = {0};
 LPMIDIHDR			lpMidiOutHdr = &MidiOutHdr;
 UINT				cbMidiOutHdr = sizeof(MidiOutHdr);
-char				XOutMidiNames[16][32];		// List of Midi OUT devices (limit 16)
+char				**XOutMidiNames;			// List of Midi OUT devices (limit 32 chars names)
+int					XnumOutMidi;				// Number of OUT devices
 int					Xmidioutport;
+int					Mflag;						// Midi flag
 //
 WSADATA				wsa;						// Windows Sockets
 int 				Xfd;						// X32 socket
@@ -101,7 +84,7 @@ char				xremote[12] = "/xremote";	// automatic trailing zeroes
 char				Xip_str[32];				// X32 IP address as a string
 time_t				before, now;				// timers for /xremote
 char				str1[64];
-char				*cmd;
+char				*cmd, *cmd_p_pt;			// pointers in incoming command line
 int					ccc;						// global intermediate value for the calculator
 //
 int 				Xofd;						// OSC Out socket
@@ -115,6 +98,7 @@ char				Xop_str[32];				// OSC Out address as a string
 char 				o_buf[BSIZE];				// OSC Out send buffer
 int 				o_len;						// OSC Out associated data length
 //
+endian				Xdian;						// used for conversions
 // Windows Declarations
 WINBASEAPI HWND WINAPI GetConsoleWindow(VOID);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -164,16 +148,19 @@ do {																\
 #define SENDO														\
 do {																\
 	if (sendto (Xofd, o_buf, o_len, 0, Xop_addr, Xop_len) < 0) {	\
-	perror ("Error while sending data");							\
-	exit (EXIT_FAILURE);											\
+		perror ("Error while sending data");						\
+		exit (EXIT_FAILURE);										\
 	}																\
 } while(0);
 //
 // External calls used
 //extern int  Xsprint(char *buffer, int index, char format, void *data);
 //extern int  Xfprint(char *buffer, int index, char *header, char format, void *data);
-extern int  X32Connect(int Xconnected, char* Xip_str, int btime);
-extern int  validateIP4Dotted(const char *s);
+extern int    X32Connect(int Xconnected, char* Xip_str, int btime);
+extern double X32RpnCalc(char **s, char *t);
+extern int    validateIP4Dotted(const char *s);
+//
+extern endian mparam[];					// midi or OSC parameters
 //
 // Private functions
 int Xinit();
@@ -185,182 +172,6 @@ int  XMidiConnect();
 int  XOConnect();
 void XCloseMidiDevices();
 //
-//
-// Expression Calculator code
-//
-void next(char** cmd);
-int	 expression(char** cmd);
-int	 number(char** cmd);
-int	 operand(char** cmd);
-int	 factor(char** cmd);
-int	 dmulti(char** cmd);
-int  shifter(char** cmd);
-int  pminus(char** cmd);
-void error(char *msg);
-float oxpression(char** cmd, char* parstr_pt);
-float ooperand(char** cmd);
-float ofactor(char** cmd, char* parstr_pt);
-float odmulti(char** cmd, char* parstr_pt);
-//
-// Int Calculator code
-void error(char *msg) {
-    puts(msg);
-    exit(1);
-}
-//
-void next(char** cmd) {
-    do {
-    	(*cmd) += 1;
-    } while ((ccc = **cmd) == ' ');
-    if (ccc == ']') ccc = 0;;
-}
-//
-int number(char** cmd) {
-    int n;
-
-    if (!isdigit(ccc)) error("digit expected");
-    n = 0;
-    do {
-        n = n * 10 + ccc - '0';
-        next(cmd);
-    } while (isdigit(ccc));
-    return n;
-}
-//
-int operand(char** cmd) {
-
-    if (ccc == '$') {
-        next(cmd);
-        return param[number(cmd)].c_i;
-    }
-    return number(cmd);
-}
-//
-int factor(char** cmd) {
-    int n;
-
-    if (ccc == '(') {
-        n = expression(cmd);
-        if (ccc != ')') error(") expected");
-        next(cmd);
-    } else
-        n = operand(cmd);
-    return n;
-}
-//
-int dmulti(char** cmd) {
-    int op, n, m;
-
-    n = factor(cmd);
-    while ((op = ccc) == '*' || op == '/') {
-        next(cmd);
-        m = factor(cmd);
-        n = (op == '*') ? n * m : n / m;
-    }
-    return n;
-}
-//
-int pminus(char** cmd) {
-    int op, n, m;
-
-    n = dmulti(cmd);
-    while ((op = ccc) == '+' || op == '-') {
-        next(cmd);
-        m = dmulti(cmd);
-        n = op=='+' ? n+m : n-m;
-    }
-    return n;
-}
-//
-int shifter(char** cmd) {
-    int op, n, m;
-
-    n = pminus(cmd);
-    while ((op = ccc) == '>' || op == '<') {
-        next(cmd);
-        m = pminus(cmd);
-        n = op=='>' ? n>>m : n<<m;
-    }
-    return n;
-}
-//
-int expression(char** cmd) {
-    int sign, op, n, m;
-
-    next(cmd);
-    if ((sign = (ccc == '-')) || ccc == '+') next(cmd);
-    n = shifter(cmd);
-    if (sign) n = -n;
-    while ((op = ccc) == '&' || op == '|' || op == '^') {
-        next(cmd);
-        m = shifter(cmd);
-        n = (op == '&' )? n & m : ((op == '|' )? n | m : n ^ m);
-    }
-    return n;
-}
-//
-// Float Calculator code
-float ooperand(char** cmd) {
-
-    if (ccc == '$') {
-        next(cmd);
-        return param[number(cmd)].c_f;
-    }
-    return (float)number(cmd);
-}
-//
-float ofactor(char** cmd, char* parstr_pt) {
-    float f;
-
-    if (ccc == '(') {
-        f = oxpression(cmd, parstr_pt);
-        if (ccc != ')') error(") expected");
-        next(cmd);
-    } else
-        f = ooperand(cmd);
-    return f;
-}
-//
-float odmulti(char** cmd, char* parstr_pt) {
-    int op;
-    float f, g;
-
-    f = ofactor(cmd, parstr_pt);
-    while ((op = ccc) == '*' || op == '/') {
-        next(cmd);
-        g = ofactor(cmd, parstr_pt);
-        f = (op == '*') ? f * g : f / g;
-    }
-    return f;
-}
-// oxpression(&cmd, parstr)
-float oxpression(char **cmd, char* parstr_pt) {
-    int sign, op;
-    float f, g;
-
-	// int case
-	next(cmd);
-	if ((sign = (ccc == '-')) || ccc == '+') next(cmd);
-	f = odmulti(cmd, parstr_pt);
-	if (sign) f = -f;
-	while ((op = ccc) == '+' || op == '-') {
-		next(cmd);
-		g = odmulti(cmd, parstr_pt);
-		f = (op == '+' )? f + g : f - g;
-	}
-	if (*parstr_pt == 'i') {
-		endian.i1 = (int)f;
-    } else {
-		endian.f1 = f;
-    }
-	o_buf[o_len++] = endian.c1[3];
-	o_buf[o_len++] = endian.c1[2];
-	o_buf[o_len++] = endian.c1[1];
-	o_buf[o_len++] = endian.c1[0];
-    return f;
-}
-//
-// End of Expression Calculator code
 //
 // Windows main function and main loop
 //
@@ -376,7 +187,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 	RegisterClassW(&wc);
 	CreateWindowW(wc.lpszClassName,
 		L"X32Commander",
-		WS_OVERLAPPEDWINDOW | WS_VISIBLE, 100, 220, 297, 187, 0, 0, hInstance, 0);
+		WS_OVERLAPPED | WS_VISIBLE | WS_MINIMIZEBOX | WS_SYSMENU, 100, 220, 287, 177, 0, 0, hInstance, 0);
 //
 	XMconnected = Xconnected = 0;
 // Main loop
@@ -410,7 +221,6 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 //
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	int i;
-	int XMidiDevNum;
 //
 	switch (msg) {
 	case WM_CREATE:
@@ -420,12 +230,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				(HMENU )0, NULL, NULL);
 		hwndconx = CreateWindow("button", "Connect & Run", WS_VISIBLE | WS_CHILD,
 				130, 40, 145, 20, hwnd, (HMENU )1, NULL, NULL);
-		// display initial item 0 / off in the selection field
+
+		XnumOutMidi = XListMidiOutDevices();
 		hwndmoutcombo = CreateWindowW(L"COMBOBOX", NULL, CBS_DROPDOWN | WS_CHILD | WS_VISIBLE,
-				5, 78, 180, 140, hwnd, (HMENU)0, NULL, NULL);
+				5, 78, 180, (XnumOutMidi + 1) * 20, hwnd, (HMENU)0, NULL, NULL);
 		// Load dropdown item list
-		XMidiDevNum = XListMidiOutDevices();
-		for (i = 0; i < XMidiDevNum; i++) {
+		for (i = 0; i < XnumOutMidi; i++) {
 			SendMessage(hwndmoutcombo, CB_ADDSTRING, (WPARAM)0, (LPARAM)XOutMidiNames[i]);
 		}
 		// display initial item 0 / off in the selection field
@@ -445,6 +255,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		SetBkMode(hdc, TRANSPARENT);
 		// update user information
 		SetWindowText(hwndipaddr, (LPSTR) Xip_str);
+		SetWindowText(hwndopaddr, (LPSTR) Xop_str);
 		//
 		hfont = CreateFont(16, 0, 0, 0, FW_REGULAR, 0, 0, 0,
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
@@ -459,7 +270,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, FIXED_PITCH, NULL);//TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 235, 15, str1, wsprintf(str1, "v 1.05"));
+		TextOut(hdc, 235, 15, str1, wsprintf(str1, "v 1.10"));
 		TextOut(hdc, 5, 25, str1, wsprintf(str1, "Set X32 IP below:"));
 		TextOut(hdc, 5, 63, str1, wsprintf(str1, "MIDIout:"));
 		TextOut(hdc, 5, 105, str1, wsprintf(str1, "OSC out IP, Port below:"));
@@ -502,8 +313,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		if (Xconnected) close(Xfd);
 		if (XOconnected)  close (Xofd);
 		Xconnected = XOconnected = 0;
-		XCloseMidiDevices();
 		keep_on = 0;
+		XCloseMidiDevices();
+		for (i = 0; i < XnumOutMidi; i++) {
+			if (XOutMidiNames[i]) free(XOutMidiNames[i]);
+		}
+		if (XOutMidiNames) free(XOutMidiNames);
 		PostQuitMessage(0);
 		break;
 	}
@@ -512,7 +327,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 //
 // XOConnect()
 // Establish USD connection to OSC out. No test is done on the IP and port besides maybe a simple
-// IP syntax check. Can't test the actual connectiona s we cannot know what's on the other side.
+// IP syntax check. Can't test the actual connection as we cannot know what's on the other side.
 int XOConnect() {
 	int i;
 //
@@ -634,19 +449,22 @@ int Xinit() {
 int XListMidiOutDevices() {
 	int 			i, NumDevs;
 	MIDIOUTCAPS		moc;
-//
-	NumDevs = midiOutGetNumDevs();  	// Get the number of MIDI Out devices in this computer
+	//
+	NumDevs = midiOutGetNumDevs() + 1;  	// Get the number of MIDI Out devices in this computer
 	// Go through all of those devices, displaying their names
+	XOutMidiNames = malloc((NumDevs) * sizeof(char*));
+	XOutMidiNames[0] = malloc(32);
 	strcpy(XOutMidiNames[0], "Off");
-	for (i = 0; i < NumDevs; i++) {
+	for (i = 1; i < NumDevs; i++) {
 		// Get info about the next device
-		if (!midiOutGetDevCaps(i, &moc, sizeof(MIDIOUTCAPS))) {
+		if (!midiOutGetDevCaps(i - 1, &moc, sizeof(MIDIOUTCAPS))) {
 			// Display its Device ID and name
-			strncpy(XOutMidiNames[i + 1], moc.szPname, 31);
-			XOutMidiNames[i + 1][31] = 0;
+			XOutMidiNames[i] = malloc(32);
+			strncpy(XOutMidiNames[i], moc.szPname, 31);
+			XOutMidiNames[i][31] = 0;
 		}
 	}
-	return NumDevs + 1;
+	return NumDevs;
 }
 //
 // XMidiConnect()
@@ -656,7 +474,6 @@ int XListMidiOutDevices() {
 // returns 0 if not connected, and 1 if connected
 int  XMidiConnect() {
 	int i;
-	int Mflag;
 
 	if (XMconnected) {
 		XCloseMidiDevices();
@@ -683,7 +500,6 @@ int  XMidiConnect() {
 // XSendMidi()
 // sending MIDI data to MIDI out
 void XSendMidi(char *XMidi_str) {
-	int Mflag;
 
 	if (XMconnected) {
 		MidiOutHdr.lpData = XMidi_str + 1;
@@ -707,13 +523,12 @@ void XSendMidi(char *XMidi_str) {
 // XCloseMidiDevices()
 // closing MIDI devices
 void XCloseMidiDevices() {
-	int Mflag;
 
 	if (XMconnected) {
 		Mflag = midiOutUnprepareHeader(MidiOutDevice, &MidiOutHdr, sizeof(MidiOutHdr));
-		if (Mflag != MMSYSERR_NOERROR) fprintf(stderr, "midiOutUnprepareHeader %d\n", Mflag);
+//		if (Mflag != MMSYSERR_NOERROR) fprintf(stderr, "midiOutUnprepareHeader %d\n", Mflag);
 		Mflag = midiOutClose(MidiOutDevice);
-		if (Mflag != MMSYSERR_NOERROR) fprintf(stderr, "midiOutClose %d\n", Mflag);
+//		if (Mflag != MMSYSERR_NOERROR) fprintf(stderr, "midiOutClose %d\n", Mflag);
 		MidiOutDevice = 0;
 	}
 	return;
@@ -729,7 +544,7 @@ void XsendSysex(char* cmd) {
 		if (*cmd == '#') break;					// ignore the rest of the line
 		if ((*cmd != ' ') && (*cmd != '\t')) {	// ignore spaces and tabs
 			if (*cmd == '[') {					// $ are for source parameters
-				o_buf[i] = expression(&cmd);	// evaluate expression within '['']'
+				o_buf[i] = X32RpnCalc(&cmd, cmd_p_pt);	// evaluate expression within '['']'
 				cmd += 1;
 			} else {
 				if (*cmd <= 57) {					// start transforming 2 chars into
@@ -773,10 +588,18 @@ void XParseAndSendOSC(char* cmd) {
 			parstr_pt = cmd + 1;					// save pointer to first type tag
 			cmd += 1;
 		} else if (*cmd == '[') {				// $ are for source parameters
-			(void)oxpression(&cmd, parstr_pt);	// evaluate expression within '['']' to type in parstr
-												// ignore result (stored in output buffer o_buf[])
-			parstr_pt += 1;						// manage next type is applicable
-			cmd += 1;							// skip trailing ']'
+			if (*parstr_pt == 'i') {
+				Xdian.ii = (int)X32RpnCalc(&cmd, cmd_p_pt);	// target type is int
+			} else {
+				Xdian.ff = (float)X32RpnCalc(&cmd, cmd_p_pt);	// target type is float
+			}
+			o_buf[o_len++] = Xdian.cc[3];
+			o_buf[o_len++] = Xdian.cc[2];
+			o_buf[o_len++] = Xdian.cc[1];
+			o_buf[o_len++] = Xdian.cc[0];			// value stored in output buffer
+			parstr_pt += 1;							// manage next type if applicable
+			while (*cmd != ']') cmd++;
+			cmd += 1;
 			while ((*cmd == ' ') || (*cmd == '\t')) cmd++;	// ignore tabs or spaces between expressions
 		} else {
 			o_buf[o_len++] = *cmd;				// copy byte
@@ -806,6 +629,7 @@ void XCommand() {
 // the X32Commander file we previously loaded into memory (access through sindex_pt)
 //
 // A first level of quick compare is made through the use of 32bits words
+	cmd_p_pt = NULL;
 	w_buf = (int *) r_buf;
 	windex_pt = sindex_pt;
 	for (i = 0; i < num_lines; i++, windex_pt++) {
@@ -813,55 +637,60 @@ void XCommand() {
 			// test further for an accurate match
 			if (strncmp(r_buf, (*windex_pt) + 4, strlen(r_buf)) == 0) {	// avoid leading "M~~~" or "O~~~"
 				// full match. now what... Parse command parameter(s)
-				if ((*windex_pt)[0] == 'M') {
-					// Deal with sending MIDI command
-					cindex_pt = *windex_pt + 4;							// skip leading "M~~~" block
-					comma = 0;
-					ctype = 0;
-					while (cindex_pt[comma]) {
-						if (cindex_pt[comma] == '|') break;
-						if (cindex_pt[comma] == ',') {
-							c_pt = r_buf + comma;
-							j = 0;
-							// found a "," in *Windex_pt... actual comma in r_buf will be further due to possible padding
-							while (*(++c_pt) != ','); // progress in r_bufuntil we find a ','
-							while (*(++c_pt)) j +=1; // count parameters until we find a '\0'
-							// j holds the number of arguments; comma points at the ',' char
-							if (j > MAXPARAM) {
-								perror("too many params\n");
-								return;
-							}
-							// align k to the next 4 bytes boundary if needed, pointing at first parameter
-							while ((int)c_pt & 3) c_pt++;
-							// save parameters into param[] array
-							// after comma, expect a list of 'i, f, s'; count them
-							j = 0;
-							while ((ctype = cindex_pt[++comma])) {
-								if (ctype == 'i') {
-									// int parameter; only use low byte
-									param[j].c_i = *(c_pt + 3); // only keep the low byte
-									j += 1;
-									c_pt += 4;
-								} else if (ctype == 'f') {
-									// float parameter; transform [0.0...1.0] to [0..127]
-									endian.c1[3] = *c_pt;
-									endian.c1[2] = *(c_pt+1);
-									endian.c1[1] = *(c_pt+2);
-									endian.c1[0] = *(c_pt+3);
-									param[j].c_i = (int)(endian.f1 * 127);
-									j += 1;
-									c_pt += 4;
-								} else if (ctype == 's') {
-									// string parameter;
-									//todo
-								} else {
-									// exit while loop
-									break;
-								}
+				cindex_pt = *windex_pt + 4;							// skip leading "O~~~" block
+				comma = 0;
+				ctype = 0;
+				while (cindex_pt[comma]) {
+					if (cindex_pt[comma] == '|') break;
+					if (cindex_pt[comma] == ',') {
+						c_pt = r_buf + comma;
+						j = 0;
+						// found a "," in *Windex_pt... actual comma in r_buf will be further due to possible padding
+						while (*c_pt != ',') c_pt++;	// progress in r_buf until we find a ','
+						cmd_p_pt = c_pt + 1;			// from thereon, save all int and float parameters in mparam[]
+						while (*(++c_pt)) j +=1; // count parameters until we find a '\0'
+						// j holds the number of arguments; comma points at the ',' char
+						if (j > MAXPARAM) {
+							perror("too many params\n");
+							return;
+						}
+						// align k to the next 4 bytes boundary if needed, pointing at first parameter
+						while ((int)c_pt & 3) c_pt++;
+						// save parameters into param[] array
+						// after comma, expect a list of 'i, f, s'; count them
+						j = 0;
+						while ((ctype = cindex_pt[++comma])) {
+							if (ctype == 'i') {
+								// int parameter; save as float
+								Xdian.cc[3] = *c_pt;
+								Xdian.cc[2] = *(c_pt+1);
+								Xdian.cc[1] = *(c_pt+2);
+								Xdian.cc[0] = *(c_pt+3);
+								mparam[j].ii = Xdian.ii;
+								j += 1;
+								c_pt += 4;
+							} else if (ctype == 'f') {
+								// float parameter;
+								Xdian.cc[3] = *c_pt;
+								Xdian.cc[2] = *(c_pt+1);
+								Xdian.cc[1] = *(c_pt+2);
+								Xdian.cc[0] = *(c_pt+3);
+								mparam[j].ff = Xdian.ff;
+								j += 1;
+								c_pt += 4;
+							} else if (ctype == 's') {
+								// string parameter;
+								//todo
+							} else {
+								// exit while loop
+								break;
 							}
 						}
-						++comma;
 					}
+					++comma;
+				}
+				// Check whether this is for a MIDI or OSC output
+				if ((*windex_pt)[0] == 'M') {
 					// Apply the matching MIDI command
 					// ensure we're at the end of the line or at a '|' char
 					while (cindex_pt[comma]) {
@@ -875,59 +704,6 @@ void XCommand() {
 						}
 					}
 				} else {
-					// Deal with sending OSC command
-					cindex_pt = *windex_pt + 4;							// skip leading "O~~~" block
-					comma = 0;
-					ctype = 0;
-					while (cindex_pt[comma]) {
-						if (cindex_pt[comma] == '|') break;
-						if (cindex_pt[comma] == ',') {
-							c_pt = r_buf + comma;
-							j = 0;
-							// found a "," in *Windex_pt... actual comma in r_buf will be further due to possible padding
-							while (*c_pt != ',') c_pt++; // progress in r_buf until we find a ','
-							// from thereon, save all int and float parameters in the form of floats
-							while (*(++c_pt)) j +=1; // count parameters until we find a '\0'
-							// j holds the number of arguments; comma points at the ',' char
-							if (j > MAXPARAM) {
-								perror("too many params\n");
-								return;
-							}
-							// align k to the next 4 bytes boundary if needed, pointing at first parameter
-							while ((int)c_pt & 3) c_pt++;
-							// save parameters into param[] array
-							// after comma, expect a list of 'i, f, s'; count them
-							j = 0;
-							while ((ctype = cindex_pt[++comma])) {
-								if (ctype == 'i') {
-									// int parameter; save as float
-									endian.c1[3] = *c_pt;
-									endian.c1[2] = *(c_pt+1);
-									endian.c1[1] = *(c_pt+2);
-									endian.c1[0] = *(c_pt+3);
-									param[j].c_f = (float)endian.i1;
-									j += 1;
-									c_pt += 4;
-								} else if (ctype == 'f') {
-									// float parameter;
-									endian.c1[3] = *c_pt;
-									endian.c1[2] = *(c_pt+1);
-									endian.c1[1] = *(c_pt+2);
-									endian.c1[0] = *(c_pt+3);
-									param[j].c_f = endian.f1;
-									j += 1;
-									c_pt += 4;
-								} else if (ctype == 's') {
-									// string parameter;
-									//todo
-								} else {
-									// exit while loop
-									break;
-								}
-							}
-						}
-						++comma;
-					}
 					// Apply the matching OSC command
 					// ensure we're at the end of the line or at a '|' char
 					while (cindex_pt[comma]) {
@@ -967,16 +743,27 @@ int main(int argc, char **argv) {
 	PWSTR pCmdLine = 0;
 	int nCmdFile = 0;
 
-	// set default file nale as input
+	// set default file name as input
 	strcpy(r_buf, "./X32Commander.txt");
-	while ((input_ch = getopt(argc, argv, "f:h")) != (char)0xff) {
+	// set default IP addresses
+	Xip_str[0] = 0;
+	Xop_str[0] = 0;
+	while ((input_ch = getopt(argc, argv, "f:i:o:h")) != (char)0xff) {
 		switch (input_ch) {
 		case 'f':
 			sscanf(optarg, "%s", r_buf);
 			break;
+		case 'i':
+			sscanf(optarg, "%s", Xip_str);
+			break;
+		case 'o':
+			sscanf(optarg, "%s", Xop_str);
+			break;
 		default:
 		case 'h':
-			printf("usage: X32Commander [-f file, sets input file]\n\n");
+			printf("usage: X32Commander [-f file, sets input file]\n");
+			printf("                    [-i <IP address>, sets source IP]\n");
+			printf("                    [-o <IP address>,<port#>, sets destination IP and port]\n\n");
 			return(0);
 			break;
 		}
