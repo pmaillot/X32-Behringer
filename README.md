@@ -590,19 +590,18 @@ X32Commander scans for a user selected subset of X32 Commands. If a matching com
 
 When using the X32 Command parameters, a formula can be applied:
 ```
-for MIDI
-Only the low byte of Integer X32 Command parameters are considered.
-Float X32 Command parameters [0.0 ... 1.0] are transformed to int 0..127 before being used by operators
-( ) + - * / » « & | ^ resulting in a usable value for the MIDI data to be sent to another device.
-for OSC
-Integer and float X32 Command parameters are considered by operators
-( ) + - * /  resulting in a usable value for the OSC data to be sent to another device.
+#	
+#	The reverse polish notation calculator supports the following operators, on numbers, 
+#	(possibly preceded with a $ to represent a MIDI parameter), or hexadecimal data:
+#	(+) (-) (*) (/)  Boolean operators (~ >> << & ^ |), modulo (%) on ints, test operator (?), 
+#	equal comparison (=), different comparison (!), exp (e), log_n conversion (l), 
+#	log_10 conversion (L), and truncate to int (i).
 ```
 The program can be launched directly, in that case it will attempt to open ./X32Commander.txt, a file that contains the list of commands to match and replace with user selected commands. X32Commander can also be launched from a terminal window, with a -f <file> option, enabling you to create and keep a set of files to fit different situations.
 
-Below is an example of user command file, used at program startup used to have a second X32 mimic what the first one does; Make sure to use with version1.05 or later.
+Below is an example of user command file, used at program startup used to have a second X32 mimic what the first one does; Make sure to use with version 1.10 or later.
 ```
-# X32Commander translation file (c) Patrick-Gilles Maillot
+# X32Commander translation file Â©Patrick-Gilles Maillot
 # These two first lines must be kept part of the this file
 #
 # Describes and lists MIDI or OSC command to send, corresponding to the X32
@@ -611,30 +610,48 @@ Below is an example of user command file, used at program startup used to have a
 #                      O means the expected command to send will be an OSC command
 # In the command to send, a '$0' string element will be replaced by the parameter value
 # of the respective OSC command 0: first parameter, 1: 2nd parameter, and so on
-# '$n' parameters or their calculated data must be enclused within '[' and ']' characters
+# '$n' parameters or their calculated data must be enclosed within '[' and ']' characters
+#   
+#    The reverse polish notation calculator supports the following operators, on numbers,
+#    (possibly preceded with a $ to represent a MIDI parameter), or hexadecimal data:
+#    (+) (-) (*) (/)  Boolean operators (~ >> << & ^ |), modulo (%) on ints, test operator (?),
+#    equal comparison (=), different comparison (!), exp (e), log_n conversion (l),
+#    log_10 conversion (L), and truncate to int (i).
 #
-# Once all M (for Midi) or O (for OSC) commands are detailed, a wildcard line as below can be 
+# Once all M (for Midi) or O (for OSC) commands are detailed, a wildcard line as below can be
 # set to mention that any other OSC command should just be copied to OSC output
-# The line should be (without qutes) "O   *   "
+# The line should be (without quotes) "O   *   "
 #
 # comment line below if only one instance of a line can match
-#scan all
+scan all
 O   *   # Just copy everything to output --- WARNING! Do not use if OSC in and
 #         out IP addresses are the same or you'll end-up with infinite loops
+#
+# end of file
 ```
 
 Below is an example of user selection, saved in a file used at program startup:
 ```
-# X32Commander translation file (c) Patrick-Gilles Maillot
+# X32Commander translation file Â©Patrick-Gilles Maillot
 # These two first lines must be kept part of the this file
 #
 # Describes and lists MIDI or OSC command to send, corresponding to the X32
 # OSC command the program scans for, listed below.
 # A line starting with M means the expected command to send will be a MIDI command
-# O means the expected command to send will be an OSC command
+#                      O means the expected command to send will be an OSC command
 # In the command to send, a '$0' string element will be replaced by the parameter value
 # of the respective OSC command 0: first parameter, 1: 2nd parameter, and so on
-# '$n' parameters or their calculated data must be enclused within '[' and ']' characters
+# '$n' parameters or their calculated data must be enclosed within '[' and ']' characters
+#   
+#    The reverse polish notation calculator supports the following operators, on numbers,
+#    (possibly preceded with a $ to represent a MIDI parameter), or hexadecimal data:
+#    (+) (-) (*) (/)  Boolean operators (~ >> << & ^ |), modulo (%) on ints, test operator (?),
+#    equal comparison (=), different comparison (!), exp (e), log_n conversion (l),
+#    log_10 conversion (L), and truncate to int (i).
+#
+# Once all M (for Midi) or O (for OSC) commands are detailed, a wildcard line as below can be
+# set to mention that any other OSC command should just be copied to OSC output
+# The line should be (without quotes) "O   *   "
 #
 # comment line below if only one instance of a line can match
 scan all
@@ -643,19 +660,19 @@ M   /-stat/selidx ,i 0        | F0 7F 00 [$0] 02 F7    # first command select ch
 #                                                 ... sends F0 7F 02 00 02 F7 for chan 1
 #                                                 ... sends F0 7F 02 01 02 F7 for chan 2
 # Channel Faders [0., 1.]-> [0..127] etc.
-O   /ch/01/mix/fader ,f 0     | /ch/05/mix/fader ,f [1-$0]    # for fader moves on channel 1
-O   /ch/02/mix/fader ,f 0     | /ch/06/mix/fader ,f [2*$0]    # for fader moves on channel 2
-O   /ch/03/mix/fader ,f 0     | /ch/07/mix/fader ,f [1-$0]    # for fader moves on channel 3
-O   /ch/03/mix/fader ,f 0     | /ch/08/mix/fader ,f [2*$0]    # for fader moves on channel 3
-M   /ch/03/mix/fader ,f 0     | F0 7F 04 [$0] 02 F7           # for fader moves on channel 3
-M   /ch/04/mix/fader ,f 0     | F0 7F 04 [$0] 02 F7           # for fader moves on channel 4
+O   /ch/01/mix/fader ,f 0     | /ch/05/mix/fader ,f [1 $0 -]    # for fader moves on channel 1
+O   /ch/02/mix/fader ,f 0     | /ch/06/mix/fader ,f [2 $0 *]    # for fader moves on channel 2
+O   /ch/03/mix/fader ,f 0     | /ch/07/mix/fader ,f [1 $0 -]    # for fader moves on channel 3
+O   /ch/03/mix/fader ,f 0     | /ch/08/mix/fader ,f [2 $0 *]    # for fader moves on channel 3
+M   /ch/03/mix/fader ,f 0     | F0 7F 04 [$0 127 *] 02 F7       # for fader moves on channel 3
+M   /ch/04/mix/fader ,f 0     | F0 7F 04 [1 $0 - 127 *] 02 F7   # for fader moves on channel 4
 #
 # end of file
 ```
 
 Below is an example of user selection, saved in a file used at program startup:
 ```
-# X32Commander translation file (c) Patrick-Gilles Maillot
+# X32Commander translation file Â©Patrick-Gilles Maillot
 # These two first lines must be kept part of the this file
 #
 # Describes and lists MIDI or OSC command to send, corresponding to the X32
@@ -664,10 +681,20 @@ Below is an example of user selection, saved in a file used at program startup:
 #                      O means the expected command to send will be an OSC command
 # In the command to send, a '$0' string element will be replaced by the parameter value
 # of the respective OSC command 0: first parameter, 1: 2nd parameter, and so on
-# '$n' parameters or their calculated data must be enclused within '[' and ']' characters
+# '$n' parameters or their calculated data must be enclosed within '[' and ']' characters
+#   
+#    The reverse polish notation calculator supports the following operators, on numbers,
+#    (possibly preceded with a $ to represent a MIDI parameter), or hexadecimal data:
+#    (+) (-) (*) (/)  Boolean operators (~ >> << & ^ |), modulo (%) on ints, test operator (?),
+#    equal comparison (=), different comparison (!), exp (e), log_n conversion (l),
+#    log_10 conversion (L), and truncate to int (i).
 #
-# comment line belo if only one instance of a line can match
-#scan all
+# Once all M (for Midi) or O (for OSC) commands are detailed, a wildcard line as below can be
+# set to mention that any other OSC command should just be copied to OSC output
+# The line should be (without quotes) "O   *   "
+#
+# comment line below if only one instance of a line can match
+scan all
 #
 # This example file sets ch10 as the stereo pair of ch01
 # Commands may be added or removed in order to adjust or optimize what parts of the audio path
@@ -740,54 +767,54 @@ O   /ch/01/eq/4/q ,f 0                  | /ch/10/eq/4/f ,q [$0]
 O   /ch/01/mix/on ,i 0                  | /ch/10/mix/on ,i [$0]
 O   /ch/01/mix/fader ,f 0               | /ch/10/mix/fader ,f [$0]
 O   /ch/01/mix/st ,i 0                  | /ch/10/mix/st ,i [$0]
-O   /ch/01/mix/pan ,f 0                 | /ch/10/mix/pan ,f [1-$0]
+O   /ch/01/mix/pan ,f 0                 | /ch/10/mix/pan ,f [1 $0 -]
 O   /ch/01/mix/mono ,i 0                | /ch/10/mix/mono ,i [$0]
 O   /ch/01/mix/mlevel ,f 0              | /ch/10/mix/mlevel ,f [$0]
 O   /ch/01/mix/01/on ,i 0               | /ch/10/mix/01/on ,i [$0]
 O   /ch/01/mix/01/level ,f 0            | /ch/10/mix/01/level ,f [$0]
-O   /ch/01/mix/01/pan ,f 0              | /ch/10/mix/01/pan ,f [1-$0]
+O   /ch/01/mix/01/pan ,f 0              | /ch/10/mix/01/pan ,f [1 $0 -]
 O   /ch/01/mix/01/type ,i 0             | /ch/10/mix/01/type ,i [$0]
 O   /ch/01/mix/02/on ,i 0               | /ch/10/mix/02/on ,i [$0]
 O   /ch/01/mix/02/level ,f 0            | /ch/10/mix/02/level ,f [$0]
 O   /ch/01/mix/03/on ,i 0               | /ch/10/mix/03/on ,i [$0]
 O   /ch/01/mix/03/level ,f 0            | /ch/10/mix/03/level ,f [$0]
-O   /ch/01/mix/03/pan ,f 0              | /ch/10/mix/03/pan ,f [1-$0]
+O   /ch/01/mix/03/pan ,f 0              | /ch/10/mix/03/pan ,f [1 $0 -]
 O   /ch/01/mix/03/type ,i 0             | /ch/10/mix/03/type ,i [$0]
 O   /ch/01/mix/04/on ,i 0               | /ch/10/mix/04/on ,i [$0]
 O   /ch/01/mix/04/level ,f 0            | /ch/10/mix/04/level ,f [$0]
 O   /ch/01/mix/05/on ,i 0               | /ch/10/mix/05/on ,i [$0]
 O   /ch/01/mix/05/level ,f 0            | /ch/10/mix/05/level ,f [$0]
-O   /ch/01/mix/05/pan ,f 0              | /ch/10/mix/05/pan ,f [1-$0]
+O   /ch/01/mix/05/pan ,f 0              | /ch/10/mix/05/pan ,f [1 $0 -]
 O   /ch/01/mix/05/type ,i 0             | /ch/10/mix/05/type ,i [$0]
 O   /ch/01/mix/06/on ,i 0               | /ch/10/mix/06/on ,i [$0]
 O   /ch/01/mix/06/level ,f 0            | /ch/10/mix/06/level ,f [$0]
 O   /ch/01/mix/07/on ,i 0               | /ch/10/mix/07/on ,i [$0]
 O   /ch/01/mix/07/level ,f 0            | /ch/10/mix/07/level ,f [$0]
-O   /ch/01/mix/07/pan ,f 0              | /ch/10/mix/07/pan ,f [1-$0]
+O   /ch/01/mix/07/pan ,f 0              | /ch/10/mix/07/pan ,f [1 $0 -]
 O   /ch/01/mix/07/type ,i 0             | /ch/10/mix/07/type ,i [$0]
 O   /ch/01/mix/08/on ,i 0               | /ch/10/mix/08/on ,i [$0]
 O   /ch/01/mix/08/level ,f 0            | /ch/10/mix/08/level ,f [$0]
 O   /ch/01/mix/09/on ,i 0               | /ch/10/mix/09/on ,i [$0]
 O   /ch/01/mix/09/level ,f 0            | /ch/10/mix/09/level ,f [$0]
-O   /ch/01/mix/09/pan ,f 0              | /ch/10/mix/09/pan ,f [1-$0]
+O   /ch/01/mix/09/pan ,f 0              | /ch/10/mix/09/pan ,f [1 $0 -]
 O   /ch/01/mix/09/type ,i 0             | /ch/10/mix/09/type ,i [$0]
 O   /ch/01/mix/10/on ,i 0               | /ch/10/mix/10/on ,i [$0]
 O   /ch/01/mix/10/level ,f 0            | /ch/10/mix/10/level ,f [$0]
 O   /ch/01/mix/11/on ,i 0               | /ch/10/mix/11/on ,i [$0]
 O   /ch/01/mix/11/level ,f 0            | /ch/10/mix/11/level ,f [$0]
-O   /ch/01/mix/11/pan ,f 0              | /ch/10/mix/11/pan ,f [1-$0]
+O   /ch/01/mix/11/pan ,f 0              | /ch/10/mix/11/pan ,f [1 $0 -]
 O   /ch/01/mix/11/type ,i 0             | /ch/10/mix/11/type ,i [$0]
 O   /ch/01/mix/12/on ,i 0               | /ch/10/mix/12/on ,i [$0]
 O   /ch/01/mix/12/level ,f 0            | /ch/10/mix/12/level ,f [$0]
 O   /ch/01/mix/13/on ,i 0               | /ch/10/mix/13/on ,i [$0]
 O   /ch/01/mix/13/level ,f 0            | /ch/10/mix/13/level ,f [$0]
-O   /ch/01/mix/13/pan ,f 0              | /ch/10/mix/13/pan ,f [1-$0]
+O   /ch/01/mix/13/pan ,f 0              | /ch/10/mix/13/pan ,f [1 $0 -]
 O   /ch/01/mix/13/type ,i 0             | /ch/10/mix/13/type ,i [$0]
 O   /ch/01/mix/14/on ,i 0               | /ch/10/mix/14/on ,i [$0]
 O   /ch/01/mix/14/level ,f 0            | /ch/10/mix/14/level ,f [$0]
 O   /ch/01/mix/15/on ,i 0               | /ch/10/mix/15/on ,i [$0]
 O   /ch/01/mix/15/level ,f 0            | /ch/10/mix/15/level ,f [$0]
-O   /ch/01/mix/15/pan ,f 0              | /ch/10/mix/15/pan ,f [1-$0]
+O   /ch/01/mix/15/pan ,f 0              | /ch/10/mix/15/pan ,f [1 $0 -]
 O   /ch/01/mix/15/type ,i 0             | /ch/10/mix/15/type ,i [$0]
 O   /ch/01/mix/16/on ,i 0               | /ch/10/mix/16/on ,i [$0]
 O   /ch/01/mix/16/level ,f 0            | /ch/10/mix/16/level ,f [$0]
