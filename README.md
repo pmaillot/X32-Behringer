@@ -601,7 +601,7 @@ The program can be launched directly, in that case it will attempt to open ./X32
 
 Below is an example of user command file, used at program startup used to have a second X32 mimic what the first one does; Make sure to use with version 1.10 or later.
 ```
-# X32Commander translation file Â©Patrick-Gilles Maillot
+# X32Commander translation file ©Patrick-Gilles Maillot
 # These two first lines must be kept part of the this file
 #
 # Describes and lists MIDI or OSC command to send, corresponding to the X32
@@ -632,7 +632,7 @@ O   *   # Just copy everything to output --- WARNING! Do not use if OSC in and
 
 Below is an example of user selection, saved in a file used at program startup:
 ```
-# X32Commander translation file Â©Patrick-Gilles Maillot
+# X32Commander translation file ©Patrick-Gilles Maillot
 # These two first lines must be kept part of the this file
 #
 # Describes and lists MIDI or OSC command to send, corresponding to the X32
@@ -672,7 +672,7 @@ M   /ch/04/mix/fader ,f 0     | F0 7F 04 [1 $0 - 127 *] 02 F7   # for fader move
 
 Below is an example of user selection, saved in a file used at program startup:
 ```
-# X32Commander translation file Â©Patrick-Gilles Maillot
+# X32Commander translation file ©Patrick-Gilles Maillot
 # These two first lines must be kept part of the this file
 #
 # Describes and lists MIDI or OSC command to send, corresponding to the X32
@@ -698,7 +698,7 @@ scan all
 #
 # This example file sets ch10 as the stereo pair of ch01
 # Commands may be added or removed in order to adjust or optimize what parts of the audio path
-# are actually used. Note that pan functions are always set as [1-$0] to move in opposite direction
+# are actually used. Note that pan functions are always set as [1 $0 -] to move in opposite direction
 #
 # General settings
 O   /ch/01/config/color ,i 0            | /ch/10/config/color ,i [$0]
