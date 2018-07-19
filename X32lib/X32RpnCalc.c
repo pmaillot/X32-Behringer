@@ -136,6 +136,7 @@ double X32RpnCalc(char **k, char* t) {
 #undef monop
 #undef binop
 #undef triop
+		if ((*s == ']') || (*e == ']')) break;
 	}
 	// done ; check stack empty, update string pointer and return final result
 	*k = s;
