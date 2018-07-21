@@ -18,6 +18,8 @@
  *	ver 1.08:	midi out devices in a memory allocated array rather than fixed size
  *	ver 1.09:	midi in and out combobox displaying 1 midi device less than found
  *	ver 1.10:	Share calculator section with X32Midi2OSC, a RPN based solution
+ *	ver 1.11:	additional RPN operators
+ *	ver 1.12:	some commands (/../solo and /../solosw) found to match when they shouldn't
  *
  */
 #include <winsock2.h>	// Windows functions for std GUI & sockets
@@ -270,7 +272,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, FIXED_PITCH, NULL);//TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 235, 15, str1, wsprintf(str1, "v 1.10"));
+		TextOut(hdc, 235, 15, str1, wsprintf(str1, "v 1.12"));
 		TextOut(hdc, 5, 25, str1, wsprintf(str1, "Set X32 IP below:"));
 		TextOut(hdc, 5, 63, str1, wsprintf(str1, "MIDIout:"));
 		TextOut(hdc, 5, 105, str1, wsprintf(str1, "OSC out IP, Port below:"));
@@ -621,7 +623,7 @@ void XCommand() {
 	char**	windex_pt;
 	char*	cindex_pt;
 	char*	c_pt;
-	int		i, j;
+	int		i, j, l;
 	int		comma;
 	char	ctype;
 // The received command is in r_buf/r_len
@@ -635,9 +637,12 @@ void XCommand() {
 	for (i = 0; i < num_lines; i++, windex_pt++) {
 		if (*w_buf == *((int *) ((*windex_pt) + 4))) {					// avoid leading "M~~~" or "O~~~"
 			// test further for an accurate match
-			if (strncmp(r_buf, (*windex_pt) + 4, strlen(r_buf)) == 0) {	// avoid leading "M~~~" or "O~~~"
+			// l = length of the part of windex_pt to match; stops at 1st space or tab or # found
+			cindex_pt = *windex_pt + 4;
+			l = 0;
+			while ((cindex_pt[l] != ' ') && (cindex_pt[l] != '\t') && (cindex_pt[l] != '#')) l++;
+			if (strncmp(r_buf, (*windex_pt) + 4, l) == 0) {	// avoid leading "M~~~" or "O~~~"
 				// full match. now what... Parse command parameter(s)
-				cindex_pt = *windex_pt + 4;							// skip leading "O~~~" block
 				comma = 0;
 				ctype = 0;
 				while (cindex_pt[comma]) {
