@@ -81,7 +81,9 @@ double X32RpnCalc(char **k, char* t) {
 	char *s, *w, *e;
 	int i;
 
-	for (s = w = *k, depth = 0; *s && (*s != ']'); s = ++e) {
+	s = e = w = *k;
+	depth = 0;
+	while (*s) {
 #ifdef printdata
 		int l;
 		printf("%s\n", w);
@@ -136,7 +138,12 @@ double X32RpnCalc(char **k, char* t) {
 #undef monop
 #undef binop
 #undef triop
-		if ((*s == ']') || (*e == ']')) break;
+		if (*s == ']' || *e == ']') {
+			s++;
+			break;
+		} else {
+			s = ++e;
+		}
 	}
 	// done ; check stack empty, update string pointer and return final result
 	*k = s;
