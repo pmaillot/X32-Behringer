@@ -16,6 +16,7 @@
  *    0.93: adapted to FW ver 3.04
  *    0.94: preventing windows resizing
  *    1.00: Added Command-line capability
+ *    1.01: Better handling of file names
  */
 #ifdef _WIN32
 #include <winsock2.h>	// Windows functions for std GUI & sockets
@@ -99,14 +100,6 @@ char	*Xext[] = {".xds\0",
 
 char		*ActType[] = {"Choose:", "DeskSave", "Scene", "Routing", "Pattern", "\0"};
 int			Actsize = sizeof(ActType) / sizeof(char*) - 1;
-//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Choose:");
-//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"DeskSave");
-//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Scene");
-//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Snippet");
-//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Channel");
-//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Effects");
-//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Routing");
-//SendMessage(hwndptyp, CB_ADDSTRING,(WPARAM) 0,(LPARAM)"Pattern");
 
 
 FILE 	*res_file;
@@ -271,7 +264,7 @@ char 	str1[64];
 		ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
 		TextOut(hdc, 150, 20, str1, wsprintf(str1, "Enter X32 IP below:"));
-		TextOut(hdc, 340, 18, str1, wsprintf(str1, d_version));
+		TextOut(hdc, 340, 18, str1, wsprintf(str1, "ver. 1.01"));
 		DeleteObject(htmp);
 		DeleteObject(hfont);
 		//
@@ -349,9 +342,15 @@ char 	str1[64];
 							// add an extension
 							strcat(Xfile_w_path, Xext[Xptype - 1]);
 						}
-						// Extract filename from returned path so we can either save to
+						// remove filename from returned path so we can either save to
 						// existing directory or newly created one
-						strcpy(Xfile_w_name, getFileNameFromPath(Xfile_w_path));
+						if ((i = strlen(Xfile_w_path)) > 18) {
+							strncpy(Xfile_w_name, Xfile_w_path, 7);
+							strcpy(Xfile_w_name + 7, " ... ");
+							strcpy(Xfile_w_name + 12, Xfile_w_path + i - 18);
+						} else {
+							strcpy(Xfile_w_name, Xfile_w_path);
+						}
 						if (MessageBox(NULL, Xfile_w_path, "Destination File path: ", MB_OKCANCEL) == IDOK) {
 							SetWindowText(hwndfname, (LPSTR)Xfile_w_name);
 							Xfiles = 1;
