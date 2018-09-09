@@ -15,6 +15,7 @@
  *    0.93: adapted to FW ver 3.04
  *    0.94: preventing window resizing
  *    1.00: added command-line capability
+ *    1.01: matching for changes made in X32DeskSave
  *
  */
 #ifdef _WIN32
@@ -103,7 +104,6 @@ int keep_running = 1;
 //
 char Xip_str[20], Xpath[256];	// IP in str format; file path
 char Xfilename[32];				// used to save the selected file name
-char d_version[] = "ver. 1.00";
 int Xconnected = 0;				// flags
 int Xfiles = 0;					// file info available (valid)
 
@@ -204,6 +204,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 //
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	char str1[64];
+	int i;
 
 	switch (msg) {
 	case WM_CREATE:
@@ -255,7 +256,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
 		TextOut(hdc, 150, 20, str1, wsprintf(str1, "Enter X32 IP below:"));
-		TextOut(hdc, 340, 18, str1, wsprintf(str1, d_version));
+		TextOut(hdc, 340, 18, str1, wsprintf(str1, "ver. 1.01"));
 		DeleteObject(htmp);
 		DeleteObject(hfont);
 //
@@ -318,9 +319,15 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				//
 				// Display the Open dialog box.
 				if (GetOpenFileName(&ofn)) {
-					// Extract filename from returned path so we can either save to
+					// remove filename from returned path so we can either save to
 					// existing directory or newly created one
-					strcpy(Xfilename, getFileNameFromPath(Xpath));
+					if ((i = strlen(Xpath)) > 18) {
+						strncpy(Xfilename, Xpath, 7);
+						strcpy(Xfilename + 7, " ... ");
+						strcpy(Xfilename + 12, Xpath + i - 18);
+					} else {
+						strcpy(Xfilename, Xpath);
+					}
 					if (MessageBox(NULL, Xpath, "Source file path: ", MB_OKCANCEL) == IDOK) {
 						SetWindowText(hwndfname, (LPSTR) Xfilename);
 						Xfiles = 1;
