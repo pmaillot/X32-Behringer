@@ -18,6 +18,9 @@
 // v 1.34: addresses limitations in certain C compilers with getopt()
 // v 1.35: kb input is now treated as int
 // v 1.36: following changes to X32_cparse.c
+// v 1.37: code cleaning
+// v 1.38: finally got rid of call to kbhit() which was causing issues with ",`, %, even
+//         for non-international US keyboard
 //
 
 #include <stdlib.h>
@@ -27,7 +30,7 @@
 #include <time.h>
 
 #ifdef __WIN32__
-#include <winsock2.h>
+#include <windows.h>
 #include <conio.h>
 #define millisleep(a)	Sleep(a)
 #else
@@ -57,6 +60,7 @@ extern int Xcparse(char *buf, char *line);
 #ifdef __WIN32__
 	#define BACKSPACE	8		// need to use <ctl>h
 	#define EOL			13		// enter key
+	#define CTRLC		3		// Ctrl-C
 	#define BACKCHARS	2		// 2 chars to remove from line
 	#define NO_CHAR		-1		// not a real/printable char
 #else
@@ -75,6 +79,16 @@ int X32debug = 0;
 int X32verbose = 1;
 //
 // Macros:
+//
+#ifdef __WIN32__
+#define KEYBOARDINPUT()			input_intch = getkey();
+#define MANAGEEOL()				printf("\n");
+#define MANAGEBSP()				printf(" \b");
+#else
+#define KEYBOARDINPUT()			input_intch = getc(stdin);
+#define MANAGEEOL()
+#define MANAGEBSP()
+#endif
 //
 #define RPOLL													\
 	do {														\
@@ -132,8 +146,39 @@ do {																			\
 	else if (strcmp(input_line, "verbose") == 0) printf(":: verbose is %s\n",((X32verbose)?"on":"off"));\
 	else if (strcmp(input_line, "verbose off") == 0) 	X32verbose = 0;									\
 	else if (strcmp(input_line, "verbose on") == 0) 	X32verbose = 1;									\
+//
+//
+//
+int getkey();
+//
+// int getkey(): returns the typed character at keyboard or NO_CHAR if no keyboard key was pressed.
+// This is done in non-blocking mode; i.e. NO_CHAR is returned if no keyboard event is read from the
+// console event queue.
+// This works a lot better for me than the standard call to kbhit() which is generally used as kbhit()
+// keeps some characters such as ", `, %, and tries to deal with them before returning them. Not easy
+// the to follow-up what's really been typed in.
+//
+int getkey() {
+	INPUT_RECORD 	buf;		// interested in bKeyDown event
+	DWORD  			len;		// seem necessary
+	int 			ch;
 
-
+	ch = NO_CHAR;				// default return value;
+	PeekConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &buf, 1, &len);
+	if (len > 0) {
+		if (buf.EventType == KEY_EVENT && buf.Event.KeyEvent.bKeyDown) {
+			ch = _getche();		// set ch to input char only under right conditions
+		}						// _getche() returns char and echoes it to console out
+		FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE)); // remove consumed events
+	} else {
+		Sleep(5);				// avoids too High a CPU usage when no input
+	}
+	return ch;
+}
+//
+//
+//
+//
 int
 main(int argc, char **argv)
 {
@@ -160,14 +205,13 @@ struct timeval		timeout;
 #ifdef __WIN32__
 WSADATA 			wsa;
 int					Xip_len = sizeof(Xip);	// length of addresses
-unsigned long 		mode;
 #else
 socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 #endif
 //
 // Initialize communication with X32 server at IP ip and PORT port
 // Set default values to match your X32 desk
-	strcpy (Xip_str, "192.168.1.70");
+	strcpy (Xip_str, "192.168.1.78");
 	strcpy (Xport_str, "10023");
 //
 // Manage arguments
@@ -208,7 +252,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			printf("                   [-t int  [10], delay between batch commands in ms]\n");
 			printf("                   [-s file, reads X32node formatted data lines from 'file']\n");
 			printf("                   [-f file, sets batch mode on, getting input data from 'file']\n");
-			printf("                     default IP is 192.168.0.64\n\n");
+			printf("                     default IP is 192.168.1.62\n\n");
 			printf(" If option -s file is used, the program reads data from the provided file \n");
 			printf(" until EOF has been reached, and exits after that.\n\n");
 			printf(" If option -f file is used, the program runs in batch mode, taking data from\n");
@@ -262,17 +306,13 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 	FD_ZERO(&ufds);
 	FD_SET(Xfd, &ufds);
 // make stdin (fd = 0) I/O nonblocking
-#ifdef __WIN32__
-	mode = 1;
-	p_status = ioctlsocket(0, FIONBIO, &mode);
-
-#else
+#ifndef __WIN32__
 	fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) | O_NONBLOCK);
 #endif
 //
 // All done. Let's send and receive messages
 // Establish logical connection with X32 server
-	printf(" X32_Command - v1.36 - (c)2014-18 Patrick-Gilles Maillot\n\nConnecting to X32.");
+	printf(" X32_Command - v1.38 - (c)2014-18 Patrick-Gilles Maillot\n\nConnecting to X32.");
 //
 	keep_on = 1;
 	xremote_on = X32verbose;	// Momentarily save X32verbose
@@ -353,51 +393,37 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 		while (keep_on) {
 			XREMOTE()	// process /xremote if needded
 		    // build command by reading keyboard characters (from stdin)
-#ifdef __WIN32__
-			if (kbhit()) {
-				input_intch = _getch();
-#else
-			input_intch = getc(stdin);
-			{
-#endif
-				if (input_intch == EOL) {
-					if (l_index) {
-#ifdef __WIN32__
-						printf("\n");
-#endif
-						// Check for program interactive mode commands
-						input_line[l_index] = 0;
-						if (input_line[0] == '#') printf("---comment: %s\n", input_line);
-						TESTINPUT()			// Test for input data checks
-						else { 				// new line/command
-							s_len = Xcparse(s_buf, input_line);
-							SEND // send parsed data
-						}
-						l_index = 0;
-					} else {
-						printf ("resending\n");
-						SEND // empty line: resend previous parsed data
+			KEYBOARDINPUT()
+			if (input_intch == CTRLC) exit(0);
+			if (input_intch == EOL) {
+				if (l_index) {
+					MANAGEEOL()
+					// Check for program interactive mode commands
+					input_line[l_index] = 0;
+					if (input_line[0] == '#') printf("---comment: %s\n", input_line);
+					TESTINPUT()			// Test for input data checks
+					else { 				// new line/command
+						s_len = Xcparse(s_buf, input_line);
+						SEND // send parsed data
+					}
+					l_index = 0;
+				} else {
+					printf ("resending\n");
+					SEND // empty line: resend previous parsed data
+				}
+			} else {
+				// parse input_intch values, building new command
+				if (l_index < LINEMAX)  {
+					if (input_intch != NO_CHAR)
+						input_line[l_index++] = (char)input_intch;
+					if (input_intch == BACKSPACE) {
+						MANAGEBSP()
+						l_index -= BACKCHARS; // remove char if backspace entered
+						if (l_index < 0) l_index = 0;
 					}
 				} else {
-					if (l_index < LINEMAX) {
-						// parse input_intch values, building new command
-						if (input_intch != NO_CHAR) {
-#ifdef __WIN32__
-							printf("%c", (char)input_intch);
-#endif
-							input_line[l_index++] = (char)input_intch;
-						}
-						if (input_intch == BACKSPACE) {
-#ifdef __WIN32__
-							printf(" \b");
-#endif
-							l_index -= BACKCHARS; // remove char if backspace entered
-							if (l_index < 0) l_index = 0;
-						}
-					} else {
-						printf("!!! line too long - ignored line\n");
-						l_index = 0;
-					}
+					printf("!!! line too long - ignored line\n");
+					l_index = 0;
 				}
 			}
 			CHECKX32()			// Check if X32 sent something back
