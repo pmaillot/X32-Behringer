@@ -16,10 +16,17 @@
 // 0.67: fixed bug in the reply sent by /status ; /bus/02/mix/01/type fixed
 // 0.68: fixed bug in getting IP address with non-Windows systems (Xport_str was over written)
 // 0.69: support for X-Live! and 3.08FW
+// 0.70: support for /node single argument commands such as /node ,s -prefs/rta/visibility, or /node ,s headamp/006/phantom
+// 0.71: support for / commands such as / ,s "/ch/01/config/name toto", support for meters, and generally now answering
+//       correcly to other remote clients on complex changes, i.e. if a data is not changed, it will not be sent to remote
+//       clients.
+// 0.72: bug fixes
 //
 #ifdef __WIN32__
 #include <windows.h>
+#define ZMemory(a,b)	ZeroMemory(a, b)
 #else
+#define ZMemory(a,b)	memset(a, 0, b)
 #include <net/if.h>
 #include <ifaddrs.h>
 #include <sys/ioctl.h>
@@ -50,6 +57,7 @@
 #define VERB_RENEW 0	// if verbose: default /renew verbose
 #define VERB_METER 0	// if verbose: default /meters verbose
 #define MAX_CLIENTS 4	// support updating 4 remote clients max
+#define MAX_METERS 17	// support for max /meters, starting with /meters/0
 #define XREMOTE_TIME 11	// xremote max time before abandon of client updating
 
 #define F_GET 0x0001	// Get parameter(s) command
@@ -74,8 +82,8 @@ enum types {
 	F32,		// 2
 	S32,		// 3
 	B32,		// 4
-	A32,		// 5
-	RES1,		// 6
+	E32,		// 5
+	P32,		// 6
 	RES2,		// 7
 	RES3,		// 8
 	RES4,		// 9
@@ -120,41 +128,44 @@ enum types {
 	FXTYP2,		// 48
 	FXPAR2,		// 49
 	OMAIN,		// 50
-	OMAIND,		// 51
-	HAMP,		// 52
-	PREFS,		// 53
-	PIR,		// 54
-	PIQ,		// 55
-	PCARD,		// 56
-	PRTA,		// 57
-	PIP,		// 58
-	PADDR,		// 59
-	PMASK,		// 60
-	PGWAY,		// 61
-	STAT,		// 62
-	SSCREEN,	// 63
-	SCHA,		// 64
-	SMET,		// 65
-	SROU,		// 66
-	SSET,		// 67
-	SLIB,		// 68
-	SFX,		// 69
-	SMON,		// 70
-	SUSB,		// 71
-	SSCE,		// 72
-	SASS,		// 73
-	SSOLOSW,	// 74
-	SAES,		// 75
-	STAPE,		// 76
-	SOSC,		// 77
-	USB,		// 78
-	SNAM,		// 79
-	SCUE,		// 80
-	SSCN,		// 81
-	SSNP,		// 82
-	HA,			// 83
-	ACTION,		// 84
-	UREC		// 85
+	OMAIN2,		// 51
+	OP16,		// 52
+	OMAIND,		// 53
+	HAMP,		// 54
+	PREFS,		// 55
+	PIR,		// 56
+	PIQ,		// 57
+	PCARD,		// 58
+	PRTA,		// 59
+	PIP,		// 60
+	PADDR,		// 61
+	PMASK,		// 62
+	PGWAY,		// 63
+	STAT,		// 64
+	SSCREEN,	// 65
+	SCHA,		// 66
+	SMET,		// 67
+	SROU,		// 68
+	SSET,		// 69
+	SLIB,		// 70
+	SFX,		// 71
+	SMON,		// 72
+	SUSB,		// 73
+	SSCE,		// 74
+	SASS,		// 75
+	SSOLOSW,	// 76
+	SAES,		// 77
+	STAPE,		// 78
+	SOSC,		// 79
+	STALK,		// 80
+	USB,		// 81
+	SNAM,		// 82
+	SCUE,		// 83
+	SSCN,		// 84
+	SSNP,		// 85
+	HA,			// 86
+	ACTION,		// 87
+	UREC		// 88
 };
 
 typedef struct X32header {	// The Header structure is used to quickly scan through
@@ -178,7 +189,15 @@ typedef struct X32command {	// The Command structure describes ALL X32 commands
 		char* str;			//
 		void* dta;			//
 	} value;				//
+	char* *node;			// when applicable, the array of node strings associated with the command
+							// the actual node value is node[value.ii]. This pointer is NULL if the data
+							// should be directly obtained from value.type and printed as a string.
 } X32command;				//
+
+typedef struct X32enum {	// X32 enum structure
+	char*	str;			// X32 enum name
+	int		ival;			// X32 corresponding int value
+} X32enum;
 
 typedef struct X32node {	// The Node header structure is used to directly
 	char* command;			// parse a node command on a limited number of characters and
@@ -206,7 +225,7 @@ void Xsend(int who_to);
 void X32Print(struct X32command* command);
 int X32Shutdown();
 int X32Init();
-int FXc_lookup(int i);
+int FXc_lookup(X32command* command, int i);
 int funct_params(X32command* command, int i);
 int function_shutdown();
 int function_info();
@@ -238,10 +257,186 @@ int function_save();
 int function_delete();
 int function_unsubscribe();
 int function_action();
+int function_meters();
 int function_misc();
+int function_renew();
 int function();
+//
+float Xr_float(char* Xin, int l);
+
+char* XslashSetInt(X32command* command, char* str_pt_in);
+char* XslashSetPerInt(X32command* command, char* str_pt_in);
+char* XslashSetString(X32command* command, char* str_pt_in);
+char* XslashSetList(X32command* command, char* str_pt_in);
+char* XslashSetLinf(X32command* command, char* str_pt_in, float f1, float f2, float step);
+char* XslashSetLogf(X32command* command, char* str_pt_in, float f1, float f2, int steps);
+char* XslashSetLevl(X32command* command, char* str_pt_in, int steps);
+
+char* RLinf(X32command* command, char* str_pt_in, float xmin, float lmaxmin);
+char* RLogf(X32command* command, char* str_pt_in, float xmin, float lmaxmin);
+char* REnum(X32command* command, char* str_pt_in, char* str_enum[]);
+
+int function_node_single();
+void GetFxPar1(X32command* command, char* buf, int ipar, int type);
+void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type);
+void Xprepmeter(int i, int l, char *buf, int n);
 
 char snode_str[32]; // used to temporarily save a string in node and FX commands
+char*	OffOn[] = {" OFF", " ON", ""};
+char* Xamxgrp[] = {" OFF", " X", " Y", ""};
+char* Xcolors[] = {" OFF", " RD", " GN", " YE", " BL", " MG", " CY", " WH", " OFFi", " RDi", " GNi", " YEi", " BLi", " MGi", " CYi", " WHi", ""};
+char* XSsourc[] = {" OFF", " LR", " LR+C", " LRPFL", " LRAFL", " AUX56", " AUX78", ""};
+char* Xmnmode[] = {" LR+M", " LCR", ""};
+char* Xchmode[] = {" PFL", " AFL", ""};
+char*  Xhslop[] = {" 12", " 18", " 24", ""};
+char*  Xgmode[] = {" EXP2", " EXP3", " EXP", " GATE", " DUCK", ""};
+char* Xdymode[] = {" COMP", " EXP", ""};
+char*  Xdydet[] = {" PEAK", " RMS", ""};
+char*  Xdyenv[] = {" LIN", " LOG", ""};
+char*  Xdyrat[] = {" 1.1", " 1.3", " 1.5", " 2.0", " 2.5", " 3.0", " 4.0", " 5.0", " 7.0", " 10", " 20", " 100", ""};
+char* Xdyftyp[] = {" LC6", " LC12", " HC6", " HC12", " 1.0", " 2.0", " 3.0", " 5.0", " 10.0", ""};
+char* Xdyppos[] = {" PRE", " POST", ""};
+char*   Xisel[] = {" OFF", " FX1L", " FX1R", " FX2L", " FX2R", " FX3L", " FX3R",
+                   " FX4L", " FX4R", " FX5L", " FX5R", " FX6L", " FX6R", " FX7L",
+                   " FX7R", " FX8L", " FX8R", " AUX1", " AUX2", " AUX3", " AUX4",
+                   " AUX5", " AUX6", ""};
+char*  Xeqty1[] = {" LCut", " LShv", " PEQ", " VEQ", " HShv", " HCut", ""};
+char*  Xeqty2[] = {" LCut", " LShv", " PEQ", " VEQ", " HShv", " HCut", " BU6",
+                   " BU12", " BS12", " LR12", " BU18", " BU24", " BS24", " LR24", ""};
+char*  Xmtype[] = {" IN/LC", " <-EQ", " EQ->", " PRE", " POST", " GRP", ""};
+char* XTsourc[] = {" INT", " EXT", ""};
+char* XOscsel[] = {" F1", " F2", ""};
+char* XOsctyp[] = {" SINE", " PINK", " WHITE", ""};
+char*  XCFrsw[] = {" REC", " PLAY", ""};
+char*  XRtgin[] = {" AN1-8", " AN9-16", " AN17-24", " AN25-32", " A1-8", " A9-16", " A17-24", " A25-32", " A33-40",
+                   " A41-48", " B1-8", " B9-16", " B17-24",	" B25-32", " B33-40", " B41-48", " CARD1-8", " CARD9-16",
+                   " CARD17-24", " CARD25-32", ""};
+char*  XRtaea[] = {" AN1-8", " AN9-16", "AN17-24", " AN25-32", " A1-8",	" A9-16", " A17-24", " A25-32", " A33-40",
+                   " A41-48", " B1-8", " B9-16", " B17-24",	" B25-32", " B33-40", " B41-48", " CARD1-8", " CARD9-16",
+                   " CARD17-24", " CARD25-32", " OUT1-8", " OUT9-16", " P161-8", " P169-16", " AUX1-6/Mon", " AuxIN1-6/TB", ""};
+char*  XRtina[] = {" AUX1-4", " AN1-2", " AN1-4", " AN1-6", " A1-2", " A1-4", " A1-6",
+                   " B1-2", " B1-4", " B1-6", " CARD1-2", " CARD1-4", " CARD1-6", ""};
+char*  XRout1[] = {" AN1-4", " AN9-12", " AN17-20", " AN25-28", " A1-4", " A9-12", " A17-20", " A25-28", " A33-36",
+                   " A41-44" ," B1-4", " B9-12", " B17-20", " B25-28", " B33-46", " B41-44", " CARD1-4", " CARD9-12",
+                   " CARD17-20", " CARD25-28", " OUT1-4", " OUT9-12", " P161-4", " P169-12", " AUX/CR", " AUX/TB", ""};
+char*  XRout5[] = {" AN5-8", " AN13-16", " AN21-24", " AN29-32", " A5-8", " A13-16", " A21-24", " A29-32", " A37-40",
+                   " A45-48" ," B5-8", " B13-16", " B21-24", " B29-32", " B37-40", " B45-48", " CARD5-8", " CARD13-16",
+                   " CARD21-24", " CARD29-32", " OUT5-8", " OUT13-16", " P165-8", " P1613-16", " AUX/CR", " AUX/TB", ""};
+
+char* Sfxtyp1[] = {" HALL", " AMBI", " RPLT", " ROOM", " CHAM", " PLAT", " VREV", " VRM",
+                   " GATE", " RVRS", " DLY", " 3TAP", " 4TAP", " CRS", " FLNG", " PHAS", " DIMC", " FILT",
+                   " ROTA", " PAN", " SUB", " D/RV", " CR/R", " FL/R", " D/CR", " D/FL", " MODD", " GEQ2",
+				   " TEQ2", " GEQ", " TEQ", " DES2", " DES", " P1A2", " P1A", " PQ5S", " PQ5", " WAVD",
+                   " LIM", " CMB2", " CMB", " FAC2", " FAC1M", " FAC", " LEC2", " LEC", " ULC2", " ULC",
+                   " ENH2", " ENH", " EXC2", " EXC", " IMG", " EDI", " SON", " AMP2", " AMP", " DRV2",
+                   " DRV", " PIT2", " PIT", ""};
+
+enum Sfxtyp1 {_1_HALL, _1_AMBI, _1_RPLT, _1_ROOM, _1_CHAM, _1_PLAT, _1_VREV, _1_VRM,
+              _1_GATE, _1_RVRS, _1_DLY, _1_3TAP, _1_4TAP, _1_CRS, _1_FLNG, _1_PHAS, _1_DIMC, _1_FILT,
+              _1_ROTA, _1_PAN, _1_SUB, _1_D_RV, _1_CR_R, _1_FL_R, _1_D_CR, _1_D_FL, _1_MODD, _1_GEQ2,
+			  _1_TEQ2, _1_GEQ, _1_TEQ, _1_DES2, _1_DES, _1_P1A2, _1_P1A, _1_PQ5S, _1_PQ5, _1_WAVD,
+              _1_LIM, _1_CMB, _1_CMB2, _1_FAC2, _1_FAC1M, _1_FAC, _1_LEC2, _1_LEC, _1_ULC2, _1_ULC,
+              _1_ENH2, _1_ENH, _1_EXC2, _1_EXC, _1_IMG, _1_EDI, _1_SON, _1_AMP2, _1_AMP, _1_DRV2,
+              _1_DRV, _1_PIT2, _1_PIT};
+
+char* Sfxtyp2[] = {" GEQ2", " TEQ2", " GEQ", " TEQ", " DES2", " DES", " P1A", " P1A2" ,
+                   " PQ5", " PQ5S", " WAVD", " LIM", " FAC", " FAC1M", " FAC2", " LEC", " LEC2", " ULC" ,
+                   " ULC2", " ENH2", " ENH", " EXC2", " EXC", " IMG", " EDI", " SON", " AMP2", " AMP" ,
+                   " DRV2", " DRV", " PHAS", " FILT", " PAN", " SUB", ""};
+
+enum Sfxtyp2 {_2_GEQ2 = _1_PIT + 2, _2_TEQ2, _2_GEQ, _2_TEQ, _2_DES2, _2_DES, _2_P1A, _2_P1A2,
+              _2_PQ5S, _2_PQ5, _2_WAVD, _2_LIM, _2_FAC2, _2_FAC1M, _2_FAC, _2_LEC2, _2_LEC, _2_ULC2,
+              _2_ULC, _2_ENH2, _2_ENH, _2_EXC2, _2_EXC, _2_IMG, _2_EDI, _2_SON, _2_AMP2, _2_AMP,
+              _2_DRV2, _2_DRV, _2_PHAS, _2_FILT, _2_PAN, _2_SUB};
+
+char*  Sfxsrc[] = {" INS", " MIX1", " MIX2", " MIX3", " MIX4", " MIX5", " MIX6", " MIX7",
+                  " MIX8", " MIX9", " MIX10", " MIX11", " MIX12", " MIX13", " MIX14",
+                  " MIX15", " MIX16", " M/C", ""};
+
+char*   Xotpos[] = {"IN/LC", "IN/LC+M", "<-EQ", "<-EQ+M", "EQ->", "EQ->+M", "PRE", "PRE+M", "POST", ""};
+
+char*  XiQgrp[] = {" OFF", " A", " B", ""};
+char*  XiQspk[] = {" none", " iQ8", " iQ10", " iQ12", " iQ15", " iQ15B", " iQ18B", ""};
+char*   XiQeq[] = {" Linear" " Live", " Speech", " Playback", " User", ""};
+char* Psource[] = {" INT", " AES50A", " AES50B", " Exp Card", ""};
+char*  PSCont[] = {" CUES", " SCENES", " SNIPPETS", ""};
+char*   PRpro[] = {" MC", " HUI", " CC", ""};
+char*  PRrate[] = {" 48K", " 44K1", ""};
+char*   PRpos[] = {" PRE", " POST", ""};
+char*  PRmode[] = {" BAR", " SPEC", ""};
+char*   PRdet[] = {" RMS", " PEAK", ""};
+char*  PRport[] = {" MIDI", " CARD", " RTP", ""};
+char*  Pctype[] = {" FW", " USB", " unk", " unk", " unk", " unk", ""};
+char* Pusbmod[] = {" 32/32", " 16/16", " 32/8", " 8/32", " 8/8", " 2/2", ""};
+char* Pufmode[] = {" 32/32", " 16/16", " 32/8", " 8/32", ""};
+char*    Pcaw[] = {" IN", " OUT", ""};
+char*    Pcas[] = {" WC", " ADAT1", " ADAT2", " ADAT3", " ADAT4", ""};
+char* Pmdmode[] = {" 56", " 64", ""};
+char*  Pcmadi[] = {" 1-32", " 9-40", " 17-48", " 25-56", " 33-64", ""};
+char*  Pcmado[] = {" OFF", "1-32", " 9-40", " 17-48", " 25-56", " 33-64", ""};
+char* Pmadsrc[] = {" OFF", " OPT", " COAX", " BOTH", ""};
+char* Purectk[] = {" 32Ch", " 16Ch", " 8Ch", ""};
+char* Purplbk[] = {" SD", " USB", ""};
+char* Pursdsl[] = {" SD1", " SD2", ""};
+char* Purrctl[] = {" USB", " XLIVE", ""};
+char* Pinvmut[] = {" NORM", " INV", ""};
+char* Pclkmod[] = {" 24h", " 12h", ""};
+char* Purerpa[] = {" REC", " PLAY", " AUTO", ""};
+char* Prtavis[] = {" OFF", " 25%", " 30%", " 35%", " 40%", "45%", "50%", " 55%",
+						 " 60%", "65%", "70%", "75%", "80%", ""};
+char*  Prtaph[] = {" OFF", " 1", " 2", " 3", " 4", "5", "6", " 7", "8", ""};
+char*    Ubat[] = {" NONE", " GOOD", " LOW", ""};
+char*    Usdc[] = {" NONE", " READY", " PROTECT", " ERROR", ""};
+
+char* Sselidx[] = {" Ch01", " Ch02", " Ch03", " Ch04", " Ch05", " Ch06", " Ch07", " Ch08",
+                   " Ch09", " Ch10", " Ch11", " Ch12", " Ch13", " Ch14", " Ch15", " Ch16",
+                   " Ch17", " Ch18", " Ch19", " Ch20", " Ch21", " Ch22", " Ch23", " Ch24",
+                   " Ch25", " Ch26", " Ch27", " Ch28", " Ch29", " Ch30", " Ch31", " Ch32",
+                   " Aux1", " Aux2", " Aux3", " Aux4", " Aux5", " Aux6", " Aux7", " Aux8",
+                   " Fx1L", " Fx1R", " Fx2L", " Fx2R", " Fx3L", " Fx3R", " Fx4L", " Fx4R",
+                   " Bus1", " Bus2", " Bus3", " Bus4", " Bus5", " Bus6", " Bus7", " Bus8",
+                   " Bus9", " Bs10", " Bs11", " Bs12", " Bs13", " Bs14", " Bs15", " Bs16",
+                   " Mtx1", " Mtx2", " Mtx3", " Mtx4", " Mtx5", " Mtx6", " LR", " M/C", ""};
+char*	Sscrn[] = {" CHAN", " METERS", " ROUTE", " SETUP", " LIB", " FX",
+				   " MON", " USB", " SCENE", " ASSIGN", " LOCK", ""};
+char*	Schal[] = {" HOME", " CONFIG", " GATE", " DYN", " EQ", "MIX", " MAIN", ""};
+char*	Smetl[] = {" CHANNEL", " MIXBUS", " AUX/FX", " IN/OUT", " RTA", ""};
+char*	Sroul[] = {" HOME", " ANAOUT", " AUXOUT", " P16OUT", " CARDOUT", "AES50A", " AES50B", "XLROUT", ""};
+char*	Ssetl[] = {" GLOB", " CONF", " REMOTE", " NETW", "NAMES", "PREAMPS", " CARD", ""};
+char*	Slibl[] = {" CHAN", " EFFECT", " ROUTE", ""};
+char*	 Sfxl[] = {" HOME", " FX1", " FX2", " FX3", "FX4", "FX5", " FX6", " FX7", " FX8", ""};
+char*	Smonl[] = {" MONITOR", " TALKA", " TALKB", " OSC", ""};
+char*	Susbl[] = {" HOME", " CONFIG", ""};
+char*	Sscel[] = {" HOME", " SCENES", " BITS", " PARSAFE", "CHNSAFE", "MIDI", ""};
+char*	Sassl[] = {" HOME", " SETA", " SETB", " SETC", ""};
+char*	Stapl[] = {" STOP", " PPAUSE", " PLAY", " RPAUSE", "RECORD", "FF", "REW", ""};
+
+char* R00[] = {"OFF", "ON", ""};
+char* R01[] = {"FRONT", "REAR", ""};
+char* R02[] = {"ST", "M/S", ""};
+char* R03[] = {"2", "8", "12", "20", "ALL", ""};
+char* R04[] = {"COMP", "LIM", ""};
+char* R05[] = {"GR", "SBC", "PEAK", ""};
+char* R06[] = {"0", "1", ""};
+char* R07[] = {"OFF", "Bd1", "Bd2", "Bd3", "Bd4", "Bd5", ""};
+char* R08[] = {"12", "48", ""};
+char* R09[] = {"1.1", "1.2", "1.3", "1.5", "1.7", "2", "2.5", "3", "3.5", "4", "5", "7", "10", "LIM", ""};
+char* R10[] = {"1k5", "2k", "3k", "4k", "5k", ""};
+char* R11[] = {"200", "300", "500", "700", "1k", "1k5", "2k", "3k", "4k", "5k", "7k", ""};
+char* R12[] = {"200", "300", "500", "700", "1000", ""};
+char* R13[] = {"5k", "10k", "20k", ""};
+char* R14[] = {"3k", "4k", "5k", "8k", "10k", "12k", "16k", ""};
+char* R15[] = {"0", "30", "60", "100", ""};
+char* R16[] = {"FEM", "MALE", ""};
+char* R17[] = {"AMB", "CLUB", "HALL", ""};
+char* R18[] = {"PAR", "SER", ""};
+char* R19[] = {"1", "1/2", "2/3", "3/2", ""};
+char* R20[] = {"1/4", "1/3", "3/8", "1/2", "2/3", "3/4", "1", "1/4X", "1/3X", "3/8X", "1/2X", "2/3X", "3/4X", "1X",""};
+char* R21[] = {"LO", "MID", "HI",""};
+char* R22[] = {"TRI", "SIN", "SAW", "SAW-", "RMP", "SQU", "RND",""};
+char* R23[] = {"LP", "HP", "BP", "NO",""};
+char* R24[] = {"M", "ST",""};
+char* R25[] = {"1/4", "3/8", "1/2", "2/3", "1", "4/3", "3/2", "2", "3",""};
 
 #include "X32Channel.h"		//
 #include "X32CfgMain.h"		//
@@ -256,6 +451,7 @@ char snode_str[32]; // used to temporarily save a string in node and FX commands
 #include "X32Headamp.h"		//
 #include "X32Show.h"		//
 #include "X32Misc.h"		//
+
 
 X32header Xheader[] = { // X32 Headers, the data used for testing and the
 	{ { "/shu" }, &function_shutdown }, // associated function call
@@ -279,10 +475,11 @@ X32header Xheader[] = { // X32 Headers, the data used for testing and the
 	{ { "/fx/" }, &function_fx },
 	{ { "/out" }, &function_output },
 	{ { "/hea" }, &function_headamp },
+	{ { "/met" }, &function_meters },
 	{ { "/-ha" }, &function_misc },
 	{ { "/ins" }, &function_misc },
 	{ { "/-sh" }, &function_show },
-	{ { "/ren" }, &function_misc },
+	{ { "/ren" }, &function_renew },
 	{ { "/cop" }, &function_copy },
 	{ { "/add" }, &function_add },
 	{ { "/loa" }, &function_load },
@@ -295,105 +492,298 @@ X32header Xheader[] = { // X32 Headers, the data used for testing and the
 };
 int Xheader_max = sizeof(Xheader) / sizeof(X32header);
 
+X32command Xmeters[] = {
+		{"/meters/0",		{I32}, F_GET, {0}, NULL},			// 0
+		{"/meters/1",		{I32}, F_GET, {0}, NULL},			// 1
+		{"/meters/2",		{I32}, F_GET, {0}, NULL},			// 2
+		{"/meters/3",		{I32}, F_GET, {0}, NULL},			// 3
+		{"/meters/4",		{I32}, F_GET, {0}, NULL},			// 4
+		{"/meters/5",		{I32}, F_GET, {0}, NULL},			// 5
+		{"/meters/6",		{I32}, F_GET, {0}, NULL},			// 6
+		{"/meters/7",		{I32}, F_GET, {0}, NULL},			// 7
+		{"/meters/8",		{I32}, F_GET, {0}, NULL},			// 8
+		{"/meters/9",		{I32}, F_GET, {0}, NULL},			// 9
+		{"/meters/10",		{I32}, F_GET, {0}, NULL},			// 10
+		{"/meters/11",		{I32}, F_GET, {0}, NULL},			// 11
+		{"/meters/12",		{I32}, F_GET, {0}, NULL},			// 12
+		{"/meters/13",		{I32}, F_GET, {0}, NULL},			// 13
+		{"/meters/14",		{I32}, F_GET, {0}, NULL},			// 14
+		{"/meters/15",		{I32}, F_GET, {0}, NULL},			// 15
+		{"/meters/16",		{I32}, F_GET, {0}, NULL},			// 16
+
+};
+int Xmeters_max = sizeof(Xmeters) / sizeof(X32command);
+//
+// Active meters (meters/0...meters/15) Time when to stop (Active) and interval between 2 consecutive meters (Inter)
+struct timeval		xmeter_time;
+struct timeval 		XTimerMeters[MAX_METERS];
+struct timeval 		XInterMeters[MAX_METERS];
+long           		XDeltaMeters[MAX_METERS];
+struct sockaddr 	XClientMeters[MAX_METERS];
+char				Xbuf_meters[MAX_METERS][512];
+int					Lbuf_meters[MAX_METERS];
+int					XActiveMeters;
+//
+#ifndef timerincrement
+#define	timerincrement(a, b)								\
+	do {													\
+		(a)->tv_usec += (b);								\
+		while ((a)->tv_usec >= 1000000) {					\
+			++(a)->tv_sec;									\
+			(a)->tv_usec -= 1000000;						\
+		}													\
+	} while (0)
+#endif
+//
+#ifndef timercmp
+#define timercmp(a, b, CMP)									\
+	do {													\
+		  (((a)->tv_sec == (b)->tv_sec) ?					\
+		   ((a)->tv_usec CMP (b)->tv_usec) :				\
+		   ((a)->tv_sec CMP (b)->tv_sec))					\
+	} while (0)
+#endif
+//
+
+
 X32command Xdummy[] = { };
 int Xdummy_max = sizeof(Xdummy) / sizeof(X32command);
 
 X32node Xnode[] = { // /node Command Headers (see structure definition above
-	{ "conf", 4, Xconfig, sizeof(Xconfig) / sizeof(X32command) },
-	{ "main", 4, Xmain, sizeof(Xmain) / sizeof(X32command) },
-	{ "-pre", 4, Xprefs, sizeof(Xprefs) / sizeof(X32command) },
-	{ "-sta", 4, Xstat, sizeof(Xstat) / sizeof(X32command) },
-	{ "ch/01", 5, Xchannel01, sizeof(Xchannel01) / sizeof(X32command) },
-	{ "ch/02", 5, Xchannel02, sizeof(Xchannel02) / sizeof(X32command) },
-	{ "ch/03", 5, Xchannel03, sizeof(Xchannel03) / sizeof(X32command) },
-	{ "ch/04", 5, Xchannel04, sizeof(Xchannel04) / sizeof(X32command) },
-	{ "ch/05", 5, Xchannel05, sizeof(Xchannel05) / sizeof(X32command) },
-	{ "ch/06", 5, Xchannel06, sizeof(Xchannel06) / sizeof(X32command) },
-	{ "ch/07", 5, Xchannel07, sizeof(Xchannel07) / sizeof(X32command) },
-	{ "ch/08", 5, Xchannel08, sizeof(Xchannel08) / sizeof(X32command) },
-	{ "ch/09", 5, Xchannel09, sizeof(Xchannel09) / sizeof(X32command) },
-	{ "ch/10", 5, Xchannel10, sizeof(Xchannel10) / sizeof(X32command) },
-	{ "ch/11", 5, Xchannel11, sizeof(Xchannel11) / sizeof(X32command) },
-	{ "ch/12", 5, Xchannel12, sizeof(Xchannel12) / sizeof(X32command) },
-	{ "ch/13", 5, Xchannel13, sizeof(Xchannel13) / sizeof(X32command) },
-	{ "ch/14", 5, Xchannel14, sizeof(Xchannel14) / sizeof(X32command) },
-	{ "ch/15", 5, Xchannel15, sizeof(Xchannel15) / sizeof(X32command) },
-	{ "ch/16", 5, Xchannel16, sizeof(Xchannel16) / sizeof(X32command) },
-	{ "ch/17", 5, Xchannel17, sizeof(Xchannel17) / sizeof(X32command) },
-	{ "ch/18", 5, Xchannel18, sizeof(Xchannel18) / sizeof(X32command) },
-	{ "ch/19", 5, Xchannel19, sizeof(Xchannel19) / sizeof(X32command) },
-	{ "ch/20", 5, Xchannel20, sizeof(Xchannel20) / sizeof(X32command) },
-	{ "ch/21", 5, Xchannel21, sizeof(Xchannel21) / sizeof(X32command) },
-	{ "ch/22", 5, Xchannel22, sizeof(Xchannel22) / sizeof(X32command) },
-	{ "ch/23", 5, Xchannel23, sizeof(Xchannel23) / sizeof(X32command) },
-	{ "ch/24", 5, Xchannel24, sizeof(Xchannel24) / sizeof(X32command) },
-	{ "ch/25", 5, Xchannel25, sizeof(Xchannel25) / sizeof(X32command) },
-	{ "ch/26", 5, Xchannel26, sizeof(Xchannel26) / sizeof(X32command) },
-	{ "ch/27", 5, Xchannel27, sizeof(Xchannel27) / sizeof(X32command) },
-	{ "ch/28", 5, Xchannel28, sizeof(Xchannel28) / sizeof(X32command) },
-	{ "ch/29", 5, Xchannel29, sizeof(Xchannel29) / sizeof(X32command) },
-	{ "ch/30", 5, Xchannel30, sizeof(Xchannel30) / sizeof(X32command) },
-	{ "ch/31", 5, Xchannel31, sizeof(Xchannel31) / sizeof(X32command) },
-	{ "ch/32", 5, Xchannel32, sizeof(Xchannel32) / sizeof(X32command) },
-	{ "ch", 2, Xchannel01, sizeof(Xchannel01) / sizeof(X32command) },
-	{ "auxin/01", 8, Xauxin01, sizeof(Xauxin01) / sizeof(X32command) },
-	{ "auxin/02", 8, Xauxin02, sizeof(Xauxin02) / sizeof(X32command) },
-	{ "auxin/03", 8, Xauxin03, sizeof(Xauxin03) / sizeof(X32command) },
-	{ "auxin/04", 8, Xauxin04, sizeof(Xauxin04) / sizeof(X32command) },
-	{ "auxin/05", 8, Xauxin05, sizeof(Xauxin05) / sizeof(X32command) },
-	{ "auxin/06", 8, Xauxin06, sizeof(Xauxin06) / sizeof(X32command) },
-	{ "auxin/07", 8, Xauxin07, sizeof(Xauxin07) / sizeof(X32command) },
-	{ "auxin/08", 8, Xauxin08, sizeof(Xauxin08) / sizeof(X32command) },
-	{ "auxin", 5, Xauxin01, sizeof(Xauxin01) / sizeof(X32command) },
-	{ "fxrtn", 5, Xfxrtn01, sizeof(Xfxrtn01) / sizeof(X32command) },
-	{ "fxrtn/01", 8, Xfxrtn01, sizeof(Xfxrtn01) / sizeof(X32command) },
-	{ "fxrtn/02", 8, Xfxrtn02, sizeof(Xfxrtn02) / sizeof(X32command) },
-	{ "fxrtn/03", 8, Xfxrtn03, sizeof(Xfxrtn03) / sizeof(X32command) },
-	{ "fxrtn/04", 8, Xfxrtn04, sizeof(Xfxrtn04) / sizeof(X32command) },
-	{ "fxrtn/05", 8, Xfxrtn05, sizeof(Xfxrtn05) / sizeof(X32command) },
-	{ "fxrtn/06", 8, Xfxrtn06, sizeof(Xfxrtn06) / sizeof(X32command) },
-	{ "fxrtn/07", 8, Xfxrtn07, sizeof(Xfxrtn07) / sizeof(X32command) },
-	{ "fxrtn/08", 8, Xfxrtn08, sizeof(Xfxrtn08) / sizeof(X32command) },
-	{ "fx", 2, Xfx, sizeof(Xfx) / sizeof(X32command) },
-	{ "bus/01", 6, Xbus01, sizeof(Xbus01) / sizeof(X32command) },
-	{ "bus/02", 6, Xbus02, sizeof(Xbus02) / sizeof(X32command) },
-	{ "bus/03", 6, Xbus03, sizeof(Xbus03) / sizeof(X32command) },
-	{ "bus/04", 6, Xbus04, sizeof(Xbus04) / sizeof(X32command) },
-	{ "bus/05", 6, Xbus05, sizeof(Xbus05) / sizeof(X32command) },
-	{ "bus/06", 6, Xbus06, sizeof(Xbus06) / sizeof(X32command) },
-	{ "bus/07", 6, Xbus07, sizeof(Xbus07) / sizeof(X32command) },
-	{ "bus/08", 6, Xbus08, sizeof(Xbus08) / sizeof(X32command) },
-	{ "bus/09", 6, Xbus09, sizeof(Xbus09) / sizeof(X32command) },
-	{ "bus/10", 6, Xbus10, sizeof(Xbus10) / sizeof(X32command) },
-	{ "bus/11", 6, Xbus11, sizeof(Xbus11) / sizeof(X32command) },
-	{ "bus/12", 6, Xbus12, sizeof(Xbus12) / sizeof(X32command) },
-	{ "bus/13", 6, Xbus13, sizeof(Xbus13) / sizeof(X32command) },
-	{ "bus/14", 6, Xbus14, sizeof(Xbus14) / sizeof(X32command) },
-	{ "bus/15", 6, Xbus15, sizeof(Xbus15) / sizeof(X32command) },
-	{ "bus/16", 6, Xbus16, sizeof(Xbus16) / sizeof(X32command) },
-	{ "bus", 3, Xbus01, sizeof(Xbus01) / sizeof(X32command) },
-	{ "mtx/01", 6, Xmtx01, sizeof(Xmtx01) / sizeof(X32command) },
-	{ "mtx/02", 6, Xmtx02, sizeof(Xmtx02) / sizeof(X32command) },
-	{ "mtx/03", 6, Xmtx03, sizeof(Xmtx03) / sizeof(X32command) },
-	{ "mtx/04", 6, Xmtx04, sizeof(Xmtx04) / sizeof(X32command) },
-	{ "mtx/05", 6, Xmtx05, sizeof(Xmtx05) / sizeof(X32command) },
-	{ "mtx/06", 6, Xmtx06, sizeof(Xmtx06) / sizeof(X32command) },
-	{ "mtx", 3, Xmtx01, sizeof(Xmtx01) / sizeof(X32command) },
-	{ "dca", 3, Xdca, sizeof(Xdca) / sizeof(X32command) },
-	{ "outputs/main/01", 8, Xoutput, sizeof(Xoutput) / sizeof(X32command) },
-	{ "outputs/main", 8, Xoutput, sizeof(Xoutput) / sizeof(X32command) },
-	{ "outputs", 8, Xoutput, sizeof(Xoutput) / sizeof(X32command) },
-	{ "headamp", 8, Xheadamp, sizeof(Xheadamp) / sizeof(X32command) },
-	{ "-ha", 3, Xmisc, sizeof(Xmisc) / sizeof(X32command) },
-	{ "-usb", 4, Xmisc, sizeof(Xmisc) / sizeof(X32command) },
-	{ "undo", 4, Xdummy, sizeof(Xdummy) / sizeof(X32command) },
-	{ "-action", 7, Xdummy, sizeof(Xdummy) / sizeof(X32command) },
-	{ "-show/showfile/snippet", 22, Xsnippet, sizeof(Xsnippet) / sizeof(X32command) },	// !! keep
-	{ "-show/showfile/scene", 20, Xscene, sizeof(Xscene) / sizeof(X32command) }, 		// in this
-	{ "-show", 5, Xshow, sizeof(Xshow) / sizeof(X32command) },							// order !!
-	{ "-urec", 5, Xurec, sizeof(Xurec) / sizeof(X32command) },
+	{ "conf", 4, Xconfig, sizeof(Xconfig)/sizeof(X32command)},
+	{ "main", 4, Xmain, sizeof(Xmain)/sizeof(X32command)},
+	{ "-pre", 4, Xprefs, sizeof(Xprefs)/sizeof(X32command)},
+	{ "-sta", 4, Xstat, sizeof(Xstat)/sizeof(X32command)},
+	{ "ch/01", 5, Xchannel01, sizeof(Xchannel01)/sizeof(X32command)},
+	{ "ch/02", 5, Xchannel02, sizeof(Xchannel02)/sizeof(X32command)},
+	{ "ch/03", 5, Xchannel03, sizeof(Xchannel03)/sizeof(X32command)},
+	{ "ch/04", 5, Xchannel04, sizeof(Xchannel04)/sizeof(X32command)},
+	{ "ch/05", 5, Xchannel05, sizeof(Xchannel05)/sizeof(X32command)},
+	{ "ch/06", 5, Xchannel06, sizeof(Xchannel06)/sizeof(X32command)},
+	{ "ch/07", 5, Xchannel07, sizeof(Xchannel07)/sizeof(X32command)},
+	{ "ch/08", 5, Xchannel08, sizeof(Xchannel08)/sizeof(X32command)},
+	{ "ch/09", 5, Xchannel09, sizeof(Xchannel09)/sizeof(X32command)},
+	{ "ch/10", 5, Xchannel10, sizeof(Xchannel10)/sizeof(X32command)},
+	{ "ch/11", 5, Xchannel11, sizeof(Xchannel11)/sizeof(X32command)},
+	{ "ch/12", 5, Xchannel12, sizeof(Xchannel12)/sizeof(X32command)},
+	{ "ch/13", 5, Xchannel13, sizeof(Xchannel13)/sizeof(X32command)},
+	{ "ch/14", 5, Xchannel14, sizeof(Xchannel14)/sizeof(X32command)},
+	{ "ch/15", 5, Xchannel15, sizeof(Xchannel15)/sizeof(X32command)},
+	{ "ch/16", 5, Xchannel16, sizeof(Xchannel16)/sizeof(X32command)},
+	{ "ch/17", 5, Xchannel17, sizeof(Xchannel17)/sizeof(X32command)},
+	{ "ch/18", 5, Xchannel18, sizeof(Xchannel18)/sizeof(X32command)},
+	{ "ch/19", 5, Xchannel19, sizeof(Xchannel19)/sizeof(X32command)},
+	{ "ch/20", 5, Xchannel20, sizeof(Xchannel20)/sizeof(X32command)},
+	{ "ch/21", 5, Xchannel21, sizeof(Xchannel21)/sizeof(X32command)},
+	{ "ch/22", 5, Xchannel22, sizeof(Xchannel22)/sizeof(X32command)},
+	{ "ch/23", 5, Xchannel23, sizeof(Xchannel23)/sizeof(X32command)},
+	{ "ch/24", 5, Xchannel24, sizeof(Xchannel24)/sizeof(X32command)},
+	{ "ch/25", 5, Xchannel25, sizeof(Xchannel25)/sizeof(X32command)},
+	{ "ch/26", 5, Xchannel26, sizeof(Xchannel26)/sizeof(X32command)},
+	{ "ch/27", 5, Xchannel27, sizeof(Xchannel27)/sizeof(X32command)},
+	{ "ch/28", 5, Xchannel28, sizeof(Xchannel28)/sizeof(X32command)},
+	{ "ch/29", 5, Xchannel29, sizeof(Xchannel29)/sizeof(X32command)},
+	{ "ch/30", 5, Xchannel30, sizeof(Xchannel30)/sizeof(X32command)},
+	{ "ch/31", 5, Xchannel31, sizeof(Xchannel31)/sizeof(X32command)},
+	{ "ch/32", 5, Xchannel32, sizeof(Xchannel32)/sizeof(X32command)},
+	{ "ch", 2, Xchannel01, sizeof(Xchannel01)/sizeof(X32command)},
+	{ "auxin/01", 8, Xauxin01, sizeof(Xauxin01)/sizeof(X32command)},
+	{ "auxin/02", 8, Xauxin02, sizeof(Xauxin02)/sizeof(X32command)},
+	{ "auxin/03", 8, Xauxin03, sizeof(Xauxin03)/sizeof(X32command)},
+	{ "auxin/04", 8, Xauxin04, sizeof(Xauxin04)/sizeof(X32command)},
+	{ "auxin/05", 8, Xauxin05, sizeof(Xauxin05)/sizeof(X32command)},
+	{ "auxin/06", 8, Xauxin06, sizeof(Xauxin06)/sizeof(X32command)},
+	{ "auxin/07", 8, Xauxin07, sizeof(Xauxin07)/sizeof(X32command)},
+	{ "auxin/08", 8, Xauxin08, sizeof(Xauxin08)/sizeof(X32command)},
+	{ "auxin", 5, Xauxin01, sizeof(Xauxin01)/sizeof(X32command)},
+	{ "fxrtn/01", 8, Xfxrtn01, sizeof(Xfxrtn01)/sizeof(X32command)},
+	{ "fxrtn/02", 8, Xfxrtn02, sizeof(Xfxrtn02)/sizeof(X32command)},
+	{ "fxrtn/03", 8, Xfxrtn03, sizeof(Xfxrtn03)/sizeof(X32command)},
+	{ "fxrtn/04", 8, Xfxrtn04, sizeof(Xfxrtn04)/sizeof(X32command)},
+	{ "fxrtn/05", 8, Xfxrtn05, sizeof(Xfxrtn05)/sizeof(X32command)},
+	{ "fxrtn/06", 8, Xfxrtn06, sizeof(Xfxrtn06)/sizeof(X32command)},
+	{ "fxrtn/07", 8, Xfxrtn07, sizeof(Xfxrtn07)/sizeof(X32command)},
+	{ "fxrtn/08", 8, Xfxrtn08, sizeof(Xfxrtn08)/sizeof(X32command)},
+	{ "fxrtn", 5, Xfxrtn01, sizeof(Xfxrtn01)/sizeof(X32command)},
+	{ "fx/1", 4, Xfx1, sizeof(Xfx1)/sizeof(X32command)},
+	{ "fx/2", 4, Xfx2, sizeof(Xfx2)/sizeof(X32command)},
+	{ "fx/3", 4, Xfx3, sizeof(Xfx3)/sizeof(X32command)},
+	{ "fx/4", 4, Xfx4, sizeof(Xfx4)/sizeof(X32command)},
+	{ "fx/5", 4, Xfx5, sizeof(Xfx5)/sizeof(X32command)},
+	{ "fx/6", 4, Xfx6, sizeof(Xfx6)/sizeof(X32command)},
+	{ "fx/7", 4, Xfx7, sizeof(Xfx7)/sizeof(X32command)},
+	{ "fx/8", 4, Xfx8, sizeof(Xfx8)/sizeof(X32command)},
+	{ "fx", 2, Xfx1, sizeof(Xfx1)/sizeof(X32command)},
+	{ "bus/01", 6, Xbus01, sizeof(Xbus01)/sizeof(X32command)},
+	{ "bus/02", 6, Xbus02, sizeof(Xbus02)/sizeof(X32command)},
+	{ "bus/03", 6, Xbus03, sizeof(Xbus03)/sizeof(X32command)},
+	{ "bus/04", 6, Xbus04, sizeof(Xbus04)/sizeof(X32command)},
+	{ "bus/05", 6, Xbus05, sizeof(Xbus05)/sizeof(X32command)},
+	{ "bus/06", 6, Xbus06, sizeof(Xbus06)/sizeof(X32command)},
+	{ "bus/07", 6, Xbus07, sizeof(Xbus07)/sizeof(X32command)},
+	{ "bus/08", 6, Xbus08, sizeof(Xbus08)/sizeof(X32command)},
+	{ "bus/09", 6, Xbus09, sizeof(Xbus09)/sizeof(X32command)},
+	{ "bus/10", 6, Xbus10, sizeof(Xbus10)/sizeof(X32command)},
+	{ "bus/11", 6, Xbus11, sizeof(Xbus11)/sizeof(X32command)},
+	{ "bus/12", 6, Xbus12, sizeof(Xbus12)/sizeof(X32command)},
+	{ "bus/13", 6, Xbus13, sizeof(Xbus13)/sizeof(X32command)},
+	{ "bus/14", 6, Xbus14, sizeof(Xbus14)/sizeof(X32command)},
+	{ "bus/15", 6, Xbus15, sizeof(Xbus15)/sizeof(X32command)},
+	{ "bus/16", 6, Xbus16, sizeof(Xbus16)/sizeof(X32command)},
+	{ "bus", 3, Xbus01, sizeof(Xbus01)/sizeof(X32command)},
+	{ "mtx/01", 6, Xmtx01, sizeof(Xmtx01)/sizeof(X32command)},
+	{ "mtx/02", 6, Xmtx02, sizeof(Xmtx02)/sizeof(X32command)},
+	{ "mtx/03", 6, Xmtx03, sizeof(Xmtx03)/sizeof(X32command)},
+	{ "mtx/04", 6, Xmtx04, sizeof(Xmtx04)/sizeof(X32command)},
+	{ "mtx/05", 6, Xmtx05, sizeof(Xmtx05)/sizeof(X32command)},
+	{ "mtx/06", 6, Xmtx06, sizeof(Xmtx06)/sizeof(X32command)},
+	{ "mtx", 3, Xmtx01, sizeof(Xmtx01)/sizeof(X32command)},
+	{ "dca", 3, Xdca, sizeof(Xdca)/sizeof(X32command)},
+	{ "outputs/main/01", 8, Xoutput, sizeof(Xoutput)/sizeof(X32command)},
+	{ "outputs/main", 8, Xoutput, sizeof(Xoutput)/sizeof(X32command)},
+	{ "outputs", 8, Xoutput, sizeof(Xoutput)/sizeof(X32command)},
+	{ "headamp/000", 11, Xheadamp, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/001", 11, Xheadamp001, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/002", 11, Xheadamp002, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/003", 11, Xheadamp003, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/004", 11, Xheadamp004, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/005", 11, Xheadamp005, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/006", 11, Xheadamp006, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/007", 11, Xheadamp007, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/008", 11, Xheadamp008, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/009", 11, Xheadamp009, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/010", 11, Xheadamp010, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/011", 11, Xheadamp011, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/012", 11, Xheadamp012, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/013", 11, Xheadamp013, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/014", 11, Xheadamp014, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/015", 11, Xheadamp015, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/016", 11, Xheadamp016, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/017", 11, Xheadamp017, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/018", 11, Xheadamp018, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/019", 11, Xheadamp019, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/020", 11, Xheadamp020, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/021", 11, Xheadamp021, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/022", 11, Xheadamp022, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/023", 11, Xheadamp023, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/024", 11, Xheadamp024, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/025", 11, Xheadamp025, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/026", 11, Xheadamp026, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/027", 11, Xheadamp027, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/028", 11, Xheadamp028, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/029", 11, Xheadamp029, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/030", 11, Xheadamp030, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/031", 11, Xheadamp031, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/032", 11, Xheadamp032, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/033", 11, Xheadamp033, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/034", 11, Xheadamp034, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/035", 11, Xheadamp035, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/036", 11, Xheadamp036, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/037", 11, Xheadamp037, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/038", 11, Xheadamp038, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/039", 11, Xheadamp039, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/040", 11, Xheadamp040, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/041", 11, Xheadamp041, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/042", 11, Xheadamp042, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/043", 11, Xheadamp043, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/044", 11, Xheadamp044, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/045", 11, Xheadamp045, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/046", 11, Xheadamp046, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/047", 11, Xheadamp047, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/048", 11, Xheadamp048, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/049", 11, Xheadamp049, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/050", 11, Xheadamp050, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/051", 11, Xheadamp051, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/052", 11, Xheadamp052, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/053", 11, Xheadamp053, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/054", 11, Xheadamp054, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/055", 11, Xheadamp055, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/056", 11, Xheadamp056, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/057", 11, Xheadamp057, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/058", 11, Xheadamp058, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/059", 11, Xheadamp059, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/060", 11, Xheadamp060, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/061", 11, Xheadamp061, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/062", 11, Xheadamp062, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/063", 11, Xheadamp063, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/064", 11, Xheadamp064, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/065", 11, Xheadamp065, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/066", 11, Xheadamp066, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/067", 11, Xheadamp067, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/068", 11, Xheadamp068, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/069", 11, Xheadamp069, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/070", 11, Xheadamp070, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/071", 11, Xheadamp071, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/072", 11, Xheadamp072, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/073", 11, Xheadamp073, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/074", 11, Xheadamp074, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/075", 11, Xheadamp075, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/076", 11, Xheadamp076, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/077", 11, Xheadamp077, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/078", 11, Xheadamp078, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/079", 11, Xheadamp079, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/080", 11, Xheadamp080, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/081", 11, Xheadamp081, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/082", 11, Xheadamp082, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/083", 11, Xheadamp083, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/084", 11, Xheadamp084, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/085", 11, Xheadamp085, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/086", 11, Xheadamp086, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/087", 11, Xheadamp087, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/088", 11, Xheadamp088, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/089", 11, Xheadamp089, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/090", 11, Xheadamp090, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/091", 11, Xheadamp091, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/092", 11, Xheadamp092, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/093", 11, Xheadamp093, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/094", 11, Xheadamp094, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/095", 11, Xheadamp095, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/096", 11, Xheadamp096, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/097", 11, Xheadamp097, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/098", 11, Xheadamp098, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/099", 11, Xheadamp099, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/100", 11, Xheadamp100, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/101", 11, Xheadamp101, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/102", 11, Xheadamp102, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/103", 11, Xheadamp103, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/104", 11, Xheadamp104, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/105", 11, Xheadamp105, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/106", 11, Xheadamp106, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/107", 11, Xheadamp107, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/108", 11, Xheadamp108, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/109", 11, Xheadamp109, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/110", 11, Xheadamp110, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/111", 11, Xheadamp111, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/112", 11, Xheadamp112, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/113", 11, Xheadamp113, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/114", 11, Xheadamp114, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/115", 11, Xheadamp115, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/116", 11, Xheadamp116, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/117", 11, Xheadamp117, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/118", 11, Xheadamp118, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/119", 11, Xheadamp119, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/120", 11, Xheadamp120, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/121", 11, Xheadamp121, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/122", 11, Xheadamp122, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/123", 11, Xheadamp123, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/124", 11, Xheadamp124, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/125", 11, Xheadamp125, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/126", 11, Xheadamp126, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp/127", 11, Xheadamp127, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "headamp", 7, Xheadamp, sizeof(Xheadamp)/sizeof(X32command)},
+	{ "-ha", 3, Xmisc, sizeof(Xmisc)/sizeof(X32command)},
+	{ "-usb", 4, Xmisc, sizeof(Xmisc)/sizeof(X32command)},
+	{ "undo", 4, Xdummy, sizeof(Xdummy)/sizeof(X32command)},
+	{ "-action", 7, Xdummy, sizeof(Xdummy)/sizeof(X32command)},
+	{ "-show/showfile/snippet", 22, Xsnippet, sizeof(Xsnippet)/sizeof(X32command)},	// !! keep
+	{ "-show/showfile/scene", 20, Xscene, sizeof(Xscene)/sizeof(X32command)}, 		// in this
+	{ "-show", 5, Xshow, sizeof(Xshow)/sizeof(X32command)},							// order !!
+	{ "-urec", 5, Xurec, sizeof(Xurec)/sizeof(X32command)},
 };
 int Xnode_max = sizeof(Xnode) / sizeof(X32node);
+
+X32command *node_single_command;//saved command pointer for function_node_single usage
+int node_single_index;			//saved command index for function_node_single usage
 
 union littlebig {	//
 	int ii;			// A small union to manage
@@ -437,7 +827,7 @@ socklen_t Client_ip_len = sizeof(Client_ip);	// length of addresses
 #endif
 
 int main(int argc, char **argv) {
-	int i;
+	int i, whoto;
 	char input_ch;
 // Manage arguments
 	while ((input_ch = getopt(argc, argv, "i:d:v:x:b:f:r:m:h")) != -1) {
@@ -480,6 +870,12 @@ int main(int argc, char **argv) {
 	}
 // Initiate timers
 	xremote_time = time(NULL);
+	for (i = 0; i < MAX_METERS; i++) {
+		gettimeofday(&XTimerMeters[i], NULL);
+		XInterMeters[i] = XTimerMeters[i];
+		XDeltaMeters[i] = 50000;
+		XActiveMeters = 0;
+	}
 // port[] = "10023" // 10023: X32 desk, 10024: XAir18
 	strcpy(Xport_str, "10023");
 //
@@ -522,11 +918,12 @@ int main(int argc, char **argv) {
 // Wait for messages from client
 	i = 0;
 	r_len = 0;
-	printf("X32 - v0.69 - An X32 Emulator - (c)2014-2017 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.72 - An X32 Emulator - (c)2014-2017 Patrick-Gilles Maillot\n");
 	getmyIP(); // Try to get our IP...
 //	printf("Xport=%s\n",Xport_str); //
 	if (Xverbose) printf("Listening to port: %s, X32 IP = %s\n", Xport_str, Xip_str);
 	while (keep_on) { // Main, receiving loop (active as long as keep_on is 1)
+		whoto = 0;
 		FD_ZERO(&readfds);
 		FD_SET(Xfd, &readfds);
 		p_status = select(Xfd + 1, &readfds, NULL, NULL, &timeout);
@@ -576,15 +973,36 @@ int main(int argc, char **argv) {
 			// and the parsing status in p_status
 			while (i < Xheader_max) {
 				if (Xheader[i].header.icom == (int) *((int*) v_buf)) { // single int test!
-					p_status = Xheader[i].fptr(); // call associated parsing function
+					whoto = Xheader[i].fptr(); // call associated parsing function
 					break; // Done parsing, exit parsing while loop
 				}
 				i += 1;
 			}
 			// Done receiving/managing command parameters;
-			// Update current client with data to be sent?
-			Xsend(p_status);
+			Xsend(whoto);
 		}
+		//
+		// Update current client with data to be sent, or meters & subscribes?
+//		if (whoto == 0) {  // Meters or other data to send?
+			gettimeofday (&xmeter_time, NULL);
+			if (XActiveMeters) {
+				for (i = 0; i < MAX_METERS; i++) {
+					if (XActiveMeters & (1 << i)) {
+						if(timercmp(&XTimerMeters[i], &xmeter_time, > )) {
+							if(timercmp(&xmeter_time, &XInterMeters[i], > )) {
+								if (sendto(Xfd, &Xbuf_meters[i][0], Lbuf_meters[i], 0, &XClientMeters[i], Client_ip_len) < 0) {
+									perror("Error while sending data");
+									return(0);
+								}
+								timerincrement(&XInterMeters[i], XDeltaMeters[i]);
+							}
+						} else {
+							XActiveMeters &= ~(1 << i);			// set meters inactive
+						}
+					}
+				}
+			}
+//		}
 	}
 	return 0;
 }
@@ -649,7 +1067,7 @@ void getmyIP() {
 void X32Print(struct X32command* command) {
 	printf("X32-Command: %s data: ", command->command);
 //
-	if (command->format.typ == I32) {
+	if ((command->format.typ == I32) || (command->format.typ == E32)) {
 		printf("[%6d]\n", command->value.ii);
 	} else if (command->format.typ == F32) {
 		if (command->value.ff < 10.) printf("[%6.4f]\n", command->value.ff);
@@ -669,7 +1087,8 @@ void X32Print(struct X32command* command) {
 //
 // Xsend: X32 sending data (as the result of a command or a change for example)
 void Xsend(int who_to) {
-	int j;
+	int i;
+
 
 	if ((who_to & S_SND) && s_len) {
 		if (Xverbose) {
@@ -684,14 +1103,14 @@ void Xsend(int who_to) {
 	// Other clients to update based on their xremote status?
 	if ((who_to & S_REM) && s_len) {
 		xremote_time = time(NULL);
-		for (j = 0; j < MAX_CLIENTS; j++) {
-			if ((X32Client[j].vlid) && (strcmp(X32Client[j].sock.sa_data, Client_ip_pt->sa_data) != 0)) {
-				if (X32Client[j].xrem > xremote_time) {
+		for (i = 0; i < MAX_CLIENTS; i++) {
+			if ((X32Client[i].vlid) && (strcmp(X32Client[i].sock.sa_data, Client_ip_pt->sa_data) != 0)) {
+				if (X32Client[i].xrem > xremote_time) {
 					if (Xverbose) {
 						Xfdump("X->", s_buf, s_len, Xdebug);
 						fflush(stdout);
 					}
-					if (sendto(Xfd, s_buf, s_len, 0, &(X32Client[j].sock), Client_ip_len) < 0) {
+					if (sendto(Xfd, s_buf, s_len, 0, &(X32Client[i].sock), Client_ip_len) < 0) {
 						perror("Error while sending data");
 						return;
 					}
@@ -703,11 +1122,11 @@ void Xsend(int who_to) {
 
 //
 // FXc_lookup: find the parameter type of an FX parameter
-int FXc_lookup(int index) {
+int FXc_lookup(X32command* Xfx, int index) {
 	int ipar, ityp;
 	char ctyp;
 // lookup function to find the parameter type of an FX parameter for command at index
-// the function returns I32, F32, S32, B32, or A32, and NIL if an error is detected
+// the function returns I32, F32, S32, B32, or E32, and NIL if an error is detected
 //
 // Command at index is like: /fx/<n>/par/<pp>
 // we get the FX type at index -<pp> - 5
@@ -727,6 +1146,9 @@ int FXc_lookup(int index) {
 	case 'f':
 		return F32;
 		break;
+	case 'e':
+		return E32;
+		break;
 	case 's':
 		return S32;
 		break;
@@ -739,8 +1161,7 @@ int FXc_lookup(int index) {
 
 //
 // Slevel: returns db level [-oo...10] from float[0..1]
-char*
-Slevel(float fin) {
+char* Slevel(float fin) {
 	float fl;
 
 	if (fin == 0.) {
@@ -757,8 +1178,7 @@ Slevel(float fin) {
 
 //
 // Slinf: returns linear float [min..max] in different formats
-char*
-Slinf(float fin, float fmin, float fmax, int pre) {
+char* Slinf(float fin, float fmin, float fmax, int pre) {
 	char formt[8] = " %.0f";
 
 	formt[3] = (char) (48 + pre); // results in " %.0f"... " %.3f" for pre = 0..3
@@ -768,8 +1188,7 @@ Slinf(float fin, float fmin, float fmax, int pre) {
 
 //
 // Slinfs: returns linear float [min..max] in different signed formats
-char*
-Slinfs(float fin, float fmin, float fmax, int pre) {
+char* Slinfs(float fin, float fmin, float fmax, int pre) {
 	char formt[8] = " %+.0f";
 
 	formt[4] = (char) (48 + pre); // results in " %+.0f"... " %+.3f" for pre = 0..3
@@ -779,8 +1198,7 @@ Slinfs(float fin, float fmin, float fmax, int pre) {
 
 //
 // Slogf: returns log float [min..max] in different formats
-char*
-Slogf(float fin, float fmin, float fmax, int pre) {
+char* Slogf(float fin, float fmin, float fmax, int pre) {
 	char formt[8] = " %.0f";
 
 	formt[3] = (char) (48 + pre); // results in " %.0f"... " %.3f" for pre = 0..3
@@ -790,8 +1208,7 @@ Slogf(float fin, float fmin, float fmax, int pre) {
 
 //
 // Sbitmp: returns bitmap %chain from int
-char*
-Sbitmp(int iin, int len) {
+char* Sbitmp(int iin, int len) {
 	int i, j;
 
 	j = 0;
@@ -806,885 +1223,1566 @@ Sbitmp(int iin, int len) {
 
 //
 // Sint: returns int as string
-char*
-Sint(int iin) {
+char* Sint(int iin) {
 	sprintf(snode_str, " %d", iin);
 	return snode_str;
 }
 
 //
+// RLinf: reads linear float [min..max]
+char* RLinf(X32command* command, char* str_pt_in, float xmin, float lmaxmin) {
+
+	float fval;
+	int len = 0;
+	// calculate length of parameter
+	if (*str_pt_in == '\0') return (NULL);
+	while ((str_pt_in[len] != ' ') && (str_pt_in[len] != '\0')) len++;
+	fval = Xr_float(str_pt_in, len);
+//	fout = (fin - xmin) / (xmax-xmin)
+	fval = (fval - xmin) / lmaxmin;
+	if (fval <= 0.) fval = 0.; // avoid -0.0 values (0x80000000)
+	if (fval > 1.) fval = 1.;
+	if (fval != command->value.ff) {
+		command->value.ff = fval;
+		s_len = Xfprint(s_buf, 0, command->command, 'f', &fval);
+		Xsend(S_REM); // update xremote clients
+	}
+	str_pt_in += len;
+	while (*str_pt_in == ' ') str_pt_in++;
+	return str_pt_in;
+}
+//
+// RLogf: reads logarithm float [min..max]
+char* RLogf(X32command* command, char* str_pt_in, float xmin, float lmaxmin) {
+
+	float fval;
+	int len = 0;
+	// calculate length of parameter
+	if (*str_pt_in == '\0') return (NULL);
+	while ((str_pt_in[len] != ' ') && (str_pt_in[len] != '\0')) len++;
+	fval = Xr_float(str_pt_in, len);
+	fval = log(fval / xmin) / lmaxmin; // lmaxmin = log(xmax / xmin)
+	if (fval <= 0.) fval = 0.; // avoid -0.0 values (0x80000000)
+	if (fval > 1.) fval = 1.;
+	if (fval != command->value.ff) {
+		command->value.ff = fval;
+		s_len = Xfprint(s_buf, 0, command->command, 'f', &fval);
+		Xsend(S_REM); // update xremote clients
+	}
+	str_pt_in += len;
+	while (*str_pt_in == ' ') str_pt_in++;
+	return str_pt_in;
+}
+//
+// REnum: sets int value from choice in list of strings separated by spaces
+char* REnum(X32command* command, char* str_pt_in, char* str_enum[]) {
+	int i, l_in;
+	char csave;
+
+	i = l_in = 0;
+	if (*str_pt_in == '\0') return (NULL);
+	while (str_pt_in[l_in] != ' ') l_in++;
+	csave = str_pt_in[l_in];
+	str_pt_in[l_in] = 0;
+	while (*str_enum[i]) {
+		if (strcmp(str_pt_in, str_enum[i]) == 0) {
+			if (i == command->value.ii) {
+				command->value.ii = i;
+				s_len = Xfprint(s_buf, 0, command->command, 'i', &i);
+				Xsend(S_REM); // update xremote clients
+			}
+			break;
+		}
+		i++;
+	}
+	str_pt_in[l_in] = csave;
+	while ((*str_pt_in != ' ') && (*str_pt_in != '\0')) str_pt_in++;
+	while (*str_pt_in == ' ') str_pt_in++;
+	return str_pt_in;
+}
+//
+// SetFxPar1: set FX data from
+void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
+	switch (type) {
+	case _1_HALL:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 200.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.2, 3.218875825)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 2., 98.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200., 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 1.386294361)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 250.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		break;
+	case _1_AMBI:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 200.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.2, 3.597312261)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 2., 198.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200., 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		break;
+	case _1_RPLT:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 200.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.3, 4.571268634)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 4., 35.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200., 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.25, -6.684611728)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 1200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 1200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		break;
+	case _1_ROOM:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 200.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.3, 4.571268634)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 4., 68.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200., 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.25, -6.684611728)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 250.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 1200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 1200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		break;
+	case _1_CHAM:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 200.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.3, 4.571268634)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 4., 68.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200., 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.25, -6.684611728)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 250.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 500.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 500.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		break;
+	case _1_PLAT:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 200.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.2, 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 2., 98.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200., 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 1.386294361)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10.,3.912023005)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		break;
+	case _1_VREV:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 120.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.3, 2.708050201)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 2., 10.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R01)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200., 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 1.386294361)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.25, 1.386294361)) == NULL) return;
+		break;
+	case _1_VRM:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 20.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.1, 5.298317367)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 190.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.1, 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.1, 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200.,4.605170186)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		break;
+	case _1_GATE:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 200.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 140., 1.966112856)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 30.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200.,4.605170186)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -30., 30.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
+		break;
+	case _1_RVRS:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 200.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 140., 1.966112856)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 99.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200.,4.605170186)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -30., 30.)) == NULL) return;
+		break;
+	case _1_DLY:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 3000.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R24)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R25)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R25)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200.,4.605170186)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 99.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 99.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200.,4.605170186)) == NULL) return;
+		break;
+	case _1_3TAP:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 3000.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200.,4.605170186)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R25)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R25)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		break;
+	case _1_4TAP:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 3000.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200.,4.605170186)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 6.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R25)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R25)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R25)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		break;
+	case _1_CRS:
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.05, 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 3.688879454)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 3.688879454)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200.,4.605170186)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 180.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		break;
+	case _1_FLNG:
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.05, 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 3.688879454)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 3.688879454)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200.,4.605170186)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 180.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200.,4.605170186)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -90., 180.)) == NULL) return;
+		break;
+	case _1_PHAS:
+	case _2_PHAS:
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.05, 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 80.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 2., 10.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -50., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 180.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1., 7.60090246)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 4.605170186)) == NULL) return;
+		break;
+	case _1_DIMC:
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R24)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		break;
+	case _1_FILT:
+	case _2_FILT:
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.05, 5.991464547)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 7.313220387)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R23)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R22)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 180.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.218875825)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		break;
+	case _1_ROTA:
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.1, 3.688879454)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 2., 1.609437912)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		break;
+	case _1_PAN:
+	case _2_PAN:
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.05, 4.382026635)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 180.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -50., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1., 7.60090246)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 4.605170186)) == NULL) return;
+		break;
+	case _1_SUB:
+	case _2_SUB:
+		for (int j = 0; j < 2; j++) {
+			if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+			if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R21)) == NULL) return;
+			if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+			if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+			if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		}
+		break;
+	case _1_D_RV:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 2999.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R20)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.1, 3.912923005)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 2., 98.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912923005)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		break;
+	case _1_CR_R:
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.05, 4.382026635)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 180.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 200.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.1, 3.912923005)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 2., 98.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912923005)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		break;
+	case _1_FL_R:
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.05, 4.382026635)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 3.688879454)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 180.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -90., 180.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 200.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.1, 3.912923005)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 2., 98.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912923005)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		break;
+	case _1_D_CR:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 2999.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R20)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.05, 4.382026635)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 180.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		break;
+	case _1_D_FL:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 2999.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R20)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.05, 4.382026635)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 180.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -90., 180.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		break;
+	case _1_MODD:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 2999.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R19)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200., 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.05, 5.298317367)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R18)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R17)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 9.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		break;
+	case _1_GEQ2:
+	case _1_TEQ2:
+	case _2_GEQ2:
+	case _2_TEQ2:
+		for (int j = 0; j < 64; j++) {
+			if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -15., 30.)) == NULL) return;
+		}
+		break;
+	case _1_GEQ:
+	case _1_TEQ:
+	case _2_GEQ:
+	case _2_TEQ:
+		for (int j = 0; j < 32; j++) {
+			if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -15., 30.)) == NULL) return;
+		}
+		break;
+	case _1_DES2:
+	case _2_DES2:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R16)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R16)) == NULL) return;
+		break;
+	case _1_DES:
+	case _2_DES:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R16)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R02)) == NULL) return;
+		break;
+	case _1_P1A2:
+	case _2_P1A2:
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R15)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R14)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R13)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+	case _1_P1A:
+	case _2_P1A:
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R15)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R14)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R13)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		break;
+	case _1_PQ5S:
+	case _2_PQ5S:
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R12)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R11)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R10)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+	case _1_PQ5:
+	case _2_PQ5:
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R12)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R11)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R10)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		break;
+	case _1_WAVD:
+	case _2_WAVD:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		break;
+	case _1_LIM:
+	case _2_LIM:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 18.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -18., 36.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.05, 2.995732274)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 20., 4.605170186)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		break;
+	case _1_CMB2:
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R07)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 19.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 20., 5.010635294)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -50., 100.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R08)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R09)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -40., 40.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R06)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R06)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R06)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R06)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R06)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R05)) == NULL) return;
+	case _1_CMB:
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R07)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 19.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 20., 5.010635294)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -50., 100.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R08)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R09)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -40., 40.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R06)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R06)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R06)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R06)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -10., 20.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R06)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R05)) == NULL) return;
+		break;
+	case _1_FAC2:
+	case _1_FAC1M:
+	case _2_FAC2:
+	case _2_FAC1M:
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -20., 40.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 6.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -18., 24.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+	case _1_FAC:
+	case _2_FAC:
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -20., 40.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 6.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -18., 24.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		break;
+	case _1_LEC2:
+	case _2_LEC2:
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R04)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -18., 24.)) == NULL) return;
+	case _1_LEC:
+	case _2_LEC:
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R04)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -18., 24.)) == NULL) return;
+		break;
+	case _1_ULC2:
+	case _2_ULC2:
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -48., 0.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -48., 0.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 6.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 6.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R03)) == NULL) return;
+	case _1_ULC:
+	case _2_ULC:
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -48., 0.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -48., 0.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 6.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 6.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R03)) == NULL) return;
+		break;
+	case _1_ENH2:
+	case _2_ENH2:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+	case _1_ENH:
+	case _2_ENH:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		break;
+	case _1_EXC2:
+	case _2_EXC2:
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.302585093)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -50., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+	case _1_EXC:
+	case _2_EXC:
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.302585093)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -50., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		break;
+	case _1_IMG:
+	case _2_IMG:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 12.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 100., 2.302585093)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1., 2.302585093)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		break;
+	case _1_EDI:
+	case _2_EDI:
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R02)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R02)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -50., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -50., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -50., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -50., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		break;
+	case _1_SON:
+	case _2_SON:
+		for (int j = 0; j < 2; j++) {
+			if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+			if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+			if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+			if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		}
+		break;
+	case _1_AMP2:
+	case _2_AMP2:
+		for (int j = 0; j < 8; j++) {
+			if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		}
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+	case _1_AMP:
+	case _2_AMP:
+		for (int j = 0; j < 8; j++) {
+			if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		}
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		break;
+	case _1_DRV2:
+	case _2_DRV2:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 20., 2.302585093)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 4000., 1.609437912)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 50., 2.079441542)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.302585093)) == NULL) return;
+	case _1_DRV:
+	case _2_DRV:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 20., 2.302585093)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 4000., 1.609437912)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 50., 2.079441542)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.302585093)) == NULL) return;
+		break;
+	case _1_PIT2:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -50., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1., 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 2000., 2.302585093)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+	case _1_PIT:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -50., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1., 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 2000., 2.302585093)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		break;
+	}
+}
+//
 // GetFxPar1: concatenates FX data in buf
-void GetFxPar1(char* buf, int ipar, int type) {
+void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 	int i;
 
 	switch (type) {
-	case HALL:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 200., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.2, 5., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 2., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 30., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., +12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200., 20000., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.5, 2., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 250., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
+	case _1_HALL:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.2, 5., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 2., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 30., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., +12., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200., 20000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 2., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 250., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		break;
-	case AMBI:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 200., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.2, 7.3, 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 2., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 30., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., +12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
+	case _1_AMBI:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.2, 7.3, 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 2., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 30., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., +12., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		break;
-	case RPLT:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 200., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.3, 29., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 4., 39., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 30., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., +12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200., 20000., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.25, 4., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 1200., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 1200., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
+	case _1_RPLT:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.3, 29., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 4., 39., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 30., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., +12., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200., 20000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.25, 4., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 1200., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 1200., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
 		break;
-	case ROOM:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 200., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.3, 29., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 4., 72., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 30., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., +12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200., 20000., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.25, 4., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 250., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 1200., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 1200., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
+	case _1_ROOM:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.3, 29., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 4., 72., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 30., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., +12., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200., 20000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.25, 4., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 250., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 1200., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 1200., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
 		break;
-	case CHAM:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 200., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.3, 29., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 4., 72., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 30., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., +12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200., 20000., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.25, 4., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 250., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 500., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 500., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
+	case _1_CHAM:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.3, 29., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 4., 72., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 30., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., +12., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200., 20000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.25, 4., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 250., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 500., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 500., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		break;
-	case PLAT:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 200., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.2, 10., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 2., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 30., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., +12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200., 20000., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.5, 2., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
+	case _1_PLAT:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.2, 10., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 2., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 30., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., +12., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200., 20000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 2., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		break;
-	case VREV:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 120., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.3, 4.5, 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " REAR" : " FRONT");
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200., 20000., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.5, 2., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.25, 1., 0));
+	case _1_VREV:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 120., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.3, 4.5, 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " REAR" : " FRONT");
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200., 20000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 2., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.25, 1., 0));
 		break;
-	case VRM:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 20., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.1, 20., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 30., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 190., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., +12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.1, 10., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.1, 10., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200, 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 00., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
+	case _1_VRM:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 20., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.1, 20., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 30., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 190., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., +12., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.1, 10., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.1, 10., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200, 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 00., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
 		break;
-	case GATE:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 200., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 140, 1000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 30., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 30., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., +12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10, 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200, 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -30., 0., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 30., 0));
+	case _1_GATE:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 140, 1000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 30., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 30., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., +12., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10, 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200, 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, -30., 0., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 30., 0));
 		break;
-	case RVRS:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 200., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 140, 1000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 30., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., +12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10, 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200, 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -30., 0., 0));
+	case _1_RVRS:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 140, 1000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 30., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., +12., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10, 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200, 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, -30., 0., 0));
 		break;
-	case DLY:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 200., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 3000., 0));
-		strcat(buf, Smode[Xfx[ipar++].value.ii]);
-		strcat(buf, Sfactor[Xfx[ipar++].value.ii]);
-		strcat(buf, Sfactor[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., +100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10, 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200, 20000., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10, 500., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200, 20000., 1));
+	case _1_DLY:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 3000., 0));
+		strcat(buf, Smode[command[ipar++].value.ii]);
+		strcat(buf, Sfactor[command[ipar++].value.ii]);
+		strcat(buf, Sfactor[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., +100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10, 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200, 20000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10, 500., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200, 20000., 1));
 		break;
-	case _3TAP:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 3000., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10, 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200, 20000., 1));
-		strcat(buf, Sfactor[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Sfactor[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
+	case _1_3TAP:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 3000., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10, 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200, 20000., 1));
+		strcat(buf, Sfactor[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Sfactor[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
 		break;
-	case _4TAP:
-		strcat(buf, Slinf(Xfx[ipar].value.ff, 0., 3000., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10, 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200, 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 6., 0));
-		strcat(buf, Sfactor[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Sfactor[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Sfactor[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
+	case _1_4TAP:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 3000., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10, 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200, 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 6., 0));
+		strcat(buf, Sfactor[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Sfactor[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Sfactor[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
 		break;
-	case CRS:
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.05, 5., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.5, 20., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.5, 20., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 180., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
+	case _1_CRS:
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 5., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 20., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 20., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 180., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		break;
-	case FLNG:
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.05, 5., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.5, 20., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.5, 20., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 180., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 200., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -90., 90., 0));
+	case _1_FLNG:
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 5., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 20., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 20., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 180., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 200., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, -90., 90., 0));
 		break;
-	case PHAS:
-	case _5_PHAS:
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.05, 5., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 80., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 2., 12., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -50., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 180., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 1000., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1., 2000., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 1000., 1));
+	case _1_PHAS:
+	case _2_PHAS:
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 5., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 80., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 2., 12., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -50., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 180., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 1000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1., 2000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 1000., 1));
 		break;
-	case DIMC:
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ST" : " M");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
+	case _1_DIMC:
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ST" : " M");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
 		break;
-	case FILT:
-	case _5_FILT:
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.05, 20., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 15000., 1));
-		strcat(buf, Sfmode[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Sfwave[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 250., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
+	case _1_FILT:
+	case _2_FILT:
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 20., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 15000., 1));
+		strcat(buf, Sfmode[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Sfwave[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 250., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
 		break;
-	case ROTA:
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.1, 4., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 2., 10., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
+	case _1_ROTA:
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.1, 4., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 2., 10., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
 		break;
-	case PAN:
-	case _5_PAN:
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.05, 4., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 180., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -50., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 1000., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1., 2000., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 1000., 1));
+	case _1_PAN:
+	case _2_PAN:
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 4., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 180., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -50., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 1000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1., 2000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 1000., 1));
 		break;
-	case SUB:
-	case _5_SUB:
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Sfrange[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Sfrange[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
+	case _1_SUB:
+	case _2_SUB:
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Sfrange[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Sfrange[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		break;
-	case D_RV:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 3000., 0));
-		strcat(buf, Sfpattern[Xfx[ipar++].value.ii]);
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 200., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.1, 5., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 2., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000, 20000., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10, 500., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
+	case _1_D_RV:
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 3000., 0));
+		strcat(buf, Sfpattern[command[ipar++].value.ii]);
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.1, 5., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 2., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000, 20000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10, 500., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		break;
-	case CR_R:
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.05, 4., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.5, 50., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 180., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 200., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.1, 5., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 2., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 20000., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
+	case _1_CR_R:
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 4., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 50., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 180., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.1, 5., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 2., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 20000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		break;
-	case FL_R:
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.05, 4., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.5, 20., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 180., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -90., 90., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 200., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.1, 5., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 2., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.05, 4., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 20000., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
+	case _1_FL_R:
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 4., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 20., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 180., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -90., 90., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.1, 5., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 2., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 4., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 20000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		break;
-	case D_CR:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 3000., 0));
-		strcat(buf, Sfpattern[Xfx[ipar++].value.ii]);
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.05, 4., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.5, 50., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 180., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
+	case _1_D_CR:
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 3000., 0));
+		strcat(buf, Sfpattern[command[ipar++].value.ii]);
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 4., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 50., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 180., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		break;
-	case D_FL:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 3000., 0));
-		strcat(buf, Sfpattern[Xfx[ipar++].value.ii]);
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.05, 4., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.5, 20., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 180., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -90., 90., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
+	case _1_D_FL:
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 3000., 0));
+		strcat(buf, Sfpattern[command[ipar++].value.ii]);
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 4., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 20., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 180., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -90., 90., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		break;
-	case MODD:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 3000., 0));
-		strcat(buf, Sfddelay[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.05, 10., 1));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " SER" : " PAR");
-		strcat(buf, Sfdtype[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 10., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
+	case _1_MODD:
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 3000., 0));
+		strcat(buf, Sfddelay[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 10., 1));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " SER" : " PAR");
+		strcat(buf, Sfdtype[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 10., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		break;
-	case GEQ2:
-	case TEQ2:
-	case _5_GEQ2:
-	case _5_TEQ2:
+	case _1_GEQ2:
+	case _1_TEQ2:
+	case _2_GEQ2:
+	case _2_TEQ2:
 		for (i = 0; i < 64; i++) {
-			strcat(buf, Slinf(Xfx[ipar++].value.ff, -15., 15., 0));
+			strcat(buf, Slinf(command[ipar++].value.ff, -15., 15., 0));
 		}
 		break;
-	case GEQ:
-	case TEQ:
-	case _5_GEQ:
-	case _5_TEQ:
+	case _1_GEQ:
+	case _1_TEQ:
+	case _2_GEQ:
+	case _2_TEQ:
 		for (i = 0; i < 32; i++) {
-			strcat(buf, Slinf(Xfx[ipar++].value.ff, -15., 15., 0));
+			strcat(buf, Slinf(command[ipar++].value.ff, -15., 15., 0));
 		}
 		break;
-	case DES2:
-	case _5_DES2:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " MALE" : " FEM");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " MALE" : " FEM");
+	case _1_DES2:
+	case _2_DES2:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " MALE" : " FEM");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " MALE" : " FEM");
 		break;
-	case DES:
-	case _5_DES:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " MALE" : " FEM");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " M/S" : " ST");
+	case _1_DES:
+	case _2_DES:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " MALE" : " FEM");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " M/S" : " ST");
 		break;
-	case P1A:
-	case _5_P1A:
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Sfplfreq[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Sfpmfreq[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Sfphfreq[Xfx[ipar++].value.ii]);
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
+	case _1_P1A2:
+	case _2_P1A2:
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Sfplfreq[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Sfpmfreq[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Sfphfreq[command[ipar++].value.ii]);
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+	case _1_P1A:
+	case _2_P1A:
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Sfplfreq[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Sfpmfreq[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Sfphfreq[command[ipar++].value.ii]);
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
 		break;
-	case P1A2:
-	case _5_P1A2:
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Sfplfreq[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Sfpmfreq[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Sfphfreq[Xfx[ipar++].value.ii]);
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Sfplfreq[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Sfpmfreq[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Sfphfreq[Xfx[ipar++].value.ii]);
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
+	case _1_PQ5S:
+	case _2_PQ5S:
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
+		strcat(buf, Sfqlfreq[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Sfqmfreq[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Sfqhfreq[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+	case _1_PQ5:
+	case _2_PQ5:
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
+		strcat(buf, Sfqlfreq[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Sfqmfreq[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Sfqhfreq[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
 		break;
-	case PQ5:
-	case _5_PQ5:
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Sfqlfreq[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Sfqmfreq[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Sfqhfreq[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
+	case _1_WAVD:
+	case _2_WAVD:
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -24., 24., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -24., 24., 0));
 		break;
-	case PQ5S:
-	case _5_PQ5S:
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Sfqlfreq[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Sfqmfreq[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Sfqhfreq[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Sfqlfreq[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Sfqmfreq[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Sfqhfreq[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
+	case _1_LIM:
+	case _2_LIM:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -18., 18., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 1., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 20., 2000., 1));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
 		break;
-	case WAVD:
-	case _5_WAVD:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -24., 24., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -24., 24., 0));
+	case _1_CMB2:
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Sflcmb[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 19., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 20., 3000., 1));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, -50., 50., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " 48" : " 12");
+		strcat(buf, Sfrcmb[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, -40., 0., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " 1" : " 0");
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " 1" : " 0");
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " 1" : " 0");
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " 1" : " 0");
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " 1" : " 0");
+		strcat(buf, Sfmcmb[command[ipar++].value.ii]);
+	case _1_CMB:
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Sflcmb[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 19., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 20., 3000., 1));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, -50., 50., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " 48" : " 12");
+		strcat(buf, Sfrcmb[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, -40., 0., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " 1" : " 0");
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " 1" : " 0");
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " 1" : " 0");
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " 1" : " 0");
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -10., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " 1" : " 0");
+		strcat(buf, Sfmcmb[command[ipar++].value.ii]);
 		break;
-	case LIM:
-	case _5_LIM:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -18., 18., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 0.05, 1., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 20., 2000., 1));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
+	case _1_FAC2:
+	case _1_FAC1M:
+	case _2_FAC2:
+	case _2_FAC1M:
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, -20., 20., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 6., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -18., 6., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+	case _1_FAC:
+	case _2_FAC:
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, -20., 20., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 6., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -18., 6., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
 		break;
-	case CMB:
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Sflcmb[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 19., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 20., 3000., 1));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -50., 50., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 48" : " 12");
-		strcat(buf, Sfrcmb[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -40., 0., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 1" : " 0");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 1" : " 0");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 1" : " 0");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 1" : " 0");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 1" : " 0");
-		strcat(buf, Sfmcmb[Xfx[ipar++].value.ii]);
+	case _1_LEC2:
+	case _2_LEC2:
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " LIM" : " COMP");
+		strcat(buf, Slinf(command[ipar++].value.ff, -18., 6., 0));
+	case _1_LEC:
+	case _2_LEC:
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " LIM" : " COMP");
+		strcat(buf, Slinf(command[ipar++].value.ff, -18., 6., 0));
 		break;
-	case CMB2:
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Sflcmb[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 19., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 20., 3000., 1));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -50., 50., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 48" : " 12");
-		strcat(buf, Sfrcmb[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -40., 0., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 1" : " 0");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 1" : " 0");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 1" : " 0");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 1" : " 0");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 1" : " 0");
-		strcat(buf, Sfmcmb[Xfx[ipar++].value.ii]);
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Sflcmb[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 19., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 20., 3000., 1));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -50., 50., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 48" : " 12");
-		strcat(buf, Sfrcmb[Xfx[ipar++].value.ii]);
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -40., 0., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 1" : " 0");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 1" : " 0");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 1" : " 0");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 1" : " 0");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -10., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " 1" : " 0");
-		strcat(buf, Sfmcmb[Xfx[ipar++].value.ii]);
+	case _1_ULC2:
+	case _2_ULC2:
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, -48., 0., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -48., 0., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 7., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 7., 0));
+		strcat(buf, Sfrulc[command[ipar++].value.ii]);
+	case _1_ULC:
+	case _2_ULC:
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, -48., 0., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -48., 0., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 7., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 7., 0));
+		strcat(buf, Sfrulc[command[ipar++].value.ii]);
 		break;
-	case FAC:
-	case _5_FAC:
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -20., 20., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 6., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -18., 6., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
+	case _1_ENH2:
+	case _2_ENH2:
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 50., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+	case _1_ENH:
+	case _2_ENH:
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 50., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
 		break;
-	case FAC1M:
-	case FAC2:
-	case _5_FAC1M:
-	case _5_FAC2:
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -20., 20., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 6., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -18., 6., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -20., 20., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 6., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -18., 6., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
+	case _1_EXC2:
+	case _2_EXC2:
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 10000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -50., 50., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+	case _1_EXC:
+	case _2_EXC:
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 10000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -50., 50., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
 		break;
-	case LEC:
-	case _5_LEC:
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " LIM" : " COMP");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -18., 6., 0));
+	case _1_IMG:
+	case _2_IMG:
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 12., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 100., 1000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1., 10., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
 		break;
-	case LEC2:
-	case _5_LEC2:
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " LIM" : " COMP");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -18., 6., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " LIM" : " COMP");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -18., 6., 0));
+	case _1_EDI:
+	case _2_EDI:
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " M/S" : " ST");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " M/S" : " ST");
+		strcat(buf, Slinf(command[ipar++].value.ff, -50., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -50., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -50., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -50., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
 		break;
-	case ULC:
-	case _5_ULC:
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -48., 0., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -48., 0., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 7., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 7., 0));
-		strcat(buf, Sfrulc[Xfx[ipar++].value.ii]);
+	case _1_SON:
+	case _2_SON:
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
 		break;
-	case ULC2:
-	case _5_ULC2:
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -48., 0., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -48., 0., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 7., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 7., 0));
-		strcat(buf, Sfrulc[Xfx[ipar++].value.ii]);
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -48., 0., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -48., 0., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 7., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 7., 0));
-		strcat(buf, Sfrulc[Xfx[ipar++].value.ii]);
+	case _1_AMP2:
+	case _2_AMP2:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+	case _1_AMP:
+	case _2_AMP:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
 		break;
-	case ENH2:
-	case _5_ENH2:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 50., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 50., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
+	case _1_DRV2:
+	case _2_DRV2:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 20., 200., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 4000., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 50., 400., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 10000., 1));
+	case _1_DRV:
+	case _2_DRV:
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 20., 200., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 4000., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 50., 400., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 10000., 1));
 		break;
-	case ENH:
-	case _5_ENH:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 1., 50., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		break;
-	case EXC2:
-	case _5_EXC2:
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 10000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -50., 50., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 10000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -50., 50., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		break;
-	case EXC:
-	case _5_EXC:
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 10000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -50., 50., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		break;
-	case IMG:
-	case _5_IMG:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -100., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 100., 1000., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1., 10., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		break;
-	case EDI:
-	case _5_EDI:
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " M/S" : " ST");
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " M/S" : " ST");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -50., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -50., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -50., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -50., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		break;
-	case SON:
-	case _5_SON:
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		break;
-	case AMP2:
-	case _5_AMP2:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		break;
-	case AMP:
-	case _5_AMP:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 10., 0));
-		strcat(s_buf + s_len, Xfx[ipar++].value.ii ? " ON" : " OFF");
-		break;
-	case DRV2:
-	case _5_DRV2:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 20., 200., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 4000., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 50., 400., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 10000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 20., 200., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 4000., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 50., 400., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 10000., 1));
-		break;
-	case DRV:
-	case _5_DRV:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 50., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 20., 200., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 4000., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 50., 400., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1000., 10000., 1));
-		break;
-	case PIT2:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -50., 50., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1., 100., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 2000., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -50., 50., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1., 100., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 2000., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
-		break;
-	case PIT:
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -12., 12., 0));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, -50., 50., 0));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 1., 100., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(Xfx[ipar++].value.ff, 2000., 20000., 1));
-		strcat(buf, Slinf(Xfx[ipar++].value.ff, 0., 100., 0));
+	case _1_PIT2:
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -50., 50., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1., 100., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 2000., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+	case _1_PIT:
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -50., 50., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1., 100., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 2000., 20000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		break;
 	default:
 		break;
 	}
 	return;
 }
-
 //
 // funct_params: parse commands data
 int funct_params(X32command *command, int i) {
-	int j, c_len, f_len, f_num, c_type;
+	int j, c_len, f_len, f_num, c_type, update;
 	char* s_adr;
 	char* s_fmt;
+	char loc_str[64];
 //
 // warning... This function will correctly parse and accept /ch/xx/config ,siii <name> [i] [i] [i]
-// when the X32 will not accept a 'node' address starting with ,s
+// when the X32 will not accept it
 // The XAIR series accept the function and option correctly; X32 & M32 do not as
 // a node address followed by a string is interpreted differently by the X32-edit application
 // (so says Behringer).
-	f_len = f_num = c_type = 0;
+	// save command index for possible function_node_single() use
+	node_single_command = command;
+	node_single_index = i;
+	//
+	f_len = f_num = c_type = update =0;
 	c_len = strlen(command[i].command);
 	f_len = (((c_len + 4) & ~3) + 1); // pointing at first format char after ',' if there's a ','
 	if ((r_len - 4 > c_len) && (r_buf[f_len] != 0)) { // there's a ',' and at least one type tag
@@ -1702,24 +2800,40 @@ int funct_params(X32command *command, int i) {
 					j = 4;
 					while (j) endian.cc[--j] = r_buf[c_len++];
 					//save value to respective field - index i
-					if (command[i].flags & F_SET) command[i].value.ii = endian.ii;
+					if (command[i].flags & F_SET) {
+						if (command[i].value.ii != endian.ii) {
+							update = 1;
+							command[i].value.ii = endian.ii;
+						}
+					}
 					break;
 				case 'f':
 					j = 4;
 					while (j) endian.cc[--j] = r_buf[c_len++];
 					//save value to respective field - index i
-					if (command[i].flags & F_SET) command[i].value.ff = endian.ff;
+					if (command[i].flags & F_SET) {
+						if (command[i].value.ff != endian.ff) {
+							update = 1;
+							command[i].value.ff = endian.ff;
+						}
+					}
 					break;
 				case 's':
 					j = strlen(r_buf + c_len); // actual need can be up to 4 more \0 bytes; add 8 by security
+					strncpy(loc_str, r_buf + c_len, j);
 					if (command[i].flags & F_SET) {
-						if (command[i].value.str) free(command[i].value.str);
 						if (j > 0) {
+							if (command[i].value.str) update = strcmp(command[i].value.str, loc_str);
+							else                      update = 1;
+							if (command[i].value.str) free(command[i].value.str);
 							command[i].value.str = malloc((j + 8) * sizeof(char));
-							strncpy(command[i].value.str, r_buf + c_len, j);
-							command[i].value.str[j] = 0;
+							strcpy(command[i].value.str, loc_str);
 						} else {
-							command[i].value.str = NULL;
+							if (command[i].value.str) {
+								free(command[i].value.str);
+								command[i].value.str = NULL;
+								update = 1;
+							}
 						}
 					}
 					c_len = ((c_len + j + 4) & ~3);
@@ -1730,11 +2844,13 @@ int funct_params(X32command *command, int i) {
 				}
 				i += 1;
 			}
-			memcpy(s_buf, r_buf, r_len);
-			s_len = r_len;
-			// no need for sending to local client
-			// authorize remote clients to receive info
-			p_status = S_REM;
+			if (update) {
+				memcpy(s_buf, r_buf, r_len);
+				s_len = r_len;
+				// no need for sending to local client
+				// authorize remote clients to receive info
+				p_status = S_REM;
+			} else p_status = 0;
 		} // done parsing
 	} else {
 		// First of a list command gives the first of next data
@@ -1747,9 +2863,12 @@ int funct_params(X32command *command, int i) {
 				// special case of FX parameters. Need to validate if the requested parameter
 				// is an int of a float. Decision based on a lookup table. Once found,
 				// we process normally
-				c_type = FXc_lookup(i); // the function returns I32, F32, S32,...
+				c_type = FXc_lookup(command, i); // the function returns I32, F32, S32,...
 			}
-			if (c_type == I32) {
+			if (c_type == I32 || c_type == P32) {
+				s_len = Xsprint(s_buf, s_len, 's', ",i");
+				s_len = Xsprint(s_buf, s_len, 'i', &command[i].value.ii);
+			} else if (c_type == E32) {
 				s_len = Xsprint(s_buf, s_len, 's', ",i");
 				s_len = Xsprint(s_buf, s_len, 'i', &command[i].value.ii);
 			} else if (c_type == F32) {
@@ -1876,24 +2995,272 @@ int function_xremote() {
 	// attempt to register a new client... if room available
 	for (k = 0; k < MAX_CLIENTS; k++) {
 		if (X32Client[k].vlid == 0) { // create new record
-			memcpy(&(X32Client[k].sock), Client_ip_pt, Client_ip_len);
+//			memcpy(&(X32Client[k].sock), Client_ip_pt, Client_ip_len);
+			X32Client[k].sock = *Client_ip_pt;
 			X32Client[k].vlid = 1;
 			X32Client[k].xrem = time(NULL) + XREMOTE_TIME;
 			return 0;
 		} else if (X32Client[k].xrem < time(NULL)) { // replace outdated record
-			memcpy(&(X32Client[k].sock), Client_ip_pt, Client_ip_len);
+//			memcpy(&(X32Client[k].sock), Client_ip_pt, Client_ip_len);
+			X32Client[k].sock = *Client_ip_pt;
 			X32Client[k].xrem = time(NULL) + XREMOTE_TIME;
 			return 0;
 		}
 	}
 	return 0; // no room for new clients! (todo; another return status?)
 }
+//
+//
+char* XslashSetInt(X32command* command, char* str_pt_in) {
+	int i = 0;
 
+	if (*str_pt_in == '\0') return (NULL);
+	sscanf(str_pt_in, "%d", &i);
+	if (i != command->value.ii) {
+		command->value.ii = i;
+		s_len = Xfprint(s_buf, 0, command->command, 'i', &i);
+		Xsend(S_REM); // update xremote clients
+	}
+	while ((*str_pt_in != ' ') && (*str_pt_in != '\0')) str_pt_in++;
+	while (*str_pt_in == ' ') str_pt_in++;
+	return str_pt_in;
+}
+//
+//
+char* XslashSetPerInt(X32command* command, char* str_pt_in) {
+
+int i, j;
+	// to be set in subroutines: int (int)
+	j = 0;
+	if (*str_pt_in == '\0') return (NULL);
+	if (*str_pt_in == '%') {
+		// we expect the rest of the string to contain only 0 and 1 chars
+		i = 1;
+		while ((str_pt_in[i] != ' ') && (str_pt_in[i] != '\0')) {
+			command->value.ii <<= 1;
+			if (str_pt_in[i] == '1') j |= 1;
+			i++;
+		}
+	} else {
+		sscanf(str_pt_in, "%d", &j);
+	}
+	if (j != command->value.ii) {
+		command->value.ii = j;
+		s_len = Xfprint(s_buf, 0, command->command, 'i', &j);
+		Xsend(S_REM); // update xremote clients
+	}
+	while ((*str_pt_in != ' ') && (*str_pt_in != '\0')) str_pt_in++;
+	while (*str_pt_in == ' ') str_pt_in++;
+	return str_pt_in;
+}
+//
+//
+char* XslashSetString(X32command* command, char* str_pt_in) {
+	char* str_pt;
+	char loc_str[64];
+	int j, cmore, update;
+	//
+	if (*str_pt_in == '\0') return (NULL);
+	while (*str_pt_in == ' ') str_pt_in++;
+	// search for end of string (either ' ' or ")
+	if (*str_pt_in == '"') {
+		cmore = 1;
+		str_pt_in++;
+		str_pt = str_pt_in;
+		while (*str_pt != '"') str_pt++;
+	} else {
+		cmore = 0;
+		str_pt = str_pt_in;
+		while ((*str_pt != ' ') && (*str_pt != '\n')) str_pt++;
+	}
+	update = 0;
+	j = str_pt - str_pt_in;
+	strncpy(loc_str, str_pt_in, j);
+	loc_str[j] = 0;
+	if (j > 0) {
+		if (command->value.str) update = strcmp(command->value.str, loc_str);
+		else                    update = 1;
+		if (command->value.str) free(command->value.str);
+		command->value.str = malloc((j + 8) * sizeof(char));
+		strcpy(command->value.str, loc_str);
+	} else {
+		if (command->value.str) {
+			free(command->value.str);
+			command->value.str = NULL;
+			update = 1;
+		}
+	}
+	if (update) {
+		s_len = Xfprint(s_buf, 0, command->command, 's', command->value.str);
+		Xsend(S_REM); // update xremote clients
+	}
+	if (cmore) str_pt++;
+	while (*str_pt == ' ') str_pt++;
+	return str_pt;
+}
+//
+//
+char* XslashSetLevl(X32command* command, char* str_pt_in, int nsteps) {
+	float fval;
+	int len = 0;
+	// calculate length of parameter
+	if (*str_pt_in == '\0') return (NULL);
+	while ((str_pt_in[len] != ' ') && (str_pt_in[len] != '\0'))	len++;
+	if (str_pt_in[0] == '-' && str_pt_in[1] == 'o' && str_pt_in[2] == 'o') fval = 0.0;
+	else {
+		sscanf(str_pt_in, "%f", &fval);
+		if (fval < -60.) {
+// first slope, make sure we don't generate negative values
+//			if ((fval = 0.0625 / 30. * (fval + 90.)) < 0.0) fval = 0.0;
+			fval = fval * 0.00208333333 + 0.1875;
+			fval = (int)(fval * (nsteps + 0.5)) / (float)nsteps;
+			if (fval < 0.0) fval = 0.0;
+		} else if (fval < -30.) {
+// second slope
+//			fval = 0.0625 + (0.25 - 0.0625) / 30. * (fval + 60.);
+			fval = 0.00625 * fval + 0.4375;
+			fval = (int)(fval * (nsteps + 0.5)) / (float)nsteps;
+		} else if (fval < -10.) {
+// third slope
+//			fval = 0.25 + 0.25 / 20. * (fval + 30.);
+			fval = 0.0125 * fval + 0.625;
+			fval = (int)(fval * (nsteps + 0.5)) / (float)nsteps;
+		} else if (fval <= 10.) {
+// fourth and high values slope; make sure we don't go over 1.0
+//			if ((fval = 0.5 + 0.5 / 20. * (fval + 10.)) > 1.0) fval = 1.0;
+			fval = fval * 0.025 + 0.75;
+			if ((fval = (int)(fval * (nsteps + 0.5)) / (float)nsteps) > 1.0) fval = 1.0;
+		} else if (fval > 10.) fval = 1.0;
+	}
+	if (fval != command->value.ff) {
+		command->value.ff = fval;
+		s_len = Xfprint(s_buf, 0, command->command, 'f', &fval);
+		Xsend(S_REM); // update xremote clients
+	}
+	str_pt_in += len;
+	while (*str_pt_in == ' ') str_pt_in++;
+	return str_pt_in;
+}
+//
+//
+char* XslashSetList(X32command* command, char* str_pt_in) {
+	int j = 0;
+	int len = 0;
+	char csave;
+	// calculate length of parameter
+	if (*str_pt_in == '\0') return (NULL);
+	while ((str_pt_in[len] != ' ') && (str_pt_in[len] != '\0'))	len++;
+	csave = str_pt_in[len];
+	str_pt_in[len] = 0;
+	if (command->node) {
+		while (*command->node[j]) {
+			if (strcmp(command->node[j]+1, str_pt_in) == 0) {
+				if (j != command->value.ii) {
+					command->value.ii = j;
+					s_len = Xfprint(s_buf, 0, command->command, 'i', &j);
+					Xsend(S_REM); // update xremote clients
+				}
+				break;
+			}
+			j++;
+		}
+	}
+	str_pt_in[len] = csave;
+	str_pt_in += len;
+	while (*str_pt_in == ' ') str_pt_in++;
+	return str_pt_in;
+}
+
+//
+//
+float Xr_float(char* Xin, int l) {
+char llread[16]; // max length for float argument when read as a string
+float fval;
+int i, ival, idec;
+//
+// float number, in the form nnn, nnn.ff, or nnnkff
+// let's read data and search for punctuation ('.' or 'k')
+	strncpy(llread, Xin, l);
+	llread[l] = 0;
+	for (i = 0; i < l; i++) {
+		if (llread[i] == '.') {
+			sscanf(llread, "%f", &fval);
+			return (fval);
+		} else if (llread[i] == 'k') {
+			ival = 0; idec = 0;
+			llread[i] = 0;
+			if (i > 0) sscanf(llread, "%d", &ival);
+			if (i < l) sscanf(llread + i + 1, "%d", &idec);
+			fval = (float)ival * 1000.;
+			if (l-i == 2) fval += (float)idec * 100.;
+			else if (l-i == 3) fval += (float)idec * 10.;
+			else if (l-i == 4) fval += (float)idec;
+			return (fval);
+		}
+	}
+//no punctuation mark case
+	sscanf(llread, "%f", &fval);
+	return (fval);
+}
+//
+//
+char* XslashSetLogf(X32command* command, char* str_pt_in, float xmin, float lmaxmin, int nsteps) {
+	int len = 0;
+	float fval;
+	// calculate length of parameter
+	if (*str_pt_in == '\0') return (NULL);
+	while ((str_pt_in[len] != ' ') && (str_pt_in[len] != '\0')) len++;
+	fval = Xr_float(str_pt_in, len);
+
+	fval = log(fval / xmin) / lmaxmin; // lmaxmin = log(xmax / xmin)
+// round to nsteps' value of log()
+	fval = roundf(fval * nsteps) / nsteps;
+//	if (lmaxmin > 0.) fval = roundf(fval * nsteps) / nsteps;
+//	else              fval = floorf(fval * nsteps) / nsteps;
+	if (fval <= 0.) fval = 0.; // avoid -0.0 values (0x80000000)
+	if (fval > 1.) fval = 1.;
+	if (fval != command->value.ff) {
+		command->value.ff = fval;
+		s_len = Xfprint(s_buf, 0, command->command, 'f', &fval);
+		Xsend(S_REM); // update xremote clients
+	}
+	while ((*str_pt_in != ' ') && (*str_pt_in != '\0')) str_pt_in++;
+	while (*str_pt_in == ' ') str_pt_in++;
+	return str_pt_in;
+}
+//
+//
+char* XslashSetLinf(X32command* command, char* str_pt_in, float xmin, float lmaxmin, float xstep) {
+	float fval;
+	int len = 0;
+	// calculate length of parameter
+	if (*str_pt_in == '\0') return (NULL);
+	while ((str_pt_in[len] != ' ') && (str_pt_in[len] != '\0')) len++;
+	fval = Xr_float(str_pt_in, len);
+//	fout = (fin - xmin) / (xmax-xmin)
+	fval = (fval - xmin) / lmaxmin;
+	// round to xstep value
+	xstep = lmaxmin/xstep;
+	//	fval = ceilf(fval*xstep) / xstep;
+	fval = roundf(fval*xstep) / xstep;
+	if (fval <= 0.) fval = 0.; // avoid -0.0 values (0x80000000)
+	if (fval > 1.) fval = 1.;
+	if (fval != command->value.ff) {
+		command->value.ff = fval;
+		s_len = Xfprint(s_buf, 0, command->command, 'f', &fval);
+		Xsend(S_REM); // update xremote clients
+	}
+	str_pt_in += len;
+	while (*str_pt_in == ' ') str_pt_in++;
+	return str_pt_in;
+}
 //
 // reply to '/' commands
 int function_slash() {
+	char w_buf[BSIZE];
+	int  w_len;
 	char* str_pt_in;
-	int i, cmd_max;
+	int i, j, n, cmd_max, c_len, c_type;
 	X32command* command;
 	// received a /~~~,s~~[string] [[data]...]
 	// parse [string]
@@ -1901,37 +3268,381 @@ int function_slash() {
 	// return the command we received to sender
 	//
 	// prepare data to be sent back
-	s_len = r_len;
-	memcpy(s_buf, r_buf, s_len);
+	w_len = r_len;
+	memcpy(w_buf, r_buf, r_len);
 	{
 		// Main work goes here
 		cmd_max = 0;
 		str_pt_in = r_buf + 8;				// data block starts at index 8
-		if (*str_pt_in == '/')
-			str_pt_in++; // ignore leading '/' if there's one
-		for (i = 0; i < Xnode_max; i++) {
-			if (strncmp(Xnode[i].command, str_pt_in, Xnode[i].nchars) == 0) {
-				cmd_max = Xnode[i].cmd_max;
-				command = Xnode[i].cmd_ptr;
+		if (*str_pt_in == '/') str_pt_in++;
+		for (n = 0; n < Xnode_max; n++) {
+			if (strncmp(Xnode[n].command, str_pt_in, Xnode[n].nchars) == 0) {
+				cmd_max = Xnode[n].cmd_max;
+				command = Xnode[n].cmd_ptr;
 				break;
 			}
 		}
-		if (i < Xnode_max) {
+		if (n < Xnode_max) {
+			// search exact command in command node set
+			// command stops at first space found
+			i = str_pt_in - r_buf;
+			c_len = 0;
+			while (i < r_len) {
+				if (r_buf[i] == ' ') break;
+				c_len += 1;
+				i += 1;
+			}
 			for (i = 0; i < cmd_max; i++) {
-				if (command[i].flags != F_FND) {// we're only interested in non node header commands
-					if (strncmp(str_pt_in, command[i].command + 1, strlen(command[i].command + 1)) == 0) {
-						str_pt_in += strlen(command[i].command); // point at [[data]...]
-						// we now are at the right command, parse the alphanumeric data following the command
-						// to set parameter values one bye one
-						// TODO ...
+				if (strncmp(str_pt_in, command[i].command + 1, c_len) == 0) {
+					str_pt_in += strlen(command[i].command +1) + 1; // point at [[data]...]
+					// we now are at the right command, parse the alphanumeric data following the command
+					// to set parameter values one by one
+					if (command[i].flags == F_FND) {
+						// skip successive F_FND types until i+1 ponts to a non F_FND (such as F_EXT)
+						while (command[i+1].flags == F_FND) i++;
+						// treat as variable length /node command. parsing data as needed
+						switch (command[i].format.typ) {
+						case CHCO:						// name, icon#, color, chan_input
+							if ((str_pt_in = XslashSetString(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetInt(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+3], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetInt(&command[i+4], str_pt_in)) == NULL) return S_SND;
+							break;
+						case CHDE:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetLinf(&command[i+2], str_pt_in, 0.3, 499.7, 0.1)) == NULL) return S_SND;
+							break;
+						case CHPR:
+							if ((str_pt_in = XslashSetLinf(&command[i+1], str_pt_in, -18., 36., 0.25)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+3], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+4], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLogf(&command[i+5], str_pt_in, 20., 2.9957322735, 100)) == NULL) return S_SND; // log(400/20) = 2.9957322735
+							break;
+						case CHGA:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+3], str_pt_in, -80., 80., 0.5)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+4], str_pt_in, 3., 57., 1.)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+5], str_pt_in, 0., 120., 1.)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLogf(&command[i+6], str_pt_in, 0.02, 11.512925465, 100)) == NULL) return S_SND;	// log(2000/0.02) = 11.512925465
+							if ((str_pt_in = XslashSetLogf(&command[i+7], str_pt_in, 5., 6.684611728, 100)) == NULL) return S_SND;		// log (4000/5) = 6.684611728
+							if ((str_pt_in = XslashSetInt(&command[i+8], str_pt_in)) == NULL) return S_SND;
+							break;
+						case CHGF:
+						case CHDF:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLogf(&command[i+3], str_pt_in, 20., 6.907755279, 200)) == NULL) return S_SND;	// log(20000/20) = 6.907755279
+							break;
+						case CHDY:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+3], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+4], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+5], str_pt_in, -60., 60., 0.5)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+6], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+7], str_pt_in, 0., 5.0, 1.0)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+8], str_pt_in, 0., 24.0, 0.5)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+9], str_pt_in, 0., 120.0, 1.0)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLogf(&command[i+10], str_pt_in, 0.02, 11.51292546, 100)) == NULL) return S_SND;	// log (2000/0.02) = 11.51292546
+							if ((str_pt_in = XslashSetLogf(&command[i+11], str_pt_in, 5., 6.684611728, 100)) == NULL) return S_SND;		// log (4000/5) = 6.684611728
+							if ((str_pt_in = XslashSetList(&command[i+12], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+13], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+14], str_pt_in, 0., 100.0, 5.0)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+15], str_pt_in)) == NULL) return S_SND;
+							break;
+						case CHIN:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+3], str_pt_in)) == NULL) return S_SND;
+							break;
+						case CHEQ:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetLogf(&command[i+2], str_pt_in, 20., 6.907755279, 200)) == NULL) return S_SND;	// log(20000/20) = 6.907755279
+							if ((str_pt_in = XslashSetLinf(&command[i+3], str_pt_in, -15., 30.0, 0.250)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLogf(&command[i+4], str_pt_in, 10., -3.506557897, 71)) == NULL) return S_SND;	// log(0.3/10) = -3.506557897
+							break;
+						case CHMX:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetLevl(&command[i+2], str_pt_in, 1023)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+3], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+4], str_pt_in, -100., 200., 2.)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+5], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLevl(&command[i+6], str_pt_in, 160)) == NULL) return S_SND;
+							break;
+						case CHMO:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetLevl(&command[i+2], str_pt_in, 1023)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+3], str_pt_in, -100., 200., 2.)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+4], str_pt_in)) == NULL) return S_SND;
+							break;
+						case CHME:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetLevl(&command[i+2], str_pt_in, 1023)) == NULL) return S_SND;
+							break;
+						case CHGRP:
+							if ((str_pt_in = XslashSetPerInt(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetPerInt(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							break;
+						case CHAMIX:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetLinf(&command[i+2], str_pt_in, -12., 24., 0.5)) == NULL) return S_SND;
+							break;
+						case AXPR:						// trim, invert
+							if ((str_pt_in = XslashSetLinf(&command[i+1], str_pt_in, -18., 36., 0.25)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return S_SND;
+							break;
+						case BSCO:						// name, icon#, color
+							if ((str_pt_in = XslashSetString(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetInt(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+3], str_pt_in)) == NULL) return S_SND;
+							break;
+						case MXPR:						// invert
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							break;
+						case MXDY:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+3], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+4], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+5], str_pt_in, -60., 60., 0.5)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+6], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+7], str_pt_in, 0., 5.0, 1.0)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+8], str_pt_in, 0., 24.0, 0.5)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+9], str_pt_in, 0., 120.0, 1.0)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLogf(&command[i+10], str_pt_in, 0.02, 11.51292546, 100)) == NULL) return S_SND;	// log (2000/0.02) = 11.51292546
+							if ((str_pt_in = XslashSetLogf(&command[i+11], str_pt_in, 5., 6.684611728, 100)) == NULL) return S_SND;		// log (4000/5) = 6.684611728
+							if ((str_pt_in = XslashSetList(&command[i+12], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+13], str_pt_in, 0., 100.0, 5.0)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+14], str_pt_in)) == NULL) return S_SND;
+							break;
+						case MSMX:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetLevl(&command[i+2], str_pt_in, 1023)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+3], str_pt_in, -100., 200., 2.)) == NULL) return S_SND;
+							break;
+						case FXTYP1:
+						case FXTYP2:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							break;
+						case FXSRC:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							break;
+						case FXPAR1:
+							SetFxPar1(command, str_pt_in, i + 1, command[i - 4].value.ii);
+							break;
+						case FXPAR2:
+							SetFxPar1(command, str_pt_in, i + 1, command[i - 2].value.ii + _1_PIT + 2);
+							break;
+						case OMAIN:
+							if ((str_pt_in = XslashSetInt(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+3], str_pt_in)) == NULL) return S_SND;
+							break;
+						case OMAIN2:
+							if ((str_pt_in = XslashSetInt(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							break;
+						case OP16:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+3], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetInt(&command[i+4], str_pt_in)) == NULL) return S_SND;
+							break;
+						case OMAIND:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetLinf(&command[i+2], str_pt_in, 0.3, 499.7, 0.1)) == NULL) return S_SND;
+							break;
+						case HAMP:
+							if ((str_pt_in = XslashSetLinf(&command[i+1], str_pt_in, -12., 72., 0.5)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							break;
+						case PREFS:
+							if ((str_pt_in = XslashSetString(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetLinf(&command[i+2], str_pt_in, 10., 90., 5.)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+3], str_pt_in, 0., 100., 2.)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+4], str_pt_in, 10., 90., 5.)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLinf(&command[i+5], str_pt_in, 10., 90., 10.)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+6], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+7], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+8], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+9], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+10], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+11], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+12], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+13], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+14], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+15], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetPerInt(&command[i+16], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+17], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+18], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+19], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+20], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+21], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+22], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetString(&command[i+23], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+24], str_pt_in)) == NULL) return S_SND;
+							break;
+						case PIR:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+3], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetPerInt(&command[i+4], str_pt_in)) == NULL) return S_SND;
+							break;
+						case PIQ:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetInt(&command[i+4], str_pt_in)) == NULL) return S_SND;
+							break;
+						case PCARD:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+3], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+4], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+5], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+6], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+7], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+8], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+9], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+10], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+11], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+12], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+13], str_pt_in)) == NULL) return S_SND;
+							break;
+						case PRTA:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetLinf(&command[i+2], str_pt_in, 0., 60., 6.)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+3], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetInt(&command[i+4], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+5], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+6], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetPerInt(&command[i+7], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+8], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetLogf(&command[i+9], str_pt_in, 0.25, 4.158883083, 19)) == NULL) return S_SND;	// log (16/0.25) = 4.158883083
+							if ((str_pt_in = XslashSetList(&command[i+10], str_pt_in)) == NULL) return S_SND;
+							break;
+						case PIP:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							break;
+						case PADDR:
+						case PMASK:
+						case PGWAY:
+							if ((str_pt_in = XslashSetInt(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetInt(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetInt(&command[i+3], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetInt(&command[i+4], str_pt_in)) == NULL) return S_SND;
+							break;
+						case STAT:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetInt(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetInt(&command[i+3], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+4], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetInt(&command[i+5], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetInt(&command[i+6], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+7], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+8], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetInt(&command[i+9], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+10], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetInt(&command[i+11], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+12], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+13], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+14], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+15], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+16], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+17], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetInt(&command[i+18], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetInt(&command[i+19], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+20], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+21], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetInt(&command[i+22], str_pt_in)) == NULL) return S_SND;
+							break;
+						case SSCREEN:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return S_SND;
+							break;
+						case SCHA:
+						case SMET:
+						case SROU:
+						case SSET:
+						case SLIB:
+						case SFX:
+						case SMON:
+						case SUSB:
+						case SSCE:
+						case SASS:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							break;
+						case SSOLOSW:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							for (j = 2; j < 81; j++) if ((str_pt_in = XslashSetList(&command[i+j], str_pt_in)) == NULL) return S_SND;
+							break;
+						case SOSC:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							break;
+						case STALK:
+							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							if ((str_pt_in = XslashSetList(&command[i+2], str_pt_in)) == NULL) return S_SND;
+							break;
+//SAES,		// 76
+//STAPE,	// 77
+//USB,		// 80
+//SNAM,		// 81
+//SCUE,		// 82
+//SSCN,		// 83
+//SSNP,		// 84
+//HA,		// 85
+//ACTION,	// 86
+//UREC		// 87
+						}
+						memcpy(s_buf, w_buf, w_len);
+						s_len = w_len;
+						return(S_SND); // send reply only to requesting client
+					} else if (command[i].flags & F_SET) {
+						if (*str_pt_in == '\0') return 0;
+						while (*str_pt_in == ' ') str_pt_in ++;		// skip leading spaces
+						c_type = command[i].format.typ;
+						if (c_type == I32 || c_type == P32) {
+							sscanf(str_pt_in, "%d", &endian.ii);
+							command[i].value.ii = endian.ii;
+						} else if (c_type == E32) {
+							// data given as an alphanumerical enum; n point at the Xnode for the command
+							XslashSetList(&command[i], str_pt_in);
+						} else if (c_type == F32) {
+							sscanf(str_pt_in, "%f", &endian.ff);
+							command[i].value.ff = endian.ff;
+						} else if (c_type == S32) {
+							if (command[i].value.str) free(command[i].value.str);
+							while (*str_pt_in == ' ') str_pt_in++;
+							c_len = 0;
+							if (*str_pt_in == '"') {
+								str_pt_in++;
+								c_len = 1;
+							}
+							j = strlen(str_pt_in) - c_len; // remove trailing " if there's one
+							if (j > 0) {
+								command[i].value.str = malloc((j + 8) * sizeof(char));
+								strncpy(command[i].value.str, str_pt_in, j);
+								command[i].value.str[j] = 0;
+							} else {
+								command[i].value.str = NULL;
+							}
+						} else {
+							// Todo?
+						}
+						memcpy(s_buf, w_buf, w_len);
+						s_len = w_len;
+						return(S_SND); // send reply only to requesting client
 					}
 				}
 			}
 		}
 	}
-	return S_SND; // send reply only to requesting client
+	return 0;
 }
-
+//
 //
 // /node command
 int function_node() {
@@ -1955,8 +3666,7 @@ int function_node() {
 	for (i = 0; i < cmd_max; i++) {
 		if (command[i].flags == F_FND) {
 //			printf("%s\n", command[i].command);
-			if (strncmp(str_pt_in, command[i].command + 1, strlen(str_pt_in))
-					== 0) {
+			if (strncmp(str_pt_in, command[i].command + 1, strlen(str_pt_in)) == 0) {
 				s_len = Xsprint(s_buf, 0, 's', "node");
 				s_len = Xsprint(s_buf, s_len, 's', ",s");
 				s_buf[s_len] = 0;
@@ -1967,6 +3677,7 @@ int function_node() {
 				strcat(s_buf + s_len, command[i].command);
 				switch (command[i].format.typ) {
 				case OFFON:
+				case SSOLOSW:
 					for (j = 1; j < command[i].value.ii + 1; j++) {
 						strcat(s_buf + s_len, command[i + j].value.ii ? " ON" : " OFF");
 					}
@@ -2154,8 +3865,9 @@ int function_node() {
 					break;
 				case BSCO:
 					if (command[i + 1].value.str) {
-						strcat(s_buf + s_len, " ");
+						strcat(s_buf + s_len, " \"");
 						strcat(s_buf + s_len, command[i + 1].value.str);
+						strcat(s_buf + s_len, "\"");
 					} else
 						strcat(s_buf + s_len, " \"\"");
 					strcat(s_buf + s_len, Sint(command[i + 2].value.ii));
@@ -2193,18 +3905,28 @@ int function_node() {
 					strcat(s_buf + s_len, Sfxsrc[command[i + 2].value.ii]);
 					break;
 				case FXPAR1:
-					GetFxPar1(s_buf + s_len, i + 1, command[i - 4].value.ii);
+					GetFxPar1(command, s_buf + s_len, i + 1, command[i - 4].value.ii);
 					break;
 				case FXTYP2:
-					strcat(s_buf + s_len, Sfxtyp1[command[i + 1].value.ii + _FX5_8 + 1]);
+					strcat(s_buf + s_len, Sfxtyp2[command[i + 1].value.ii]);
 					break;
 				case FXPAR2:
-					GetFxPar1(s_buf + s_len, i + 1, command[i - 4].value.ii + _FX5_8 + 1);
+					GetFxPar1(command, s_buf + s_len, i + 1, command[i - 2].value.ii + _1_PIT + 2);
 					break;
 				case OMAIN:
 					strcat(s_buf + s_len, Sint(command[i + 1].value.ii));
 					strcat(s_buf + s_len, Smpos[command[i + 2].value.ii]);
 					strcat(s_buf + s_len, command[i + 3].value.ii ? " ON" : " OFF");
+					break;
+				case OMAIN2:
+					strcat(s_buf + s_len, Sint(command[i + 1].value.ii));
+					strcat(s_buf + s_len, Smpos[command[i + 2].value.ii]);
+					break;
+				case OP16:
+					strcat(s_buf + s_len, Sint(command[i + 1].value.ii));
+					strcat(s_buf + s_len, Sint(command[i + 2].value.ii));
+					strcat(s_buf + s_len, Sint(command[i + 3].value.ii));
+					strcat(s_buf + s_len, Sint(command[i + 4].value.ii));
 					break;
 				case OMAIND:
 					strcat(s_buf + s_len, command[i + 1].value.ii ? " ON" : " OFF");
@@ -2227,7 +3949,7 @@ int function_node() {
 					strcat(s_buf + s_len, Slinf(command[i + 5].value.ff, 10., 100., 0));
 					strcat(s_buf + s_len, command[i + 6].value.ii ? " ON" : " OFF");
 					strcat(s_buf + s_len, command[i + 7].value.ii ? " 44k1" : " 48k");
-					strcat(s_buf + s_len, PCsource[command[i + 8].value.ii]);
+					strcat(s_buf + s_len, Psource[command[i + 8].value.ii]);
 					strcat(s_buf + s_len, command[i + 9].value.ii ? " ON" : " OFF");
 					strcat(s_buf + s_len, command[i + 10].value.ii ? " ON" : " OFF");
 					strcat(s_buf + s_len, command[i + 11].value.ii ? " ON" : " OFF");
@@ -2256,27 +3978,27 @@ int function_node() {
 					strcat(s_buf + s_len, Sbitmp(command[i + 4].value.ii, 12));
 					break;
 				case PIQ:
-					strcat(s_buf + s_len, PiQmodel[command[i + 1].value.ii]);
-					strcat(s_buf + s_len, PiQeqset[command[i + 2].value.ii]);
+					strcat(s_buf + s_len, XiQspk[command[i + 1].value.ii]);
+					strcat(s_buf + s_len, XiQeq[command[i + 2].value.ii]);
 					strcat(s_buf + s_len, Sint(command[i + 3].value.ii));
 					break;
 				case PCARD:
 					strcat(s_buf + s_len, Pctype[command[i + 1].value.ii]);
-					strcat(s_buf + s_len, Pcmode[command[i + 2].value.ii]);
-					strcat(s_buf + s_len, Pcmode[command[i + 3].value.ii]);
+					strcat(s_buf + s_len, Pufmode[command[i + 2].value.ii]);
+					strcat(s_buf + s_len, Pusbmod[command[i + 3].value.ii]);
 					strcat(s_buf + s_len, command[i + 4].value.ii ? " OUT" : " IN");
 					strcat(s_buf + s_len, Pcas[command[i + 5].value.ii]);
 					strcat(s_buf + s_len, command[i + 6].value.ii ? " 64" : " 56");
-					strcat(s_buf + s_len, Pcmadio[command[i + 7].value.ii]);
-					strcat(s_buf + s_len, Pcmadio[command[i + 8].value.ii]);
-					strcat(s_buf + s_len, Pcmadsrc[command[i + 9].value.ii]);
+					strcat(s_buf + s_len, Pcmadi[command[i + 7].value.ii]);
+					strcat(s_buf + s_len, Pcmado[command[i + 8].value.ii]);
+					strcat(s_buf + s_len, Pmadsrc[command[i + 9].value.ii]);
 					break;
 				case PRTA:
 					strcat(s_buf + s_len, Prtavis[command[i + 1].value.ii]);
 					strcat(s_buf + s_len, Slinf(command[i + 2].value.ff, 0., 60., 0));
 					strcat(s_buf + s_len, command[i + 3].value.ii ? " ON" : " OFF");
 					strcat(s_buf + s_len, Sint(command[i + 4].value.ii));
-					strcat(s_buf + s_len, command[i + 5].value.ii ? " ON" : " OFF");
+					strcat(s_buf + s_len, command[i + 5].value.ii ? "POST" : " PRE");
 					strcat(s_buf + s_len, command[i + 6].value.ii ? " SPEC" : " BAR");
 					strcat(s_buf + s_len, Sbitmp(command[i + 7].value.ii, 6));
 					strcat(s_buf + s_len, command[i + 8].value.ii ? " PEAK" : " RMS");
@@ -2382,6 +4104,12 @@ int function_node() {
 				case SOSC:
 					strcat(s_buf + s_len,
 							command[i + 1].value.ii ? " ON" : " OFF");
+					break;
+				case STALK:
+					strcat(s_buf + s_len,
+							command[i + 1].value.ii ? " ON" : " OFF");
+					strcat(s_buf + s_len,
+							command[i + 2].value.ii ? " ON" : " OFF");
 					break;
 				case USB:
 					if (command[i + 1].value.str) {
@@ -2519,16 +4247,95 @@ int function_node() {
 				return S_SND; // send reply only to requesting client
 			}
 		} else {
-			// should treat the command as a standard, single parameter command
-			// TODO: The current Xnode structure for commands is not right,
-			// it should rather identify all commands in their correct order with a
-			// set of flags & parameters to tell what to do with the command, whether
-			// it's a node entry, a single command or else, and how to manage
-			// (i.e. encode and decode) its parameter(s)
-			// :( that can be a major rewrite, not worth it for the moment
+			// Trying to re-use what's already there.
+			// We have data coming in - Parse!
+			if (strncmp(str_pt_in, command[i].command + 1, strlen(str_pt_in)) == 0) {
+				i = s_len = p_status = 0;
+				// change the command as if it were sent as a single command...
+				// for example on the command
+				//     /node~~~,s~~-prefs/rta/visibility
+				// we change to to
+				//     /-prefs/rta/visibility
+				// and send the command for parsing...
+				if (*(r_buf + 12) == '/') {
+					memcpy(r_buf + 1, r_buf + 13, r_len - 13);
+				} else {
+					memcpy(r_buf + 1, r_buf + 12, r_len - 12);
+				}
+				r_len -= 12;
+				// Parse the command; this will update the Send buffer (and send buffer number of bytes)
+				// and the parsing status in p_status
+				while (i < Xheader_max) {
+					if (Xheader[i].header.icom == (int) *((int*) v_buf)) { // single int test!
+						p_status = Xheader[i].fptr(); // call associated parsing function
+						break; // Done parsing, exit parsing while loop
+					}
+					i += 1;
+				}
+				if (i < Xheader_max) return function_node_single(i);
+			}
 		}
 	}
 	return 0; // no reply if error detected
+}
+//
+// Single node function - reply to /node (single argument) reply with appropriate data
+int function_node_single() {
+
+X32command	*command = node_single_command;
+int			index = node_single_index;
+	// Global variable node_single_index represents the function index
+	// s_buf & s_len contain a reply that won't work as the expected output is not in
+	// the form of an OSC command reply,
+	//
+	// change the buffer to send... depending on the parameter type
+	// save s_buf in r_buf (not needed anymore)
+	memcpy(r_buf, s_buf, s_len);
+	r_len = s_len;
+	s_len = 12;
+	memcpy(s_buf, "node\0\0\0\0,s\0\0", s_len);	// Set command reply header
+	strcpy(s_buf + s_len, r_buf); 				// append node including leading '/'
+	s_len = strlen(r_buf) + s_len;
+//			strcpy(s_buf + s_len, " 70%\n");			// test only!
+//			s_len += 5;									// test only!
+
+	if (command[index].node) {
+		// array of enum strings available
+		strcpy(s_buf + s_len, command[index].node[command[index].value.ii]);
+		s_len += strlen(command[index].node[command[index].value.ii]);
+	} else {
+		// evaluate string from value/type
+		if (command[index].format.typ == I32) {
+			s_len += sprintf(s_buf + s_len, " %d", command[index].value.ii);
+		} else if (command[index].format.typ == F32) {
+			s_len += sprintf(s_buf + s_len, " %f", command[index].value.ff);
+		} else if (command[index].format.typ == S32) {
+			if (command[index].value.str) {
+				strcpy(s_buf + s_len, command[index].value.str);
+				s_len += strlen(command[index].value.str);
+			}
+		} else if (command[index].format.typ == P32) {
+			s_len += sprintf(s_buf + s_len, " %%");
+			int il = 31;
+			while (il > 0) {
+				if (command[index].value.ii & (1 << il)) break;
+				il--;
+			}
+			for (; il >= 0; il--) {
+				if (command[index].value.ii & (1 << il)) s_len += sprintf(s_buf + s_len, "1");
+				else                                     s_len += sprintf(s_buf + s_len, "0");
+			}
+		} else {
+			strcpy(s_buf + s_len, " TODO");
+			s_len += 5;
+		}
+	}
+	s_buf[s_len++] = '\n';
+	s_buf[s_len++] = '\0';
+	// pad output with '\0' to multiple of 4
+	while (s_len & 3) s_buf[s_len++] = 0;
+	// we now have to set a single parameter in the form of a string, ending with a line feed
+	return S_SND; // send reply only to requesting client
 }
 
 //
@@ -2736,16 +4543,30 @@ int function_dca() {
 //
 // /fx command
 int function_fx() {
-	int i;
+	int i, fx;
+	X32command *Xfx;
 //
 // check for actual command
+// manage 8 fx 1 to 8 - /fx/x/yyy
+	fx = r_buf[4] - 48 - 1;
+	Xfx = Xfxset[fx];
 	i = 0;
-	while (i < Xfx_max) {
-		if (strcmp(r_buf, Xfx[i].command) == 0) {
-			// found command at index i
-			return (funct_params(Xfx, i));
+	if (fx < 4) {
+		while (i < Xfx1_max) {
+			if (strcmp(r_buf, Xfx[i].command) == 0) {
+				// found command at index i
+				return (funct_params(Xfx, i));
+			}
+			i += 1;
 		}
-		i += 1;
+	} else if (fx < 8) {
+		while (i < Xfx5_max) {
+			if (strcmp(r_buf, Xfx[i].command) == 0) {
+				// found command at index i
+				return (funct_params(Xfx, i));
+			}
+			i += 1;
+		}
 	}
 	return 0;
 }
@@ -2771,15 +4592,132 @@ int function_output() {
 // /headamp command
 int function_headamp() {
 	int i;
+	X32command *Xheadmp;
+
 //
-// check for actual command
+	// check for actual command
+	// manage 8 headamp 000 to 127 - /headamp/yyy/...
+	Xheadmp = Xheadmpset[(r_buf[9] - 48) * 100 + (r_buf[10] - 48) * 10 + r_buf[11] - 48];
 	i = 0;
 	while (i < Xheadamp_max) {
-		if (strcmp(r_buf, Xheadamp[i].command) == 0) {
+		if (strcmp(r_buf, Xheadmp[i].command) == 0) {
 			// found command at index i
-			return (funct_params(Xheadamp, i));
+			return (funct_params(Xheadmp, i));
 		}
 		i += 1;
+	}
+	return 0;
+}
+
+//
+//
+void Xprepmeter(int i, int l, char *buf, int n) {
+	// prepare (fake) meters/0 command reply
+	ZMemory(&Xbuf_meters[i][0], 512);			// Prepare buffer (set to all 0's)
+	endian.ii = l + 4;
+	memcpy(&Xbuf_meters[i][0], buf, 16);
+	Xbuf_meters[i][16] = endian.cc[3];
+	Xbuf_meters[i][17] = endian.cc[2];
+	Xbuf_meters[i][18] = endian.cc[1];
+	Xbuf_meters[i][19] = endian.cc[0];
+	endian.ii -= 4;
+	Xbuf_meters[i][20] = endian.cc[0];
+	Xbuf_meters[i][21] = endian.cc[1];
+	Xbuf_meters[i][22] = endian.cc[2];
+	Xbuf_meters[i][23] = endian.cc[3];
+	Lbuf_meters[i] = endian.ii * 4 + 12;		// actual blob length
+	gettimeofday (&XTimerMeters[i], NULL);		// get time
+	XInterMeters[i] = XTimerMeters[i];			// keep initial time for inter-timers
+	XTimerMeters[i].tv_sec += 10;				// keep valid for 10s
+	XActiveMeters |= (1 << i);					// set meter to active
+	XClientMeters[i] = *Client_ip_pt;			// remember requesting IP client TODO: not the right approach
+												//									   if several clients request meters
+	if (n == 1) {								// special case of a single shot for meters/0
+		XDeltaMeters[i] = 50000;				// set meter interval at 50ms
+		return; 								// meters/i set only to requesting client
+	} else {
+		// get time factor at end of command /meters ,si /meters/i [k]
+		// manage values < 1 and > 99 by setting interval to 50ms
+		endian.cc[3] = r_buf[24];
+		endian.cc[2] = r_buf[25];
+		endian.cc[1] = r_buf[26];
+		endian.cc[0] = r_buf[27];
+		if ((endian.ii < 1) || (endian.ii > 99)) endian.ii = 1;
+		XDeltaMeters[i] = 50000 * endian.ii;	// set meter interval at 50ms x time factor
+		return; 								// meters/i set only to requesting client
+	}
+	return;
+}
+
+//
+// meters command (/meters, ...)
+int function_meters() {
+	int i, n;
+//
+// parse /meters for actual command starts at index 12 or 16 in r_buf, depending on # of parameters
+	n = strlen(r_buf + 9);			// counting the number of parameters
+	i = 0;
+	while (i < Xmeters_max) {
+		if (strcmp(r_buf + ((9 + n + 3) & ~3), Xmeters[i].command) == 0) {
+			// found command at index i
+			break;
+		}
+		i += 1;
+	}
+	if (i < Xmeters_max) switch(i) {
+		case 0:
+			Xprepmeter(0, 70, "/meters/0\0\0\0,b\0\0", n);
+			break;
+		case 1:
+			Xprepmeter(1, 96, "/meters/1\0\0\0,b\0\0", n);
+			break;
+		case 2:
+			Xprepmeter(2, 49, "/meters/2\0\0\0,b\0\0", n);
+			break;
+		case 3:
+			Xprepmeter(3, 22, "/meters/3\0\0\0,b\0\0", n);
+			break;
+		case 4:
+			Xprepmeter(4, 82, "/meters/4\0\0\0,b\0\0", n);
+			break;
+		case 5:
+			Xprepmeter(5, 27, "/meters/5\0\0\0,b\0\0", n);
+			break;
+		case 6:
+			Xprepmeter(6, 4, "/meters/6\0\0\0,b\0\0", n);
+			break;
+		case 7:
+			Xprepmeter(7, 16, "/meters/7\0\0\0,b\0\0", n);
+			break;
+		case 8:
+			Xprepmeter(8, 6, "/meters/8\0\0\0,b\0\0", n);
+			break;
+		case 9:
+			Xprepmeter(9, 32, "/meters/9\0\0\0,b\0\0", n);
+			break;
+		case 10:
+			Xprepmeter(10, 32, "/meters/10\0\0,b\0\0", n);
+			break;
+		case 11:
+			Xprepmeter(11, 5, "/meters/11\0\0,b\0\0", n);
+			break;
+		case 12:
+			Xprepmeter(12, 4, "/meters/12\0\0,b\0\0", n);
+			break;
+		case 13:
+			Xprepmeter(13, 48, "/meters/13\0\0,b\0\0", n);
+			break;
+		case 14:
+			Xprepmeter(14, 80, "/meters/14\0\0,b\0\0", n);
+			break;
+		case 15:
+			Xprepmeter(15, 50, "/meters/15\0\0,b\0\0", n);
+			break;
+		case 16:
+			Xprepmeter(16, 48, "/meters/16\0\0,b\0\0", n);
+			break;
+		default:
+			break;
 	}
 	return 0;
 }
@@ -2801,6 +4739,13 @@ int function_misc() {
 	return 0;
 }
 
+//
+// Other functions (/renew) and commands
+int function_renew() {
+//
+// Ignored for now / Todo
+	return S_SND;
+}
 //
 // /-action command
 int function_action() {
@@ -3192,7 +5137,6 @@ int function_delete() {
 	}
 	return 0;
 }
-
 //
 // Shutdown: a function (non Behringer standard) to save all current emulator values and
 // settings. Enables keeping data from one session to the next
@@ -3205,7 +5149,7 @@ int function_shutdown() {
 	}
 	return X32Shutdown();
 }
-
+//
 //
 //
 #define save(xx)																		\
@@ -3242,47 +5186,87 @@ int X32Shutdown() {
 	for (i = 0; i < Xstat_max; i++) {
 		save(Xstat);
 	}
-	for (j = 0; j < 32; j++) {
+	Xarray = Xchannelset[0];
+	for (i = 0; i < Xchannel01_max; i++) {
+		save(Xarray);
+	}
+	for (j = 1; j < 32; j++) {
 		Xarray = Xchannelset[j];
-		for (i = 0; i < Xchannel01_max; i++) {
+		for (i = 0; i < Xchannel02_max; i++) {
 			save(Xarray);
 		}
 	}
-	for (j = 0; j < 8; j++) {
+	Xarray = Xauxinset[0];
+	for (i = 0; i < Xauxin01_max; i++) {
+		save(Xarray);
+	}
+	for (j = 1; j < 8; j++) {
 		Xarray = Xauxinset[j];
-		for (i = 0; i < Xauxin01_max; i++) {
+		for (i = 0; i < Xauxin02_max; i++) {
 			save(Xarray);
 		}
 	}
-	for (j = 0; j < 8; j++) {
+	Xarray = Xfxrtnset[0];
+	for (i = 0; i < Xfxrtn01_max; i++) {
+		save(Xarray);
+	}
+	for (j = 1; j < 8; j++) {
 		Xarray = Xfxrtnset[j];
-		for (i = 0; i < Xfxrtn01_max; i++) {
+		for (i = 0; i < Xfxrtn02_max; i++) {
 			save(Xarray);
 		}
 	}
-	for (j = 0; j < 16; j++) {
+	Xarray = Xbusset[0];
+	for (i = 0; i < Xbus01_max; i++) {
+		save(Xarray);
+	}
+	for (j = 1; j < 16; j++) {
 		Xarray = Xbusset[j];
-		for (i = 0; i < Xbus01_max; i++) {
+		for (i = 0; i < Xbus02_max; i++) {
 			save(Xarray);
 		}
 	}
-	for (j = 0; j < 6; j++) {
+	Xarray = Xmtxset[0];
+	for (i = 0; i < Xmtx01_max; i++) {
+		save(Xarray);
+	}
+	for (j = 1; j < 6; j++) {
 		Xarray = Xmtxset[j];
-		for (i = 0; i < Xmtx01_max; i++) {
+		for (i = 0; i < Xmtx02_max; i++) {
 			save(Xarray);
 		}
 	}
 	for (i = 0; i < Xdca_max; i++) {
 		save(Xdca);
 	}
-	for (i = 0; i < Xfx_max; i++) {
-		save(Xfx);
+	Xarray = Xfxset[0];
+	for (i = 0; i < Xfx1_max; i++) {
+		save(Xarray);
+	}
+	for (j = 1; j < 8; j++) {
+		Xarray = Xfxset[j];
+		if (j < 4) {
+			for (i = 0; i < Xfx2_max; i++) {
+				save(Xarray);
+			}
+		} else {
+			for (i = 0; i < Xfx5_max; i++) {
+				save(Xarray);
+			}
+		}
 	}
 	for (i = 0; i < Xoutput_max; i++) {
 		save(Xoutput);
 	}
+	Xarray = Xheadmpset[0];
 	for (i = 0; i < Xheadamp_max; i++) {
-		save(Xheadamp);
+		save(Xarray);
+	}
+	for (j = 1; j < 128; j++) {
+		Xarray = Xheadmpset[j];
+		for (i = 0; i < Xheadamp1_max; i++) {
+			save(Xarray);
+		}
 	}
 	for (i = 0; i < Xmisc_max; i++) {
 		save(Xmisc);
@@ -3336,47 +5320,87 @@ int X32Init() {
 	for (i = 0; i < Xstat_max; i++) {
 		restore(Xstat);
 	}
-	for (j = 0; j < 32; j++) {
+	Xarray = Xchannelset[0];
+	for (i = 0; i < Xchannel01_max; i++) {
+		restore(Xarray);
+	}
+	for (j = 1; j < 32; j++) {
 		Xarray = Xchannelset[j];
-		for (i = 0; i < Xchannel01_max; i++) {
+		for (i = 0; i < Xchannel02_max; i++) {
 			restore(Xarray);
 		}
 	}
-	for (j = 0; j < 8; j++) {
+	Xarray = Xauxinset[0];
+	for (i = 0; i < Xauxin01_max; i++) {
+		restore(Xarray);
+	}
+	for (j = 1; j < 8; j++) {
 		Xarray = Xauxinset[j];
-		for (i = 0; i < Xauxin01_max; i++) {
+		for (i = 0; i < Xauxin02_max; i++) {
 			restore(Xarray);
 		}
 	}
-	for (j = 0; j < 8; j++) {
+	Xarray = Xfxrtnset[0];
+	for (i = 0; i < Xfxrtn01_max; i++) {
+		restore(Xarray);
+	}
+	for (j = 1; j < 8; j++) {
 		Xarray = Xfxrtnset[j];
-		for (i = 0; i < Xfxrtn01_max; i++) {
+		for (i = 0; i < Xfxrtn02_max; i++) {
 			restore(Xarray);
 		}
 	}
-	for (j = 0; j < 16; j++) {
+	Xarray = Xbusset[0];
+	for (i = 0; i < Xbus01_max; i++) {
+		restore(Xarray);
+	}
+	for (j = 1; j < 16; j++) {
 		Xarray = Xbusset[j];
-		for (i = 0; i < Xbus01_max; i++) {
+		for (i = 0; i < Xbus02_max; i++) {
 			restore(Xarray);
 		}
 	}
-	for (j = 0; j < 6; j++) {
+	Xarray = Xmtxset[0];
+	for (i = 0; i < Xmtx01_max; i++) {
+		restore(Xarray);
+	}
+	for (j = 1; j < 6; j++) {
 		Xarray = Xmtxset[j];
-		for (i = 0; i < Xmtx01_max; i++) {
+		for (i = 0; i < Xmtx02_max; i++) {
 			restore(Xarray);
 		}
 	}
 	for (i = 0; i < Xdca_max; i++) {
 		restore(Xdca);
 	}
-	for (i = 0; i < Xfx_max; i++) {
-		restore(Xfx);
+	Xarray = Xfxset[0];
+	for (i = 0; i < Xfx1_max; i++) {
+		restore(Xarray);
+	}
+	for (j = 1; j < 8; j++) {
+		Xarray = Xfxset[j];
+		if (j < 4) {
+			for (i = 0; i < Xfx2_max; i++) {
+				restore(Xarray);
+			}
+		} else {
+			for (i = 0; i < Xfx5_max; i++) {
+				restore(Xarray);
+			}
+		}
 	}
 	for (i = 0; i < Xoutput_max; i++) {
 		restore(Xoutput);
 	}
+	Xarray = Xheadmpset[0];
 	for (i = 0; i < Xheadamp_max; i++) {
-		restore(Xheadamp);
+		restore(Xarray);
+	}
+	for (j = 1; j < 128; j++) {
+		Xarray = Xheadmpset[j];
+		for (i = 0; i < Xheadamp1_max; i++) {
+			restore(Xarray);
+		}
 	}
 	for (i = 0; i < Xmisc_max; i++) {
 		restore(Xmisc);
