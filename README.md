@@ -917,7 +917,7 @@ The reverse polish notation calculator supports the following operators, on numb
 (+) (-) (*) (/)  Boolean operators (~ >> << & ^ |), modulo (%) on ints, test operator (?), equal comparison (=), different comparison (!), exp (e), log_n conversion (l), log_10 conversion (L), and truncate to int (i).
 
 Formulas should be saved in a file with a ".m2o" extension, as shown below:
-...
+```
 #
 #
 # Translation file for Midi2OSC
@@ -985,4 +985,6 @@ B0 3 12 127 | /fxrtn/01/mix/on ,i [$2 0 =]              # if $2 is 0 then result
 B0 4 12 127 | /ch/01/mix/fader ,f [$2 3 ! 0.7 0.5 ?]    # if $2 equals 3 then result is 0.5, 0.7 otherwise
 #
 ...
+
+
 
