@@ -889,3 +889,100 @@ Set the position for the first preset in the library, positions will increment a
 Hit the "Xfer Presets" button to start the transfer. A status will display as the transfer progresses and when transfer is complete.
 Important note: All your preset files should be version 2.1; You can easily check this with a text editor (file begins with a #2.1# header) if not, you can actually set the header manually, as this does the trick in most situations.
 ![X32SetLib.jpg](http://sites.google.com/site/patrickmaillot/x32/X32SetLib.jpg)
+
+
+### X32Midi2OSC ###
+
+Have X32 receive OSC commands from a MIDI device or program.
+
+X32Midi2OSC connects to your X32, and to a MIDI source. It intercepts MIDI specific data (user selected) messages, and can send a user selected OSC command to the X32 upon reception of the MIDI data. The program also provides MIDI thru capability to sort of act as "man in the middle" in a MIDI connection. The list of MIDI commands and their respective OSC messages are saved in a configuration file, the basic parameters for the program (such as IP address, etc.) are also kept in a separate file.
+
+
+![X32Midi2OSC.jpg](http://sites.google.com/site/patrickmaillot/x32/X32Midi2OSC.jpg)
+
+
+MIDI commands are typically 3 bytes (some are 2 and SYSEX data can be a lot more): Each command comes with the following data: <channel number>, <command type>, <data value>
+
+The program can apply operations to any of the MIDI command attributes to modulate the OSC message parameters that will be sent. To this end, an RPN calculator is used to apply operations to the incoming MIDI data before applying it to OSC message parameters. Midi thru is untouched.
+
+The "Dbg" button enables easy debugging of MIDI commands that are received by the program, Each recognized MIDI message will be displayed in hexa form. Use only when debugging specific patterns! as this blocks the program until the displayed message is acknowledged.
+
+The following convention sand operators apply:
+$0, $1, $2 represent the incoming MIDI <channel number>, <command type>, <data value>, respectively.
+
+At this time, only short MIDI messages are considered. Only short SYSEX messages are considered. Long SYSEX is ignored.
+The list of accepted MIDI commands is listed below in the conversion file example.
+
+The reverse polish notation calculator supports the following operators, on numbers, (possibly preceded with a $ to represent a MIDI parameter), or hexadecimal data:
+(+) (-) (*) (/)  Boolean operators (~ >> << & ^ |), modulo (%) on ints, test operator (?), equal comparison (=), different comparison (!), exp (e), log_n conversion (l), log_10 conversion (L), and truncate to int (i).
+
+Formulas should be saved in a file with a ".m2o" extension, as shown below:
+...
+#
+#
+# Translation file for Midi2OSC
+#
+# ©2018 Patrick-Gilles Maillot
+#
+#
+# Expected format uses space or tab character as separator and separates
+# MIDI and respective OSC command by a '|' character:
+#
+#    {A0..F0} ch d1 d2 | <OSC message>
+#
+#   - B0 means MIDI control message, where:
+#        ch is the channel number [1..16]
+#        d1 is the control event number [0..127]
+#        d2 is the value associated to the command [0..127]
+#
+# OSC messages consist of an OSC Address Pattern followed by an
+# OSC Type Tag String followed by zero or more OSC Arguments.
+#
+# Possible OSC Type Tags are i or f
+#
+# OSC Arguments are listed between brakets '[]' and can be a fixed value,
+# such as 0, 1 or an expressionsuch as $n to make reference to data issued
+# from the incoming MIDI command, where
+#        $0 represents the channel number
+#        $1 represents the control event number
+#        $2 represents the value data (the value 0 or 127 here will
+#                be replaced during execution with the actual data
+#                from the MIDI command
+#
+# Accepted MIDI messages:
+#    Message                  Type        Data 1                 Data 2
+#    Note Off                  8n        Note Number            Velocity
+#    Note On                   9n        Note Number            Velocity
+#    Polyphonic Aftertouch     An        Note Number            Pressure
+#    Control Change            Bn        Controller Number      Data
+#    Program Change            Cn        Program Number         from file
+#    Channel Aftertouch        Dn        Pressure               from file
+#    Pitch Wheel               En        LSB                    MSB
+#    System Message            Fn        depends on message     depends on message
+#
+#    Key
+#    n is the MIDI Channel Number (0-F)
+#    LSB is the Least Significant Byte
+#    MSB is the Least Significant Byte
+#   
+#   
+#    The reverse polish notation calculator supports the following operators, on numbers,
+#    (possibly preceded with a $ to represent a MIDI parameter), or hexadecimal data:
+#    (+) (-) (*) (/)  Boolean operators (~ >> << & ^ |), modulo (%) on ints, test operator (?),
+#    equal comparison (=), different comparison (!), exp (e), log_n conversion (l),
+#    log_10 conversion (L), and truncate to int (i).
+#
+# Lines starting with a # are comment lines
+#
+# some examples below (uncomment if you want to test)
+#B0  1 10 127 | /ch/10/mix/fader ,f [3 1 & 2 < / 3]     # testing simple operations
+#B0  1 11 127 | /ch/11/mix/fader ,f [$1]                # testing simple access to parameter
+#B0  1 12 127 | /ch/12/mix/fader ,f [127 $2 -]          # equivalent to inversing effect
+#B0  1 13 127 | /ch/12/mix/fader ,fi [127 $2 -] [$2]    # not a valid command, but for test purpose
+#90  1 56 127 | /ch/26/mix/fader ,f [$2 2 * i 60 /]     # () force an int value
+#
+B0 3 12 127 | /fxrtn/01/mix/on ,i [$2 0 =]              # if $2 is 0 then result is 1 (true), 0 (false) otherwise
+B0 4 12 127 | /ch/01/mix/fader ,f [$2 3 ! 0.7 0.5 ?]    # if $2 equals 3 then result is 0.5, 0.7 otherwise
+#
+...
+
