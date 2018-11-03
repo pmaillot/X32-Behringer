@@ -870,4 +870,22 @@ NOTE: Microsoft Defender seems to inappropriately report this program as potenti
 
 
 
+### X32GetLib ###
+Manage your Presets (Channel, Effect, Routing) on your PC from your X32.
+No more limits and a lot of flexibility to change settings and values for your preset files.
 
+Connect to X32, select a destination directory on your PC for Preset files. Select the preset library you want to retrieve (Channel, Effects or Routing). Hit the "Xfer Presets" button to start the transfer. A status will display as the transfer progresses and when transfer is complete.
+Starting with ver. 0.20, X32GetLib enables to save ALL presets (Channel, Effects, and Routing) in a single click.
+
+![X32GetLib.jpg](http://sites.google.com/site/patrickmaillot/x32/X32GetLib.jpg)
+
+### X32SetLib ###
+Manage your Presets (Channel, Effect, Routing) on your PC and send them to X32.
+No more limits and a lot of flexibility to change settings and values for your preset files.
+
+Connect to X32, browse your PC for Preset files (Channel, Effect or Routing) and select one or multiple presets to transfer to X32 Presets library.
+
+Set the position for the first preset in the library, positions will increment automatically, as presets are saved in the X32 library.
+Hit the "Xfer Presets" button to start the transfer. A status will display as the transfer progresses and when transfer is complete.
+Important note: All your preset files should be version 2.1; You can easily check this with a text editor (file begins with a #2.1# header) if not, you can actually set the header manually, as this does the trick in most situations.
+![X32SetLib.jpg](http://sites.google.com/site/patrickmaillot/x32/X32SetLib.jpg)
