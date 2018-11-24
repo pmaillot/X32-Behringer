@@ -239,7 +239,7 @@ int main(int argc, char **argv) {
 
 	strcpy(S_X32_IP, "");
 	strcpy(S_Hst_IP, "");
-	printf("X32Reaper - v2.61 - (c)2015 Patrick-Gilles Maillot\n\n");
+	printf("X32Reaper - v2.62 - (c)2015 Patrick-Gilles Maillot\n\n");
 	// load resource file
 	if ((res_file = fopen("./.X32Reaper.ini", "r")) != NULL) { // ignore Width and Height
 		fscanf(res_file, "%d %d %d %d %d\n", &i, &j, &Xverbose, &Xdelay, &Xcsend);
