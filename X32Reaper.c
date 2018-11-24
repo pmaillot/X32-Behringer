@@ -34,6 +34,8 @@
  *           also enables filtering what is sent to X32 from REAPER
  * Ver 2.6: Adding capability to set REAPER markers from bank C buttons (exclusive from Transport)
  * Ver 2.61: Fixed the fact that Marker insert request was sent twice, and added a possible bank C color :)
+ * Ver 2.62: Bank size can be less than 32 (8 or 16 are good options for X32).
+ *           Also limits the actual number physical channels that can be used
  *
  */
 #include <stdio.h>
@@ -42,6 +44,9 @@
 #include <string.h>
 #include <time.h>
 #include <math.h>
+
+#define BNKSZ 			32	// size (number of tracks) of a bank
+#define BSIZE 			512	// Buffer sizes (enough to take into account FX parameters)
 
 #ifdef __WIN32
 #include <winsock2.h>
@@ -61,7 +66,6 @@ typedef struct sockaddr_in SOCKADDR_IN;
 typedef struct sockaddr SOCKADDR;
 typedef struct in_addr IN_ADDR;
 #endif
-#define BSIZE 			512	// Buffer sizes (enough to take into account FX parameters)
 //
 // X32 to communicate on X32_IP (192.168.0.64) and X32 port (10023)
 // REAPER to communicate on Rea_IP (192.168.0.64) and REAPER ports
@@ -224,6 +228,7 @@ typedef struct bkch {
 } S_bkch;
 //
 S_bkch *XMbanktracks = NULL;	// Address to data array for saved channel banks data
+int	bkchsz		= BNKSZ;	// size of channel baks (32 or less)
 //
 //-------------------------------------------------------------------------
 //
@@ -252,14 +257,14 @@ int main(int argc, char **argv) {
 			&Xfxr_min, &Xfxr_max, &Xbus_min, &Xbus_max,
 			&Xdca_min, &Xdca_max, &TrackSendOffset);
 		for (i = 0; i < 8; i++) fscanf(res_file, "%d %d\n", &Rdca_min[i], &Rdca_max[i]);
-		fscanf(res_file, "%d %d %d %d\n", &XMbankup, &XMbankdn, &XMkerbtn, &Xchbkof);
+		fscanf(res_file, "%d %d %d %d %d\n", &XMbankup, &XMbankdn, &XMkerbtn, &Xchbkof, &bkchsz);
 		//
 		if (Xchbank_on) {
 			//
 			// allocate memory for maintaining REAPER data between banks
 			// We make the choice to allocate by blocks of 32, ensuring we cover all input tracks
 			// between Xtrk_max and Xtrk_min
-			if ((XMbanktracks = (S_bkch*)malloc(((Xtrk_max - Xtrk_min + 1) / 32 + 1) * 32 * sizeof(S_bkch))) == NULL) {
+			if ((XMbanktracks = (S_bkch*)malloc(((Xtrk_max - Xtrk_min + 1) / bkchsz + 1) * bkchsz * sizeof(S_bkch))) == NULL) {
 				exit(-1);
 			}
 			for (i = 0; i < Xtrk_max - Xtrk_min + 1; i++) {
@@ -270,8 +275,8 @@ int main(int argc, char **argv) {
 				XMbanktracks[i].color = 0;
 				XMbanktracks[i].icon = 1;
 				for (j = 0; j < 16; j++) {
-					XMbanktracks[i].scribble[j] = 0;
-					XMbanktracks[i].mixbus[j] = 0.0;
+					XMbanktracks[i].scribble[j] = 0;			// scribbles are 16 chars
+					XMbanktracks[i].mixbus[j] = 0.0;			// 16 mixbus per track
 				}
 			}
 			if (!Xtransport_on) {	// If transport is on, buttons are pre-assigned.
@@ -287,7 +292,7 @@ int main(int argc, char **argv) {
 	}
 	printf("X32 at IP %s\n", S_X32_IP);
 	printf("REAPER at IP %s\nreceives on port %s\nsends to port %s\n", S_Hst_IP, S_RecPort, S_SndPort);
-	printf("Flags: verbose: %1d, delay: %dms, Transport: %1d, CHBank: %1d, Master: %1d\n", Xverbose, Xdelay, Xtransport_on, Xchbank_on, Xmaster_on);
+	printf("Flags: verbose: %1d, delay: %dms, Transport: %1d, CHBank: %1d, Master: %1d, Bank width: %2d\n", Xverbose, Xdelay, Xtransport_on, Xchbank_on, Xmaster_on, bkchsz);
 	printf("Map (min/max): Ch %d/%d, Aux %d/%d, FxR %d/%d, Bus %d/%d, DCA %d/%d, Bus Offset %d\n",
 			Xtrk_min, Xtrk_max, Xaux_min, Xaux_max, Xfxr_min, Xfxr_max, Xbus_min, Xbus_max, Xdca_min, Xdca_max, TrackSendOffset);
 	printf("RDCA Map (min/max):");
@@ -599,7 +604,7 @@ void XUpdateBkCh() {
 	int i, j, src;
 	char tmp[32];
 	//
-	for (i = 1; i < 33; i++) {
+	for (i = 1; i < bkchsz+1; i++) {
 		// update the 32 channels of X32 upon REAPER bank change requested from X32
 		src = i - 1 + Xchbkof * 32;	// XMbanktracks index start at 0,channel and tracks start at index 1
 		sprintf(tmp, "/ch/%02d/mix/fader", i);	// faders
@@ -755,11 +760,11 @@ void X32ParseX32Message() {
 //
 // What is the X32 message made of?
 // X32 format is:
-//	/ch/%02d/mix/pan......,f..[float]		%02d = 01..32
-//	/ch/%02d/mix/fader....,f..[float]		%02d = 01..32
-//	/ch/%02d/mix/on.......,i..[0/1]			%02d = 01..32
-//	/ch/%02d/config/name..,s..[string\0]	%02d = 01..32
-//	/ch/%02d/mix/%02d/level...,f..[float]	%02d = 01..32 / %02d = 01..16
+//	/ch/%02d/mix/pan......,f..[float]		%02d = 01..bkchsz
+//	/ch/%02d/mix/fader....,f..[float]		%02d = 01..bkchsz
+//	/ch/%02d/mix/on.......,i..[0/1]			%02d = 01..bkchsz
+//	/ch/%02d/config/name..,s..[string\0]	%02d = 01..bkchsz
+//	/ch/%02d/mix/%02d/level...,f..[float]	%02d = 01..bkchsz / %02d = 01..16
 //
 // Same applies to /auxin and /fxrtn as for /ch above
 //
@@ -812,7 +817,7 @@ void X32ParseX32Message() {
 		// manage bank offset if the user selected that option
 		if (Xchbank_on) {
 			// Set actual channel number to match Channel Bank
-			cnum = Xchbkof * 32 + cnum;
+			cnum = Xchbkof * bkchsz + cnum;
 		}
 		cnum1 = cnum + Xtrk_min - 1;
 		if ((Xtrk_max > 0) && (cnum1 <= Xtrk_max)) {
@@ -1097,12 +1102,12 @@ void X32ParseX32Message() {
 			Xb_i += 4;
 			for (i = 4; i > 0; endian.cc[--i] = Xb_r[Xb_i++]); // get track number
 			cnum = -2;
-			if ((endian.ii < 32) && (Xtrk_max > 0)) {
+			if ((endian.ii < bkchsz) && (Xtrk_max > 0)) {
 				cnum = endian.ii + Xtrk_min;
 				Xselected = cnum;
 				if (Xchbank_on) {
 					// Set actual channel number to match Channel Bank
-					cnum = Xselected + Xchbkof * 32;
+					cnum = Xselected + Xchbkof * bkchsz;
 				}
 			}
 			else if ((endian.ii < 40) && (Xaux_max > 0))	cnum = endian.ii + Xaux_min - 32;
@@ -1129,11 +1134,11 @@ void X32ParseX32Message() {
 			if (endian.ii == 1) endian.ff = 1.0;
 			else				endian.ff = 0.0;
 			i = 0;
-			if ((cnum < 33) && (Xtrk_max > 0)) {
+			if ((cnum < bkchsz+1) && (Xtrk_max > 0)) {
 				i = cnum + Xtrk_min - 1;
 				if (Xchbank_on) {
 					// Set actual channel number to match Channel Bank
-					i = Xchbkof * 32 + i;
+					i = Xchbkof * bkchsz + i;
 					XMbanktracks[i - 1].solo = endian.ff;
 				}
 			}
@@ -1184,7 +1189,7 @@ void X32ParseX32Message() {
 					if (endian.ii == 0) { // Take into account only the button up transition
 						if (Xchbank_on) {
 							// Channel Bank UP
-							if (Xchbkof < (Xtrk_max - 1) / 32) {
+							if (Xchbkof < (Xtrk_max - 1) / bkchsz) {
 								Xchbkof += 1; // ignore non zero values
 								XUpdateBkCh();
 							}
@@ -1346,7 +1351,7 @@ void X32ParseX32Message() {
 						// ChBank buttons are two Bank C numbers between 5 to 12, OSC # between 17 to 24
 						if (cnum == XMbankup) {
 							// Channel Bank UP
-							if (Xchbkof < (Xtrk_max - 1) / 32) {
+							if (Xchbkof < (Xtrk_max - 1) / bkchsz) {
 								Xchbkof += 1; // ignore non zero values
 								XUpdateBkCh();
 							}
@@ -1454,9 +1459,9 @@ void X32ParseReaperMessage() {
 					if (Xchbank_on) {
 						XMbanktracks[tnum - Xtrk_min].pan = endian.ff;
 						// Set actual channel number to match Channel Bank
-						tnum = tnum - Xchbkof * 32;
+						tnum = tnum - Xchbkof * bkchsz;
 					}
-					if ((tnum = tnum - Xtrk_min + 1) < 33) {
+					if ((tnum = tnum - Xtrk_min + 1) < bkchsz) {
 						sprintf(tmp, "/ch/%02d/mix/pan", tnum);
 					} else {
 						tnum = -1;
@@ -1480,9 +1485,9 @@ void X32ParseReaperMessage() {
 					if (Xchbank_on) {
 						XMbanktracks[tnum - Xtrk_min].fader = endian.ff;
 						// Set actual channel number to match Channel Bank
-						tnum = tnum - Xchbkof * 32;
+						tnum = tnum - Xchbkof * bkchsz;
 					}
-					if ((tnum = tnum - Xtrk_min + 1) < 33) {
+					if ((tnum = tnum - Xtrk_min + 1) < bkchsz+1) {
 						sprintf(tmp, "/ch/%02d/mix/fader", tnum);
 					} else {
 						tnum = -1;
@@ -1553,7 +1558,7 @@ void X32ParseReaperMessage() {
 				if ((tnum >= Xtrk_min) && (tnum <= Xtrk_max)) {
 					if (Xchbank_on) strncpy (XMbanktracks[tnum - Xtrk_min].scribble, Rb_r + Rb_i, 12);
 					if (i_icon) {
-						if ((tnum - Xtrk_min + 1) < 33) {
+						if ((tnum - Xtrk_min + 1) < bkchsz+1) {
 							sprintf(tmp, "/ch/%02d/config/icon", tnum - Xtrk_min + 1);
 							Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_icon);
 							if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
@@ -1561,7 +1566,7 @@ void X32ParseReaperMessage() {
 						if (Xchbank_on) XMbanktracks[tnum - Xtrk_min].icon = i_icon;
 					}
 					if (i_color > -1) {
-						if ((tnum - Xtrk_min + 1) < 33) {
+						if ((tnum - Xtrk_min + 1) < bkchsz+1) {
 							sprintf(tmp, "/ch/%02d/config/color", tnum - Xtrk_min + 1);
 							Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_color);
 							if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
@@ -1570,9 +1575,9 @@ void X32ParseReaperMessage() {
 					}
 					if (Xchbank_on) {
 						// Set actual channel number to match Channel Bank
-						tnum = tnum - Xchbkof * 32;
+						tnum = tnum - Xchbkof * bkchsz;
 					}
-					if ((tnum - Xtrk_min + 1) < 33) {
+					if ((tnum - Xtrk_min + 1) < bkchsz+1) {
 						sprintf(tmp, "/ch/%02d/config/name", tnum - Xtrk_min + 1);
 					} else {
 						tnum = -1;
@@ -1639,9 +1644,9 @@ void X32ParseReaperMessage() {
 					if (Xchbank_on) {
 						XMbanktracks[tnum - Xtrk_min].mute = endian.ff;
 						// Set actual channel number to match Channel Bank
-						tnum = tnum - Xchbkof * 32;
+						tnum = tnum - Xchbkof * bkchsz;
 					}
-					if ((tnum - Xtrk_min + 1) < 33) {
+					if ((tnum - Xtrk_min + 1) < bkchsz+1) {
 						sprintf(tmp, "/ch/%02d/mix/on", tnum - Xtrk_min + 1);
 					} else {
 						tnum = -1;
@@ -1701,10 +1706,10 @@ void X32ParseReaperMessage() {
 							tnum = tnum - Xtrk_min;
 							if (Xchbank_on) {
 								// Set actual channel number to match Channel Bank
-								tnum = tnum - Xchbkof * 32;
+								tnum = tnum - Xchbkof * bkchsz;
 							}
 							Xselected = tnum + 1;
-							if (tnum > 31) tnum = -1; // do not "touch" ch > 32
+							if (tnum > bkchsz-1) tnum = -1; // do not "touch" ch > bkchsz
 						}
 						else if ((tnum >= Xaux_min) && (tnum <= Xaux_max))	tnum = tnum - Xaux_min + 32;
 						else if ((tnum >= Xfxr_min) && (tnum <= Xfxr_max))	tnum = tnum - Xfxr_min + 40;
@@ -1732,9 +1737,9 @@ void X32ParseReaperMessage() {
 							if (Xchbank_on) {
 								XMbanktracks[tnum - Xtrk_min].mixbus[bus] = endian.ff;
 								// Set actual channel number to match Channel Bank
-								tnum = tnum - Xchbkof * 32;
+								tnum = tnum - Xchbkof * bkchsz;
 							}
-							if ((tnum - Xtrk_min + 1) < 33) {
+							if ((tnum - Xtrk_min + 1) < bkchsz+1) {
 								sprintf(tmp, "/ch/%02d/mix/%02d/level", tnum - Xtrk_min + 1, bus);
 							} else {
 								tnum = -1;
@@ -1757,9 +1762,9 @@ void X32ParseReaperMessage() {
 						if (Xchbank_on) {
 							XMbanktracks[tnum - 1].solo = endian.ff;
 							// Set actual channel number to match Channel Bank
-							tnum = tnum - Xchbkof * 32;
+							tnum = tnum - Xchbkof * bkchsz;
 						}
-						if (tnum > 32) tnum = -1;	// do not "touch" ch > 32
+						if (tnum > bkchsz) tnum = -1;	// do not "touch" ch > bkchsz
 					}
 					else if ((tnum >= Xaux_min) && (tnum <= Xaux_max))	tnum = tnum - Xaux_min + 32 + 1;
 					else if ((tnum >= Xfxr_min) && (tnum <= Xfxr_max))	tnum = tnum - Xfxr_min + 40 + 1;
