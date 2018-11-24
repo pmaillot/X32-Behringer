@@ -297,7 +297,13 @@ int main(int argc, char **argv) {
 			Xtrk_min, Xtrk_max, Xaux_min, Xaux_max, Xfxr_min, Xfxr_max, Xbus_min, Xbus_max, Xdca_min, Xdca_max, TrackSendOffset);
 	printf("RDCA Map (min/max):");
 	for (i = 0; i < 8; i++) printf(" %d: %d/%d-", i+1, Rdca_min[i], Rdca_max[i]);
-	if (Xchbank_on) printf("\nCHbank [bankC] up/down: %d %d\n\n", XMbankup, XMbankdn);
+	if (Xchbank_on) {
+		if (Xtransport_on) {
+			printf("\nCHbank [bankC] up/down: %d %d - bank size: %d\n\n", 9, 10, bkchsz);
+		} else {
+			printf("\nCHbank [bankC] up/down: %d %d - bank size: %d\n\n", XMbankup, XMbankdn, bkchsz);
+		}
+	}
 	fflush(stdout);
 	if ((log_file = fopen(".X32Reaper.log", "w")) != NULL) {
 		fprintf(log_file, "*\n*\n");
@@ -606,7 +612,7 @@ void XUpdateBkCh() {
 	//
 	for (i = 1; i < bkchsz+1; i++) {
 		// update the 32 channels of X32 upon REAPER bank change requested from X32
-		src = i - 1 + Xchbkof * 32;	// XMbanktracks index start at 0,channel and tracks start at index 1
+		src = i - 1 + Xchbkof * bkchsz;	// XMbanktracks index start at 0,channel and tracks start at index 1
 		sprintf(tmp, "/ch/%02d/mix/fader", i);	// faders
 		Xb_ls = Xfprint(Xb_s, 0, tmp, 'f', &XMbanktracks[src].fader);
 		SEND_TOX(Xb_s, Xb_ls)
