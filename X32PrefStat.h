@@ -134,7 +134,7 @@ X32command Xprefs[] = {
 		{"/-prefs/card/MADIin",			{E32}, F_XET, {0}, Pcmadi},
 		{"/-prefs/card/MADIout",		{E32}, F_XET, {0}, Pcmado},
 		{"/-prefs/card/MADIsrc",		{E32}, F_XET, {0}, Pmadsrc},
-		{"/-prefs/card/URECtrack",		{E32}, F_XET, {0}, Purectk},
+		{"/-prefs/card/URECtracks",		{E32}, F_XET, {0}, Purectk},
 		{"/-prefs/card/URECplayb",		{E32}, F_XET, {0}, Purplbk},
 		{"/-prefs/card/URECrout",		{E32}, F_XET, {0}, Purerpa},
 		{"/-prefs/card/URECsdsel",		{E32}, F_XET, {0}, Pursdsl},
@@ -332,7 +332,7 @@ X32command Xstat[] = {
 		{"/-stat/tape/rtime",		{E32}, F_XET, {0}, NULL},
 
 		{"/-stat/osc",					{SOSC}, F_FND, {0}, NULL},
-		{"/-stat/osc",				{E32}, F_XET, {0}, OffOn},
+		{"/-stat/osc/on",			{E32}, F_XET, {0}, OffOn},
 
 		{"/-stat/talk",					{STALK}, F_FND, {0}, NULL},
 		{"/-stat/talk/A",			{E32}, F_XET, {0}, OffOn},
