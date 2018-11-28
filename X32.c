@@ -21,6 +21,8 @@
 //       correcly to other remote clients on complex changes, i.e. if a data is not changed, it will not be sent to remote
 //       clients.
 // 0.72: bug fixes
+// 0.73: better handling of float comaparisons (using EPSILON)
+// 0.74: new functions /-libs, bug fixes
 //
 #ifdef __WIN32__
 #include <windows.h>
@@ -47,7 +49,8 @@
 #include <sys/time.h>
 #include <time.h>
 
-#define XVERSION "3.08"	// FW version
+#define EPSILON 0.0001	// epsilon for float comparisons
+#define XVERSION "3.09"	// FW version
 #define BSIZE 512		// Buffer sizes
 #define X32DEBUG 0		// default debug mode
 #define X32VERBOSE 1	// default verbose mode
@@ -165,7 +168,8 @@ enum types {
 	SSNP,		// 85
 	HA,			// 86
 	ACTION,		// 87
-	UREC		// 88
+	UREC,		// 88
+	SLIBS		// 89
 };
 
 typedef struct X32header {	// The Header structure is used to quickly scan through
@@ -260,6 +264,8 @@ int function_action();
 int function_meters();
 int function_misc();
 int function_renew();
+int function_libs();
+int function_showdump();
 int function();
 //
 float Xr_float(char* Xin, int l);
@@ -451,6 +457,7 @@ char* R25[] = {"1/4", "3/8", "1/2", "2/3", "1", "4/3", "3/2", "2", "3",""};
 #include "X32Headamp.h"		//
 #include "X32Show.h"		//
 #include "X32Misc.h"		//
+#include "X32Libs.h"		//
 
 
 X32header Xheader[] = { // X32 Headers, the data used for testing and the
@@ -489,6 +496,8 @@ X32header Xheader[] = { // X32 Headers, the data used for testing and the
 	{ { "/-us" }, &function_misc },
 	{ { "/und" }, &function },
 	{ { "/-ac" }, &function_action },
+	{ { "/-li" }, &function_libs },
+	{ { "/sho" }, &function_showdump },
 };
 int Xheader_max = sizeof(Xheader) / sizeof(X32header);
 
@@ -779,6 +788,9 @@ X32node Xnode[] = { // /node Command Headers (see structure definition above
 	{ "-show/showfile/scene", 20, Xscene, sizeof(Xscene)/sizeof(X32command)}, 		// in this
 	{ "-show", 5, Xshow, sizeof(Xshow)/sizeof(X32command)},							// order !!
 	{ "-urec", 5, Xurec, sizeof(Xurec)/sizeof(X32command)},
+	{ "-libs/fx", 8, Xlibsf, sizeof(Xlibsf)/sizeof(X32command)},					// !! keep
+	{ "-libs/r", 7, Xlibsr, sizeof(Xlibsr)/sizeof(X32command)},						// in this
+	{ "-libs", 5, Xlibsc, sizeof(Xlibsc)/sizeof(X32command)},						// order !!
 };
 int Xnode_max = sizeof(Xnode) / sizeof(X32node);
 
@@ -918,7 +930,7 @@ int main(int argc, char **argv) {
 // Wait for messages from client
 	i = 0;
 	r_len = 0;
-	printf("X32 - v0.72 - An X32 Emulator - (c)2014-2017 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.74 - An X32 Emulator - (c)2014-2017 Patrick-Gilles Maillot\n");
 	getmyIP(); // Try to get our IP...
 //	printf("Xport=%s\n",Xport_str); //
 	if (Xverbose) printf("Listening to port: %s, X32 IP = %s\n", Xport_str, Xip_str);
@@ -1067,7 +1079,7 @@ void getmyIP() {
 void X32Print(struct X32command* command) {
 	printf("X32-Command: %s data: ", command->command);
 //
-	if ((command->format.typ == I32) || (command->format.typ == E32)) {
+	if ((command->format.typ == I32) || (command->format.typ == E32) || (command->format.typ == P32)) {
 		printf("[%6d]\n", command->value.ii);
 	} else if (command->format.typ == F32) {
 		if (command->value.ff < 10.) printf("[%6.4f]\n", command->value.ff);
@@ -1164,7 +1176,7 @@ int FXc_lookup(X32command* Xfx, int index) {
 char* Slevel(float fin) {
 	float fl;
 
-	if (fin == 0.) {
+	if (fin <= 0.) {
 		sprintf(snode_str, " -oo");
 	} else {
 		if (fin <= 0.0625) fl = 30. / 0.0625 * fin - 90.;
@@ -1242,7 +1254,8 @@ char* RLinf(X32command* command, char* str_pt_in, float xmin, float lmaxmin) {
 	fval = (fval - xmin) / lmaxmin;
 	if (fval <= 0.) fval = 0.; // avoid -0.0 values (0x80000000)
 	if (fval > 1.) fval = 1.;
-	if (fval != command->value.ff) {
+	if ((fval < command->value.ff - EPSILON) || (fval > command->value.ff + EPSILON)) {
+//	if (fval != command->value.ff) {
 		command->value.ff = fval;
 		s_len = Xfprint(s_buf, 0, command->command, 'f', &fval);
 		Xsend(S_REM); // update xremote clients
@@ -1264,7 +1277,8 @@ char* RLogf(X32command* command, char* str_pt_in, float xmin, float lmaxmin) {
 	fval = log(fval / xmin) / lmaxmin; // lmaxmin = log(xmax / xmin)
 	if (fval <= 0.) fval = 0.; // avoid -0.0 values (0x80000000)
 	if (fval > 1.) fval = 1.;
-	if (fval != command->value.ff) {
+	if ((fval < command->value.ff - EPSILON) || (fval > command->value.ff + EPSILON)) {
+//	if (fval != command->value.ff) {
 		command->value.ff = fval;
 		s_len = Xfprint(s_buf, 0, command->command, 'f', &fval);
 		Xsend(S_REM); // update xremote clients
@@ -2821,6 +2835,7 @@ int funct_params(X32command *command, int i) {
 				case 's':
 					j = strlen(r_buf + c_len); // actual need can be up to 4 more \0 bytes; add 8 by security
 					strncpy(loc_str, r_buf + c_len, j);
+					loc_str[j] = 0;
 					if (command[i].flags & F_SET) {
 						if (j > 0) {
 							if (command[i].value.str) update = strcmp(command[i].value.str, loc_str);
@@ -2865,10 +2880,7 @@ int funct_params(X32command *command, int i) {
 				// we process normally
 				c_type = FXc_lookup(command, i); // the function returns I32, F32, S32,...
 			}
-			if (c_type == I32 || c_type == P32) {
-				s_len = Xsprint(s_buf, s_len, 's', ",i");
-				s_len = Xsprint(s_buf, s_len, 'i', &command[i].value.ii);
-			} else if (c_type == E32) {
+			if (c_type == I32 || c_type == E32 || c_type == P32) {
 				s_len = Xsprint(s_buf, s_len, 's', ",i");
 				s_len = Xsprint(s_buf, s_len, 'i', &command[i].value.ii);
 			} else if (c_type == F32) {
@@ -3132,7 +3144,8 @@ char* XslashSetLevl(X32command* command, char* str_pt_in, int nsteps) {
 			if ((fval = (int)(fval * (nsteps + 0.5)) / (float)nsteps) > 1.0) fval = 1.0;
 		} else if (fval > 10.) fval = 1.0;
 	}
-	if (fval != command->value.ff) {
+	if ((fval < command->value.ff - EPSILON) || (fval > command->value.ff + EPSILON)) {
+//	if (fval != command->value.ff) {
 		command->value.ff = fval;
 		s_len = Xfprint(s_buf, 0, command->command, 'f', &fval);
 		Xsend(S_REM); // update xremote clients
@@ -3219,7 +3232,8 @@ char* XslashSetLogf(X32command* command, char* str_pt_in, float xmin, float lmax
 //	else              fval = floorf(fval * nsteps) / nsteps;
 	if (fval <= 0.) fval = 0.; // avoid -0.0 values (0x80000000)
 	if (fval > 1.) fval = 1.;
-	if (fval != command->value.ff) {
+	if ((fval < command->value.ff - EPSILON) || (fval > command->value.ff + EPSILON)) {
+//	if (fval != command->value.ff) {
 		command->value.ff = fval;
 		s_len = Xfprint(s_buf, 0, command->command, 'f', &fval);
 		Xsend(S_REM); // update xremote clients
@@ -3245,7 +3259,8 @@ char* XslashSetLinf(X32command* command, char* str_pt_in, float xmin, float lmax
 	fval = roundf(fval*xstep) / xstep;
 	if (fval <= 0.) fval = 0.; // avoid -0.0 values (0x80000000)
 	if (fval > 1.) fval = 1.;
-	if (fval != command->value.ff) {
+	if ((fval < command->value.ff - EPSILON) || (fval > command->value.ff + EPSILON)) {
+//	if (fval != command->value.ff) {
 		command->value.ff = fval;
 		s_len = Xfprint(s_buf, 0, command->command, 'f', &fval);
 		Xsend(S_REM); // update xremote clients
@@ -4236,6 +4251,19 @@ int function_node() {
 					strcat(s_buf + s_len, Sint(command[i + 16].value.ii));
 
 					break;
+				case SLIBS:
+				strcat(s_buf + s_len, Sint(command[i + 1].value.ii));
+				if (command[i + 2].value.str) {
+					strcat(s_buf + s_len, " \"");
+					strcat(s_buf + s_len, command[i + 2].value.str);
+					strcat(s_buf + s_len, "\"");
+				} else
+					strcat(s_buf + s_len, " \"\"");
+				strcat(s_buf + s_len, Sint(command[i + 3].value.ii));
+				strcat(s_buf + s_len, Sbitmp(command[i + 4].value.ii, 16));
+				strcat(s_buf + s_len, Sint(command[i + 5].value.ii));
+
+					break;
 				default:
 					return 0;
 					break;
@@ -5138,6 +5166,26 @@ int function_delete() {
 	return 0;
 }
 //
+// function_libs(): to manage /-libs commands
+int function_libs() {
+	printf("Doing nothing for /-libs\n");
+	fflush(stdout);
+	return 0;
+}
+//
+// function_showdump(): mamging /showdump requests
+int function_showdump() {
+char shname[32];
+
+	s_len = Xsprint(s_buf, 0, 's', "node");
+	s_len = Xsprint(s_buf, s_len, 's', ",s");
+	shname[0] = 0;
+	if (Xshow[4].value.str) strcpy(shname, Xshow[4].value.str);		//Xshow[4] holds the current show name
+	sprintf(r_buf, "/-show/showfile/show \"%s\" 0 0 0 0 0 0 0 0 0 0 \"%s\"", shname, XVERSION);
+	s_len = Xsprint(s_buf, s_len, 's', r_buf);
+	return S_SND;
+}
+//
 // Shutdown: a function (non Behringer standard) to save all current emulator values and
 // settings. Enables keeping data from one session to the next
 int function_shutdown() {
@@ -5274,6 +5322,15 @@ int X32Shutdown() {
 	for (i = 0; i < Xurec_max; i++) {
 		save(Xurec);
 	}
+	for (i = 0; i < Xlibsc_max; i++) {
+		save(Xlibsc);
+	}
+	for (i = 0; i < Xlibsr_max; i++) {
+		save(Xlibsr);
+	}
+	for (i = 0; i < Xlibsf_max; i++) {
+		save(Xlibsf);
+	}
 	fclose(X32File);
 	printf(" Done\n");
 	fflush(stdout);
@@ -5407,6 +5464,15 @@ int X32Init() {
 	}
 	for (i = 0; i < Xurec_max; i++) {
 		restore(Xurec);
+	}
+	for (i = 0; i < Xlibsc_max; i++) {
+		restore(Xlibsc);
+	}
+	for (i = 0; i < Xlibsr_max; i++) {
+		restore(Xlibsr);
+	}
+	for (i = 0; i < Xlibsf_max; i++) {
+		restore(Xlibsf);
 	}
 	i = f_stat; // to avoid gcc warning;
 	fclose(X32File);
