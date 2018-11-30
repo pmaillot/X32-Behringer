@@ -25,7 +25,7 @@ First build yourself a library of 'utility' functions you will find under Xlib32
 
 Applications and programs will work in a Linux, OS X, or Windows terminal. Some programs are  Windows applications and rely on Windows MFC libraries and work in a Windows XP to Windows 10 environment.
 
-Source code is set for 4-space tabs in Eclipse.
+Source code is set for 4-space tabs in Eclipse. I use Eclipse as IDE and MinGW under Windows for my C environment. Windows based programs have to be linked with their respective libraries under Windows (w2_32, gdi32, comdlg32, etc.) respective of the Windows functionality used.
 
 ### Contribution guidelines ###
 Feel free to use :-). If you find bugs, please report them; if you fix some bugs, please propose your code so everyone can benefit.
