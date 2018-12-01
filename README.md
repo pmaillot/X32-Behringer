@@ -28,7 +28,10 @@ Applications and programs will work in a Linux, OS X, or Windows terminal. Some 
 Source code is set for 4-space tabs in Eclipse. I use Eclipse as IDE and MinGW under Windows for my C environment. Windows based programs have to be linked with their respective libraries under Windows (w2_32, gdi32, comdlg32, etc.) respective of the Windows functionality used.
 
 The basic MinGW-32 environment and tools are sufficient for these programs as there are no high memory addressing requirements. The installation of MinGW sets up all necessary environment variables; please follow the instructions that come with the MinGW install utility.
-Eclipse also sets up all necessary environment options for basic C programming; When creating projects, select the MinGW suite as compile suite. Each project will have to be edited to include link libraries as mentioned above. The compile line/options is directly managed by Eclispe using the tools and environment variables set from your PC, and is nevertheless straight forward. For exaple, the compile lines for X32Reaper is as follows (entirely managed by/from Eclipse on a single button click):
+
+Eclipse also sets up all necessary environment options for basic C programming; When creating projects, select the MinGW suite as compile suite. Each project will have to be edited to include link libraries as mentioned above. The compile line and options are directly managed by Eclispe using the tools and environment variables set from your PC, and are straight forward. 
+
+For example, the compile lines for X32Reaper in Debug mode are listed below (entirely managed by/from Eclipse on a single button click):
 ```09:16:17 **** Incremental Build of configuration Debug for project X32Reaper ****
 Info: Internal Builder is used for build
 gcc -O0 -g3 -Wall -c -fmessage-length=0 -o X32Reaper.o "..\\X32Reaper.c" 
