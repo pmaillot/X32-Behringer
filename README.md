@@ -32,7 +32,8 @@ Eclipse also sets up all necessary environment options for basic C programming; 
 ```09:16:17 **** Incremental Build of configuration Debug for project X32Reaper ****
 Info: Internal Builder is used for build
 gcc -O0 -g3 -Wall -c -fmessage-length=0 -o X32Reaper.o "..\\X32Reaper.c" 
-gcc "-LC:\\...\\eclipse\\X32_lib\\Debug" -o X32Reaper.exe X32Reaper.o -lX32_lib -lws2_32 ```
+gcc "-LC:\\...\\eclipse\\X32_lib\\Debug" -o X32Reaper.exe X32Reaper.o -lX32_lib -lws2_32
+```
 
 ### Contribution guidelines ###
 Feel free to use :-). If you find bugs, please report them; if you fix some bugs, please propose your code so everyone can benefit.
