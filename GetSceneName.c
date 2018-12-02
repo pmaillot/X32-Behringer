@@ -5,10 +5,11 @@
 //
 //      GetSceneName: a command line utility to get scene names when a scene change takes place
 //
-//      ©Patrick-Gilles Maillot
+//     ©Patrick-Gilles Maillot
 //
 // Changelog:
 // v 0.1:	Creation of the tool
+// v 0.2:	Added information to the data returned to caller (scene ID)
 //
 
 #include <stdlib.h>
@@ -173,7 +174,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with X32 server
-	if (verbose) printf(" GetSceneName - v0.1 - (c)2018 Patrick-Gilles Maillot\n\nConnecting to X32.");
+	if (verbose) printf(" GetSceneName - v0.2 - (c)2018 Patrick-Gilles Maillot\n\nConnecting to X32.");
 //
 	keep_on = 1;
 	s_len = Xsprint(s_buf, 0, 's', "/info");
@@ -216,7 +217,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 				}
 				// ...or in "/-show/showfile/scene" commands
 				if (strncmp(r_buf, "/-show/showfile/scene", 21) == 0) {
-					printf("%s\n", r_buf+36);
+					printf("%02d - %s\n", endian.ii, r_buf+36);
 					fflush(stdout);
 					if (onetime) keep_on = 0;
 				}
