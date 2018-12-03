@@ -1003,7 +1003,7 @@ B0 4 12 127 | /ch/01/mix/fader ,f [$2 3 ! 0.7 0.5 ?]    # if $2 equals 3 then re
 Returns the name of the Scene that has just been loaded to X32
 
 
-The utility connects to the X32 (default IP is 192.168.0.62 and can be changed with option -i) and awaits the set of commands relative to a new scene being loaded into the X32. When this occurs, it returns the name of the scene that was just loaded to <stdout>.
+The utility connects to the X32 (default IP is 192.168.0.62 and can be changed with option -i) and awaits the set of commands relative to a new scene being loaded into the X32. When this occurs, it returns the index and name of the scene that was just loaded to <stdout>.
 
 The tool can do this a single time [-o option set to 1 (default)] or indefinitely (a ctrl-C is then necessary to stop the tool).
 
@@ -1020,23 +1020,24 @@ Examples:
 
 ```
 XPS C:> ./GetSceneName
- GetSceneName - v0.1 - (c)2018 Patrick-Gilles Maillot
+ GetSceneName - v0.2 - (c)2018 Patrick-Gilles Maillot
 
 Connecting to X32. Done!
-name1
-name2
+01 - name1
+02 - name2
 <ctrl-c>
 PS C:> ./GetSceneName -v 0
-name1
-name2
+01 - name1
+02 - name2
 <ctrl-c>
 XPS C:> ./GetSceneName -v 0
-name1
+01 - name1
 XPS C:> ./GetSceneName -v 0 -o 0
-name2
-name1
+02 - name2
+01 - name1
 <ctrl-c>
 XPS C:>
+
 ```
 
 
