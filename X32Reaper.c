@@ -37,6 +37,7 @@
  * Ver 2.62: Bank size can be less than 32 (8 or 16 are good options for X32).
  *           Also limits the actual number physical channels that can be used
  * Ver 2.63: Small bug fixes to 2.62
+ * Ver 2.64: Added a specific delay for banks (Xdelayb)
  *
  */
 #include <stdio.h>
@@ -106,24 +107,24 @@ extern int Xfprint(char *bd, int index, char* text, char format, void *bs);
 //
 // Communication macros
 //
-#define SEND_TOX(b, l)											\
-	do {														\
-		if (Xverbose) Xlogf("->X", b, l);						\
-		if (sendto(Xfd, b, l, 0, XX32IP_pt, XX32IP_len) < 0) {	\
-			fprintf(log_file, "Error sending data to X32\n");	\
-			exit(EXIT_FAILURE);									\
-		} 														\
-		if (Xdelay > 0) MySleep(Xdelay);						\
+#define SEND_TOX(delay)													\
+	do {																\
+		if (Xverbose) Xlogf("->X", Xb_s, Xb_ls);						\
+		if (sendto(Xfd, Xb_s, Xb_ls, 0, XX32IP_pt, XX32IP_len) < 0) {	\
+			fprintf(log_file, errorX32);								\
+			exit(EXIT_FAILURE);											\
+		} 																\
+		if (delay > 0) Sleep(delay);									\
 	} while (0);
 //
 //
-#define SEND_TOR(b, l)											\
-	do {														\
-		if (Xverbose) Xlogf("->R", b, l);						\
-		if (sendto(Rfd, b, l, 0, RHstIP_pt, RHstIP_len) < 0) {	\
-			fprintf(log_file, "Error sending data to REAPER\n");\
-			exit(EXIT_FAILURE);									\
-		} 														\
+#define SEND_TOR()														\
+	do {																\
+		if (Xverbose) Xlogf("->R", Rb_s, Rb_ls);						\
+		if (sendto(Rfd, Rb_s, Rb_ls, 0, RHstIP_pt, RHstIP_len) < 0) {	\
+			fprintf(log_file, errorRea);								\
+			exit(EXIT_FAILURE);											\
+		} 																\
 	} while (0);
 //
 // resource and log file data
@@ -147,6 +148,8 @@ char Rb_r[RBrmax];
 int Rb_ls;
 char Rb_s[RBsmax];
 //
+char *errorX32 = "Error sending data to X32\n";
+char *errorRea = "Error sending data to REAPER\n";
 int loop_toggle = 0x00; // toggles between 0x00 and 0x7f
 //
 char	S_SndPort[8], S_RecPort[8], S_X32_IP[20], S_Hst_IP[20];
@@ -163,7 +166,8 @@ int play_1 = 0;
 // Misc. flags
 int MainLoopOn = 1;		// main loop flag
 int Xconnected = 0;		// 1 when communication is running
-int Xverbose, Xdelay;	// verbose, List of Action and delay
+int Xverbose;			// verbose flag
+int Xdelayb, Xdelayg;	// OSC delay for banks control and generic OSC delay
 int Xtransport_on = 0;	// whether transport is enabled or not (bank C)
 int XMkerbt_on = 0;		// Marker Button number on or not (bank C)
 int Xchbank_on = 0;		// whether we use Channel bank select and not Loops in bank C
@@ -236,14 +240,13 @@ int	bkchsz		= BNKSZ;	// size of channel baks (32 or less)
 
 int main(int argc, char **argv) {
 	int i, j;
-	Xverbose = Xdelay = 0;
 
 	strcpy(S_X32_IP, "");
 	strcpy(S_Hst_IP, "");
-	printf("X32Reaper - v2.63 - (c)2015 Patrick-Gilles Maillot\n\n");
+	printf("X32Reaper - v2.64 - (c)2015 Patrick-Gilles Maillot\n\n");
 	// load resource file
 	if ((res_file = fopen("./.X32Reaper.ini", "r")) != NULL) { // ignore Width and Height
-		fscanf(res_file, "%d %d %d %d %d\n", &i, &j, &Xverbose, &Xdelay, &Xcsend);
+		fscanf(res_file, "%d %d %d %d %d %d\n", &i, &j, &Xverbose, &Xdelayb, &Xdelayg, &Xcsend);
 		fgets(S_X32_IP, sizeof(S_X32_IP), res_file);
 		S_X32_IP[strlen(S_X32_IP) - 1] = 0;
 		fgets(S_Hst_IP, sizeof(S_Hst_IP), res_file);
@@ -265,7 +268,7 @@ int main(int argc, char **argv) {
 			// allocate memory for maintaining REAPER data between banks
 			// We make the choice to allocate by blocks of 32, ensuring we cover all input tracks
 			// between Xtrk_max and Xtrk_min
-			if ((XMbanktracks = (S_bkch*)malloc(((Xtrk_max - Xtrk_min + 1) / bkchsz + 1) * bkchsz * sizeof(S_bkch))) == NULL) {
+			if ((XMbanktracks = (S_bkch*)malloc(((Xtrk_max - Xtrk_min + 1 + bkchsz - 1) / bkchsz) * bkchsz * sizeof(S_bkch))) == NULL) {
 				exit(-1);
 			}
 			for (i = 0; i < Xtrk_max - Xtrk_min + 1; i++) {
@@ -293,7 +296,7 @@ int main(int argc, char **argv) {
 	}
 	printf("X32 at IP %s\n", S_X32_IP);
 	printf("REAPER at IP %s\nreceives on port %s\nsends to port %s\n", S_Hst_IP, S_RecPort, S_SndPort);
-	printf("Flags: verbose: %1d, delay: %dms, Transport: %1d, CHBank: %1d, Master: %1d, Bank width: %2d\n", Xverbose, Xdelay, Xtransport_on, Xchbank_on, Xmaster_on, bkchsz);
+	printf("Flags: verbose: %1d, delay bank: %dms, delay gen.: %dms,Transport: %1d, CHBank: %1d, Master: %1d, Bank width: %2d\n", Xverbose, Xdelayb, Xdelayg, Xtransport_on, Xchbank_on, Xmaster_on, bkchsz);
 	printf("Map (min/max): Ch %d/%d, Aux %d/%d, FxR %d/%d, Bus %d/%d, DCA %d/%d, Bus Offset %d\n",
 			Xtrk_min, Xtrk_max, Xaux_min, Xaux_max, Xfxr_min, Xfxr_max, Xbus_min, Xbus_max, Xdca_min, Xdca_max, TrackSendOffset);
 	printf("RDCA Map (min/max):");
@@ -320,7 +323,7 @@ int main(int argc, char **argv) {
 				now = time(NULL); 			// get time in seconds
 				if (now > before + 9) { 	// need to keep xremote alive?
 					Xb_ls = Xsprint(Xb_s, 0, 's', "/xremote");
-					SEND_TOX(Xb_s, Xb_ls)
+					SEND_TOX(Xdelayg)
 					before = now;
 				}
 //
@@ -445,7 +448,7 @@ int X32Connect() {
 				// to init the Xselected global variable.
 				// This is likely to be overwritten when loading REAPER template
 				Xb_ls = Xsprint(Xb_s, 0, 's', "/-stat/selidx");
-				SEND_TOX(Xb_s, Xb_ls);
+				SEND_TOX(Xdelayg)
 				// get data back
 				FD_ZERO(&fds);
 				FD_SET(Xfd, &fds);
@@ -612,55 +615,55 @@ void XUpdateBkCh() {
 	char tmp[32];
 	//
 	for (i = 1; i < bkchsz+1; i++) {
-		// update the 32 channels of X32 upon REAPER bank change requested from X32
+		// update the bkchsz channels of X32 upon REAPER bank change requested from X32
 		src = i - 1 + Xchbkof * bkchsz;	// XMbanktracks index start at 0,channel and tracks start at index 1
 		sprintf(tmp, "/ch/%02d/mix/fader", i);	// faders
 		Xb_ls = Xfprint(Xb_s, 0, tmp, 'f', &XMbanktracks[src].fader);
-		SEND_TOX(Xb_s, Xb_ls)
+		SEND_TOX(Xdelayb)
 		//
 		sprintf(tmp, "/ch/%02d/mix/pan", i);	// pan
 		Xb_ls = Xfprint(Xb_s, 0, tmp, 'f', &XMbanktracks[src].pan);
-		SEND_TOX(Xb_s, Xb_ls)
+		SEND_TOX(Xdelayb)
 		//
 		sprintf(tmp, "/ch/%02d/mix/on", i);		// mute
 		j = 1;
-		if (XMbanktracks[src].mute != 0.0) j = 0;
+		if (XMbanktracks[src].mute > 0.5) j = 0;
 		Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &j);
-		SEND_TOX(Xb_s, Xb_ls)
+		SEND_TOX(Xdelayb)
 		//
 		sprintf(tmp, "/ch/%02d/config/name", i);// scribble names
 		Xb_ls = Xfprint(Xb_s, 0, tmp, 's', XMbanktracks[src].scribble);
-		SEND_TOX(Xb_s, Xb_ls)
+		SEND_TOX(Xdelayb)
 		//
-		sprintf(tmp, "/ch/%02d/config/color", i);	// scribble colors
+		sprintf(tmp, "/ch/%02d/config/color", i);// scribble colors
 		Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &XMbanktracks[src].color);
-		SEND_TOX(Xb_s, Xb_ls)
+		SEND_TOX(Xdelayb)
 		//
-		sprintf(tmp, "/ch/%02d/config/icon", i);	// scribble icons
-		Xb_ls = Xfprint(Xb_s, 0, tmp, 's', &XMbanktracks[src].icon);
-		SEND_TOX(Xb_s, Xb_ls)
+		sprintf(tmp, "/ch/%02d/config/icon", i);// scribble icons
+		Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &XMbanktracks[src].icon);
+		SEND_TOX(Xdelayb)
 		//
 		j = 0;
 		if (XMbanktracks[src].solo != 0.0) j = 1;
 		sprintf(tmp, "/-stat/solosw/%02d", i);	// solo
 		Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &j);
-		SEND_TOX(Xb_s, Xb_ls)
+		SEND_TOX(Xdelayg)
 		//
-		for (j = 1; j < 17; j++) {
+		for (j = 1; j < 17; j++) {							// 16 mixbus
 			sprintf(tmp, "/ch/%02d/mix/%02d/level", i, j);	// sends
 			Xb_ls = Xfprint(Xb_s, 0, tmp, 'f', &XMbanktracks[src].mixbus[j]);
-			SEND_TOX(Xb_s, Xb_ls)
+			SEND_TOX(Xdelayb)
 		}
 	}
 	// manage channel select
 	Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40297"); // unselect all REAPER tracks
-	SEND_TOR(Rb_s, Rb_ls)
+	SEND_TOR()
 	j = Xselected - 1;
 	Xb_ls = Xfprint(Xb_s, 0, "/-stat/selidx", 'i', &j);	//set X32 selected channel
-	SEND_TOX(Xb_s, Xb_ls)
-	sprintf(tmp, "/track/%d/select", Xselected + Xchbkof * 32);
+	SEND_TOX(Xdelayg)
+	sprintf(tmp, "/track/%d/select", Xselected + Xchbkof * bkchsz);
 	Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &fone);	// REAPER track select
-	SEND_TOR(Rb_s, Rb_ls)
+	SEND_TOR()
 }
 //
 // This function initializes User Assign section C either with all transport options, or
@@ -679,28 +682,28 @@ void X32UsrCtrlC() {
 		for (i = 1; i < 5; i++) {
 			sprintf(Xb_r, "/config/userctrl/C/enc/%d", i);
 			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 's', MP[i - 1]);
-			SEND_TOX(Xb_s, Xb_ls)
+			SEND_TOX(Xdelayg)
 		}
 		//
 		// Buttons
 		for (i = 5; i < 13; i++) {
 			sprintf(Xb_r, "/config/userctrl/C/btn/%d", i);
 			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 's', MN[i - 5]);
-			SEND_TOX(Xb_s, Xb_ls)
+			SEND_TOX(Xdelayg)
 		}
 		//
 		// Set X32 Bank C Encoders  to center "64" value
 		for (i = 33; i < 37; i++) {
 			sprintf(Xb_r, "/-stat/userpar/%2d/value", i);
 			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 'i', &six4);
-			SEND_TOX(Xb_s, Xb_ls)
+			SEND_TOX(Xdelayg)
 		}
 		//
 		// Set X32 Bank C buttons  to "0" value
 		for (i = 17; i < 25; i++) {
 			sprintf(Xb_r, "/-stat/userpar/%2d/value", i);
 			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 'i', &zero);
-			SEND_TOX(Xb_s, Xb_ls)
+			SEND_TOX(Xdelayg)
 		}
 	} else {
 		if (XMkerbt_on) {
@@ -709,10 +712,10 @@ void X32UsrCtrlC() {
 			//
 			sprintf(Xb_r, "/config/userctrl/C/btn/%d", XMkerbtn);
 			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 's', MN[XMkerbtn - 5]);
-			SEND_TOX(Xb_s, Xb_ls)
+			SEND_TOX(Xdelayg)
 			sprintf(Xb_r, "/-stat/userpar/%2d/value", 12 + XMkerbtn);
 			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 'i', &zero);
-			SEND_TOX(Xb_s, Xb_ls)
+			SEND_TOX(Xdelayg)
 		}
 		//
 		if(Xchbank_on) {
@@ -722,27 +725,27 @@ void X32UsrCtrlC() {
 			// bank up
 			sprintf(Xb_r, "/config/userctrl/C/btn/%d", XMbankup);
 			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 's', MN[XMbankup - 5]);
-			SEND_TOX(Xb_s, Xb_ls)
+			SEND_TOX(Xdelayg)
 			sprintf(Xb_r, "/-stat/userpar/%2d/value", 12 + XMbankup);
 			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 'i', &zero);
-			SEND_TOX(Xb_s, Xb_ls)
+			SEND_TOX(Xdelayg)
 			//
 			// bank down
 			sprintf(Xb_r, "/config/userctrl/C/btn/%d", XMbankdn);
 			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 's', MN[XMbankdn - 5]);
-			SEND_TOX(Xb_s, Xb_ls)
+			SEND_TOX(Xdelayg)
 			sprintf(Xb_r, "/-stat/userpar/%2d/value", 12 + XMbankdn);
 			Xb_ls = Xfprint(Xb_s, 0, Xb_r, 'i', &zero);
-			SEND_TOX(Xb_s, Xb_ls)
+			SEND_TOX(Xdelayg)
 		}
 	}
 	if (Xtransport_on || XMkerbt_on || Xchbank_on) {
-		// Color : black
+		// Color : XbankCcol
 		Xb_ls = Xfprint(Xb_s, 0, "/config/userctrl/C/color", 'i', &XbankCcol);
-		SEND_TOX(Xb_s, Xb_ls)
-		// Select X32 Bank C
+		SEND_TOX(Xdelayg)
+		// Select X32 UserAssign Bank C
 		Xb_ls = Xfprint(Xb_s, 0, "/-stat/userbank", 'i', &two);
-		SEND_TOX(Xb_s, Xb_ls)
+		SEND_TOX(Xdelayg)
 	}
 	//
 	// Finally, if we're connected and the CH bank flag is set,
@@ -781,7 +784,7 @@ void X32ParseX32Message() {
 //	/main/st/mix/fader....,f..[float]
 //	/main/st/mix/pan......,f..[float]
 //
-//	/bus/%02d/mix/pan......,f..[float]		%02d = 01..32
+//	/bus/%02d/mix/pan......,f..[float]		%02d = 01..16
 //	/bus/%02d/mix/fader....,f..[float]		%02d = 01..16
 //	/bus/%02d/mix/on.......,i..[0/1]		%02d = 01..16
 //	/bus/%02d/config/name..,s..[string\0]	%02d = 01..16
@@ -1067,7 +1070,7 @@ void X32ParseX32Message() {
 				if ((Rdca_min[dca - 1] > 0) && (Rdca_max[dca - 1] >= Rdca_min[dca - 1])) {
 					// There are REAPER 'dca' tracks to manage
 					for (i = Rdca_min[dca - 1]; i <= Rdca_max[dca - 1]; i++) {
-						SEND_TOR(Rb_s, Rb_ls)
+						SEND_TOR()
 						sprintf(tmp, "/track/%d/volume", i);
 						Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
 					}
@@ -1085,7 +1088,7 @@ void X32ParseX32Message() {
 				if ((Rdca_min[dca - 1] > 0) && (Rdca_max[dca - 1] >= Rdca_min[dca - 1])) {
 					// There are REAPER 'dca' tracks to manage
 					for (i = Rdca_min[dca - 1]; i <= Rdca_max[dca - 1]; i++) {
-						SEND_TOR(Rb_s, Rb_ls)
+						SEND_TOR()
 						sprintf(tmp, "/track/%d/mute", i);
 						Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
 					}
@@ -1104,7 +1107,7 @@ void X32ParseX32Message() {
 		Xb_i = 10;
 		if (Xb_r[Xb_i] == 'i') { // test on 'i' for selidx
 			Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40297"); // unselect all REAPER tracks
-			SEND_TOR(Rb_s, Rb_ls)
+			SEND_TOR()
 			Rb_ls = 0;
 			//	/-stat/selidx.........,i..[%d]
 			while (Xb_r[Xb_i] != ',') Xb_i += 1;
@@ -1198,7 +1201,7 @@ void X32ParseX32Message() {
 					if (endian.ii == 0) { // Take into account only the button up transition
 						if (Xchbank_on) {
 							// Channel Bank UP
-							if (Xchbkof < (Xtrk_max - 1) / bkchsz) {
+							if (Xchbkof < ((Xtrk_max - Xtrk_min + 1) / bkchsz) - 1) {
 								Xchbkof += 1; // ignore non zero values
 								XUpdateBkCh();
 							}
@@ -1211,7 +1214,7 @@ void X32ParseX32Message() {
 							}
 							loop_toggle ^= 0x7f; // set Loop start/stop indicator on X32
 							Xb_ls = Xfprint(Xb_s, 0, "/-stat/userpar/21/value", 'i', &loop_toggle);
-							SEND_TOX(Xb_s, Xb_ls)
+							SEND_TOX(Xdelayg)
 						}
 					}
 					break;
@@ -1247,7 +1250,7 @@ void X32ParseX32Message() {
 						// stop play so we can move cursor (scrubb)
 						Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40073");
 						play_1 = 1; // remember we changed the state; "play" may be modified
-						SEND_TOR(Rb_s, Rb_ls)
+						SEND_TOR()
 					}
 					if (endian.ii > six4) {
 						//Move Right
@@ -1256,15 +1259,15 @@ void X32ParseX32Message() {
 						//Move Left
 						Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40842");
 					}
-					SEND_TOR(Rb_s, Rb_ls)
+					SEND_TOR()
 					if (play_1) {
 						// restart play after we moved cursor
 						Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40073");
 						play_1 = 0;
-						SEND_TOR(Rb_s, Rb_ls)
+						SEND_TOR()
 					}
 					Xb_ls = Xfprint(Xb_s, 0, "/-stat/userpar/33/value", 'i', &six4);
-					SEND_TOX(Xb_s, Xb_ls)
+					SEND_TOX(Xdelayg)
 					Rb_ls = 0;
 					break;
 				case 34: // bank C encoder 2 - Infinite rotation,
@@ -1273,7 +1276,7 @@ void X32ParseX32Message() {
 						// stop play so we can move cursor (scrubb)
 						Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40073");
 						play_1 = 1; // remember we changed the state; "play" may be modified
-						SEND_TOR(Rb_s, Rb_ls)
+						SEND_TOR()
 					}
 					if (endian.ii > six4) {
 						//Next Measure
@@ -1282,15 +1285,15 @@ void X32ParseX32Message() {
 						//Previous Measure
 						Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40840");
 					}
-					SEND_TOR(Rb_s, Rb_ls)
+					SEND_TOR()
 					if (play_1) {
 						// restart play after we moved cursor
 						Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40073");
 						play_1 = 0;
-						SEND_TOR(Rb_s, Rb_ls)
+						SEND_TOR()
 					}
 					Xb_ls = Xfprint(Xb_s, 0, "/-stat/userpar/34/value", 'i', &six4);
-					SEND_TOX(Xb_s, Xb_ls)
+					SEND_TOX(Xdelayg)
 					Rb_ls = 0;
 					break;
 				case 35: // bank C encoder 3 - Infinite rotation,
@@ -1299,7 +1302,7 @@ void X32ParseX32Message() {
 						// stop play so we can move cursor (scrubb)
 						Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40073");
 						play_1 = 1; // remember we changed the state; "play" may be modified
-						SEND_TOR(Rb_s, Rb_ls)
+						SEND_TOR()
 					}
 					if (endian.ii > six4) {
 						//Next marker
@@ -1308,15 +1311,15 @@ void X32ParseX32Message() {
 						//Previous marker
 						Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40172");
 					}
-					SEND_TOR(Rb_s, Rb_ls)
+					SEND_TOR()
 					if (play_1) {
 						// restart play after we moved cursor
 						Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40073");
 						play_1 = 0;
-						SEND_TOR(Rb_s, Rb_ls)
+						SEND_TOR()
 					}
 					Xb_ls = Xfprint(Xb_s, 0, "/-stat/userpar/35/value", 'i', &six4);
-					SEND_TOX(Xb_s, Xb_ls)
+					SEND_TOX(Xdelayg)
 					Rb_ls = 0;
 					break;
 				case 36: // bank C encoder 4 - Infinite rotation,
@@ -1325,7 +1328,7 @@ void X32ParseX32Message() {
 						// stop play so we can move cursor (scrubb)
 						Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40073");
 						play_1 = 1; // remember we changed the state; "play" may be modified
-						SEND_TOR(Rb_s, Rb_ls)
+						SEND_TOR()
 					}
 					if (endian.ii > six4) {
 						//Move Right
@@ -1338,10 +1341,10 @@ void X32ParseX32Message() {
 						// restart play after we moved cursor
 						Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40073");
 						play_1 = 0;
-						SEND_TOR(Rb_s, Rb_ls)
+						SEND_TOR()
 					}
 					Xb_ls = Xfprint(Xb_s, 0, "/-stat/userpar/36/value", 'i', &six4);
-					SEND_TOX(Xb_s, Xb_ls)
+					SEND_TOX(Xdelayg)
 					Rb_ls = 0;
 					break;
 				}
@@ -1352,7 +1355,7 @@ void X32ParseX32Message() {
 					if (cnum == XMkerbtn) {
 						// Set REAPER Marker at current REAPER cursor position
 						Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40157");
-						SEND_TOR(Rb_s, Rb_ls)
+						SEND_TOR()
 						Rb_ls = 0;
 					}
 					if (Xchbank_on) {	// Transport is OFF
@@ -1360,7 +1363,7 @@ void X32ParseX32Message() {
 						// ChBank buttons are two Bank C numbers between 5 to 12, OSC # between 17 to 24
 						if (cnum == XMbankup) {
 							// Channel Bank UP
-							if (Xchbkof < (Xtrk_max - 1) / bkchsz) {
+							if (Xchbkof < ((Xtrk_max - Xtrk_min + 1) / bkchsz) - 1) {
 								Xchbkof += 1; // ignore non zero values
 								XUpdateBkCh();
 							}
@@ -1394,11 +1397,11 @@ void X32ParseX32Message() {
 			} else if (Xb_r[Xb_i] == 'o') {
 				// unselect all REAPER tracks and select Master track
 				Rb_ls = Xsprint(Rb_s, 0, 's', "/action/40297");
-				SEND_TOR(Rb_s, Rb_ls)
+				SEND_TOR()
 				//echo Master track selected on X32
 				i = 70; // master track on X32
 				Xb_ls = Xfprint(Xb_s, 0, "/-stat/selidx", 'i', &i);
-				SEND_TOX(Xb_s, Xb_ls)
+				SEND_TOX(Xdelayg)
 				//	/main/st/mix/on....,i..0/1
 				while (Xb_r[Xb_i] != ',') Xb_i += 1;
 				Xb_i += 4;
@@ -1409,7 +1412,7 @@ void X32ParseX32Message() {
 		}
 	}
 	if (Rb_ls) {
-		SEND_TOR(Rb_s, Rb_ls)
+		SEND_TOR()
 		Rb_ls = 0; // REAPER message has been sent
 	}
 	return;
@@ -1511,7 +1514,7 @@ void X32ParseReaperMessage() {
 							// update all REAPER DCA tracks to same values
 							sprintf(tmp, "/track/%d/volume", i);
 							Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
-							SEND_TOR(Rb_s, Rb_ls)
+							SEND_TOR()
 						}
 					}
 					sprintf(tmp, "/dca/%1d/fader", tnum - Xdca_min + 1);
@@ -1523,14 +1526,14 @@ void X32ParseReaperMessage() {
 								// update all REAPER DCA tracks to same values
 								sprintf(tmp, "/track/%d/volume", tnum);
 								Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
-								SEND_TOR(Rb_s, Rb_ls)
+								SEND_TOR()
 							}
 							tnum = i;
 							// also update REAPER DCA fader
 							if ((Xdca_max > 0) && (i <= (Xdca_max - Xdca_min + 1))) {
 								sprintf(tmp, "/track/%d/volume", Xdca_min + i);
 								Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
-								SEND_TOR(Rb_s, Rb_ls)
+								SEND_TOR()
 							}
 							sprintf(tmp, "/dca/%1d/fader", i + 1);
 							break;
@@ -1570,7 +1573,7 @@ void X32ParseReaperMessage() {
 						if ((tnum - Xtrk_min + 1) < bkchsz+1) {
 							sprintf(tmp, "/ch/%02d/config/icon", tnum - Xtrk_min + 1);
 							Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_icon);
-							if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
+							if (XRmask & Xcsend) SEND_TOX(Xdelayg)
 						}
 						if (Xchbank_on) XMbanktracks[tnum - Xtrk_min].icon = i_icon;
 					}
@@ -1578,7 +1581,7 @@ void X32ParseReaperMessage() {
 						if ((tnum - Xtrk_min + 1) < bkchsz+1) {
 							sprintf(tmp, "/ch/%02d/config/color", tnum - Xtrk_min + 1);
 							Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_color);
-							if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
+							if (XRmask & Xcsend) SEND_TOX(Xdelayg)
 						}
 						if (Xchbank_on) XMbanktracks[tnum - Xtrk_min].color = i_color;
 					}
@@ -1595,48 +1598,48 @@ void X32ParseReaperMessage() {
 					if (i_icon) {
 						sprintf(tmp, "/auxin/%02d/config/icon", tnum - Xaux_min + 1);
 						Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_icon);
-						if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
+						if (XRmask & Xcsend) SEND_TOX(Xdelayg)
 					}
 					if (i_color > -1) {
 						sprintf(tmp, "/auxin/%02d/config/color", tnum - Xaux_min + 1);
 						Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_color);
-						if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
+						if (XRmask & Xcsend) SEND_TOX(Xdelayg)
 					}
 					sprintf(tmp, "/auxin/%02d/config/name", tnum - Xaux_min + 1);
 				} else if ((tnum >= Xfxr_min) && (tnum <= Xfxr_max)) {
 					if (i_icon) {
 						sprintf(tmp, "/fxrtn/%02d/config/icon", tnum - Xfxr_min + 1);
 						Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_icon);
-						if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
+						if (XRmask & Xcsend) SEND_TOX(Xdelayg)
 					}
 					if (i_color > -1) {
 						sprintf(tmp, "/fxrtn/%02d/config/color", tnum - Xfxr_min + 1);
 						Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_color);
-						if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
+						if (XRmask & Xcsend) SEND_TOX(Xdelayg)
 					}
 					sprintf(tmp, "/fxrtn/%02d/config/name", tnum - Xfxr_min + 1);
 				} else if ((tnum >= Xbus_min) && (tnum <= Xbus_max)) {
 					if (i_icon) {
 						sprintf(tmp, "/bus/%02d/config/icon", tnum - Xbus_min + 1);
 						Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_icon);
-						if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
+						if (XRmask & Xcsend) SEND_TOX(Xdelayg)
 					}
 					if (i_color > -1) {
 						sprintf(tmp, "/bus/%02d/config/color", tnum - Xbus_min + 1);
 						Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_color);
-						if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
+						if (XRmask & Xcsend) SEND_TOX(Xdelayg)
 					}
 					sprintf(tmp, "/bus/%02d/config/name", tnum - Xbus_min + 1);
 				} else if ((tnum >= Xdca_min) && (tnum <= Xdca_max)) {
 					if (i_icon) {
 						sprintf(tmp, "/dca/%1d/config/icon", tnum - Xdca_min + 1);
 						Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_icon);
-						if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
+						if (XRmask & Xcsend) SEND_TOX(Xdelayg)
 					}
 					if (i_color > -1) {
 						sprintf(tmp, "/dca/%1d/config/color", tnum - Xdca_min + 1);
 						Xb_ls = Xfprint(Xb_s, 0, tmp, 'i', &i_color);
-						if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
+						if (XRmask & Xcsend) SEND_TOX(Xdelayg)
 					}
 					sprintf(tmp, "/dca/%1d/config/name", tnum - Xdca_min + 1);
 				} else tnum = -1;
@@ -1670,7 +1673,7 @@ void X32ParseReaperMessage() {
 							// update all REAPER DCA tracks to same values
 							sprintf(tmp, "/track/%d/mute", i);
 							Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
-							SEND_TOR(Rb_s, Rb_ls)
+							SEND_TOR()
 						}
 					}
 					sprintf(tmp, "/dca/%1d/on", tnum - Xdca_min + 1);
@@ -1682,14 +1685,14 @@ void X32ParseReaperMessage() {
 								// update all REAPER DCA tracks to same values
 								sprintf(tmp, "/track/%d/mute", tnum);
 								Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
-								SEND_TOR(Rb_s, Rb_ls)
+								SEND_TOR()
 							}
 							tnum = i;
 							// also update REAPER DCA fader
 							if ((Xdca_max > 0) && (i <= (Xdca_max - Xdca_min + 1))) {
 								sprintf(tmp, "/track/%d/mute", Xdca_min + i);
 								Rb_ls = Xfprint(Rb_s, 0, tmp, 'f', &endian.ff);
-								SEND_TOR(Rb_s, Rb_ls)
+								SEND_TOR()
 							}
 							sprintf(tmp, "/dca/%1d/on", i + 1);
 							break;
@@ -1841,10 +1844,11 @@ void X32ParseReaperMessage() {
 			}
 		}
 		if (Xb_ls) {
-			if (XRmask & Xcsend) SEND_TOX(Xb_s, Xb_ls)
+			if (XRmask & Xcsend) SEND_TOX(Xdelayg)
 			Xb_ls = 0;
 		}
 		Rb_i = Rb_nm; // Set Rb_i pointing to next message (at index Rb_nm) in Reaper bundle
 	} while (bundle);
 	return;
 }
+
