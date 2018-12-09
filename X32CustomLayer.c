@@ -27,6 +27,8 @@
 //	ver 2.03: saved file is 1:1 mapped with X32 Snippets
 //	ver 2.04: included /headamp and /ch/xx/delay settings
 //	ver 2.05: changed some functions to extern
+//	ver 2.06: preventing window resizing
+//	ver 2.07: taking into account DCA and Mute Groups assignments for channels
 //
 #ifdef __WIN32__
 #include <winsock2.h>
@@ -64,6 +66,9 @@
 int  XCtestMinMax(int max);
 void XCSetToZero();
 int  GetASource(int k);
+int  GetGroups(int k);
+void SetASource(int k, int n);
+void SetGroups(int k, int n);
 void LoadCStrip(int k, int i);
 void LoadNStrip(int k, int source);
 int  SaveSet(int max, int set);
@@ -104,11 +109,11 @@ char Finipath[1024];     // resolved path to .ini file
 char **FinilppPart;
 int Finiretval;
 
-char MessStr[512];       // holds the list of channel/sources ("List" button)
-char scscStr[64];        // intermediary buffer for above
+char MessStr[512];      // holds the list of channel/sources ("List" button)
+char scscStr[64];       // intermediary buffer for above
 
-int wWidth = 16 * (B_XSIZE + 5) + 20;  // window width/height and box width/height values
-int wHeight = 6 * (B_YSIZE + 5) + 100; // will be in fact recalculated from resource file
+int wWidth = 16 * (B_XSIZE + 5) + 12;  // window width/height and box width/height values
+int wHeight = 6 * (B_YSIZE + 5) + 73; // will be in fact recalculated from resource file
 int bWidth = B_XSIZE;                  // values, but these 4 variables are used as
 int bHeight = B_YSIZE;  // default values if the resource file cannot be read
 int yPos = YPOS;        // top/start y value for box positions
@@ -124,6 +129,7 @@ wchar_t W32_Sst_str[8]; // To get the channel # from boxes (Window string)
 char Sst_str[8];        // To get the channel # from boxes (C string)
 int Sst[MAXSET];        // Where we store the 32 source-strip channels (source channels are fixed 1...32)
 int Asrc[MAXSET];       // To store audio-source of channels before potential update
+int Agrp[MAXSET];       // To store audio-source dca and mute groups assignments
 //
 // index values 00 -> 31 are in fact IN channels 01-32
 // index values 32 -> 40 are in fact AUX channels 01-08
@@ -138,13 +144,14 @@ int Xa_saved;			// save already performed?
 //
 int Xfd;                // X32 IP socket
 struct sockaddr_in 	Xip;
-struct	sockaddr* 	Xip_addr = (struct sockaddr *) &Xip;
+struct sockaddr* 	Xip_addr = (struct sockaddr *)&Xip;
 
 char r_buf[BSIZE], s_buf[BSIZE];   //X32 read and send buffers
-int r_len, s_len, p_status;        //X32 read and send lengths and read status
+int  r_len, s_len, p_status;       //X32 read and send lengths and read status
 char chn_Asrc[36] = "/ch/00/config/source";
 char aux_Asrc[40] = "/auxin/00/config/source";
-
+char chn_Agrp[36] = "ch/00/grp";
+char aux_Agrp[40] = "auxin/00/grp";
 struct timeval timeout;  // timeout value for read actions
 fd_set ufds;             // X32 file descriptor
 
@@ -358,7 +365,7 @@ int WINAPI wWinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PWSTR lpCmdLin
 	RegisterClassW(&wc);
 	CreateWindowW(wc.lpszClassName,
 			L"X32CustomLayer - Create X32 Custom Layers",
-			WS_OVERLAPPEDWINDOW | WS_VISIBLE, 50, 50, wWidth + 1, wHeight + 13,
+			WS_OVERLAPPED | WS_VISIBLE | WS_MINIMIZEBOX | WS_SYSMENU, 50, 50, wWidth + 1, wHeight + 13,
 			0, 0, hInstance, 0);
 
 	while (GetMessage(&msg, NULL, 0, 0)) {   // Let Windows manage the main loop
@@ -410,7 +417,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 // WIndows repaint request
 		hdc = BeginPaint(hwnd, &ps);
 		MoveToEx(hdc, 5, 70, NULL);
-		LineTo(hdc, wWidth - 20, 70);
+		LineTo(hdc, wWidth - 12, 70);
 //
 		SetBkMode(hdc, TRANSPARENT);
 //
@@ -418,7 +425,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 		ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 15, 2, "X32CustomLayer - V2.05 - ©2016 - Patrick-Gilles Maillot", 55);
+		TextOut(hdc, 15, 2, "X32CustomLayer - V2.07 - ©2016 - Patrick-Gilles Maillot", 55);
 		DeleteObject(htmp);
 		DeleteObject(hfont);
 //
@@ -763,8 +770,8 @@ void XCSetToZero() {
 //
 //
 int XCtestMinMax(int max) {
-	int i, len;
-
+int i, len;
+	//
 	// make sure there's no unwanted selection (outside of min/max sets)
 	len = 0;
 	for (i = 0; i < MinChn - 1; i++) {
@@ -786,8 +793,8 @@ int XCtestMinMax(int max) {
 // Save all Channel and AuxIn strips data to file
 //
 void SaveAll() {
-	int i, j, k, l;
-
+int i, j, k, l;
+	//
 	l = 0;
 	if ((res_file = fopen("./X32CustLayer.snp", "wb")) != NULL) {
 		if (fputs(SnipHead, res_file) == EOF) {
@@ -885,8 +892,8 @@ void SaveAll() {
 //
 
 void RestoreStrip(int k) {
-	int i, l;
-
+int i, l;
+	//
 	// prepare to skip first line of file
 	if ((res_file = fopen("./X32CustLayer.snp", "r")) != NULL) {
 		if (fgets(r_buf, BSIZE - 2, res_file) == NULL) {
@@ -952,11 +959,61 @@ void RestoreStrip(int k) {
 }
 //
 //
+// Get the audio-source dca and mute groups assignments for strip/channel k
+//
+int GetGroups(int k) {
+int j, imut, idca, Xlock, grpmut, grpdca;
+	//
+	s_len = Xsprint(s_buf, 0, 's', "/node");
+	s_len = Xsprint(s_buf, s_len, 's', ",s");
+	//
+	// INput or AUXin channel?
+	if (k < 33) {
+		// send /ch/xx/config/source to get the information
+		j = k / 10;
+		chn_Agrp[3] = (char) (j + 48);
+		chn_Agrp[4] = (char) (k - j * 10 + 48);
+		s_len = Xsprint(s_buf, s_len, 's', chn_Agrp);
+	} else {
+		// send /auxin/xx/config/source to get the information
+		j = k - 32;
+		aux_Agrp[7] = (char) (j + 48);
+		s_len = Xsprint(s_buf, s_len, 's', aux_Agrp);
+	}
+	// send /node ,s ch|auxin/[01…32]/grp command to get dca and mutes, and save bits
+	SEND_TO(s_buf, s_len)
+	// read data back from X32 and save it for later use
+	// will receive two %bits groups, first 8bts are DCA, next 6bits are Mute Groups
+	Xlock = 1;
+	while (Xlock) {
+		RPOLL // read the desk for answer to /save
+		if (p_status > 0) { // ignore responses that do not correspond to what is
+			RECV_FR(r_buf, r_len); // expected: node auxin or /ch  /xx/config/source~,i~~[SRC]
+			if (strcmp(r_buf, "node") == 0) {
+				if (k < 33) idca = 24;
+				else        idca = 27;
+				imut = idca + 10;
+				// save dca bits in bits 15 to 8 of Agrp word and mutes in the rightmost bits
+				grpdca = grpmut = 0;
+				for (j = 0; j < 8; j++)
+					if (*(r_buf + idca + j) == '1') grpdca |= (1 << (7-j));
+				for (j = 0; j < 6; j++)
+					if (*(r_buf + imut + j) == '1') grpmut |= (1 << (5-j));
+				Xlock = 0;
+			} else {
+				fprintf(stderr, "Waiting node..., got %s \n", r_buf);
+			}
+		}
+	}
+	// return data to caller; dca bits in bits 15 to 8 and mutes in the rightmost bits
+	return grpdca << 8 | grpmut;
+}
+//
+//
 // Get the audio-source input number associated with channel k
 //
 int GetASource(int k) {
-//
-	int j, Xlock;
+int j, Xlock;
 	//
 	// INput or AUXin channel?
 	if (k < 33) {
@@ -979,13 +1036,13 @@ int GetASource(int k) {
 	while (Xlock) {
 		RPOLL // read the desk for answer to /save
 		if (p_status > 0) { // ignore responses that do not correspond to what is
-			RECV_FR(r_buf, r_len); // expected: /auxin/xx/config/source~,i~~[SRC]
-			if (strncmp(r_buf + j, "/config/source", 14) == 0) {
+			RECV_FR(r_buf, r_len); // expected: /ch|auxin/xx/config/source~,i~~[SRC]
+			if (strcmp(r_buf + j, "/config/source") == 0) {
 				for (j = 0; j < 4; j++)
 					endian.cc[3 - j] = r_buf[28 + j];
 				Xlock = 0;
 			} else {
-				perror("Waiting /xxxxx/xx/config/source... \n");
+				fprintf(stderr, "Waiting /xxxxx/xx/config/source..., got %s \n", r_buf);
 			}
 		}
 	}
@@ -993,11 +1050,39 @@ int GetASource(int k) {
 }
 //
 //
+// Set dca and mute groups data contained in n into channel index k
+//
+void SetGroups(int k, int n) {
+// n has dca data in bits 15-8 and mute groups in bits 5-0
+char tmpbuf[32];
+int Xlock;
+	//
+	if (k < 32) sprintf(tmpbuf, "ch/%02d/grp %d %d", k+1, n >> 8, n & 0xFF);
+	else        sprintf(tmpbuf, "auxin/%02d/grp %d %d", k+1, n >> 8, n & 0xFF);
+	s_len = Xsprint(s_buf, 0, 's', "/");
+	s_len = Xsprint(s_buf, s_len, 's', ",s");
+	s_len = Xsprint(s_buf, s_len, 's', tmpbuf);
+	SEND_TO(s_buf, s_len)
+	Xlock = 1;
+	while (Xlock) {
+		RPOLL // read the desk for answer to /save
+		if (p_status > 0) { // ignore responses that do not correspond to what is
+			RECV_FR(r_buf, r_len); // expected: what has been sent above
+			if (memcmp(r_buf, s_buf, s_len) == 0) {
+				Xlock = 0;
+			} else {
+				fprintf(stderr, "Unexpected reply, got %s \n", r_buf);
+			}
+		}
+	}
+	return;
+}
+//
+//
 // Set audio-source data n into channel index k
 //
 void SetASource(int k, int n) {
-	//
-	int j;
+int j;
 	//
 	if (k < 32) {
 		// send /ch/xx/config/source ,i xx to set the information
@@ -1025,9 +1110,8 @@ void SetASource(int k, int n) {
 // position MaxPre + 1 -k in presets)
 //
 void LoadCStrip(int k, int i) {
-//
-	int j;
-	int Xlock;
+int j;
+int Xlock;
 //
 	s_len = Xsprint(s_buf, 0, 's', "/load");
 	s_len = Xsprint(s_buf, s_len, 's', ",siii");
@@ -1052,7 +1136,7 @@ void LoadCStrip(int k, int i) {
 				}
 				Xlock = 0;
 			} else {
-				perror("Waiting /load... \n");
+				fprintf(stderr, "Waiting /load..., got %s \n", r_buf);
 			}
 		}
 	}
@@ -1063,8 +1147,7 @@ void LoadCStrip(int k, int i) {
 // Set a blank strip at index 'k' with audio source 'source'
 //
 void LoadNStrip(int k, int source) {
-//
-	int i, j;
+int i, j;
 //
 	// set value vs index for k
 	j = k;
@@ -1106,7 +1189,7 @@ void LoadNStrip(int k, int source) {
 			}
 		}
 	} else {
-		k -= 31;
+		k -= 32;
 		for (i = 0; i < MAXAUX; i++) {
 			if (i == 0) {
 				// replace headamp index with value of k as a channel value
@@ -1162,10 +1245,12 @@ void LoadNStrip(int k, int source) {
 // This acts on actual channel data, using libchan presets as a temp buffer
 //
 void ShiftCStrip(int i) {
+int j, Xlock, Asrcl, Agrpl;
+char channel[14] = "CustLayer";
 	//
-	int j, Xlock;
-	char channel[14] = "CustLayer";
-	//
+	// Get the audio-source, dca and mute groups for the channel strip to move up
+	Asrcl = GetASource(i);
+	Agrpl = GetGroups(i);
 	// shift is done by saving i-1 to, then loading from channel preset into i
 	// sending a /save ,sisi "libchan" [MaxPre + 1 - i] "ch<i+1>" [i]
 	s_len = Xsprint(s_buf, 0, 's', "/save");
@@ -1196,17 +1281,15 @@ void ShiftCStrip(int i) {
 				}
 				Xlock = 0;
 			} else {
-				perror("Waiting /save... \n");
+				fprintf(stderr, "Waiting /save..., got %s \n", r_buf);
 			}
 		}
 	}
-	// Get the audio-source of the saved channel strip
-	Asrc[i - 1] = GetASource(i);
-	//
 	// load the data we just saved into the next channel strip (i)
 	LoadCStrip(i, i);
-	// Set audio-source we just saved to new channel strip
-	SetASource(i, Asrc[i - 1]);
+	// Set audio-source, dca and mute groups we saved to new channel strip
+	SetASource(i, Asrcl);
+	SetGroups(i, Agrpl);
 	return;
 }
 //
@@ -1219,10 +1302,10 @@ void ShiftCStrip(int i) {
 // returns the number of saved channels strips
 //
 int SaveSet(int max, int insert) {
-	int i, j, k, nb_assigns;
-	int Xlock;
-	char channel[8];
-
+int i, j, k, nb_assigns;
+int Xlock;
+char channel[8];
+//
 	nb_assigns = 0;
 	for (i = MinChn - 1; i < max; i++) {
 		// Source := i + 1, will be saved if used in specific conditions
@@ -1266,12 +1349,13 @@ int SaveSet(int max, int insert) {
 								}
 								Xlock = 0;
 							} else {
-								perror ("Waiting /save... n");
+								fprintf (stderr, "Waiting /save..., got %s \n", r_buf);
 							}
 						}
 					}
-					// set Asrc[k - 1] to the audio-source used for channel at index (k - 1)
+					// set Asrc/Agrp[k - 1] to the audio-sourc, dca and mute groups used for channel k at index (k - 1)
 					Asrc[k - 1] = GetASource(k);
+					Agrp[k - 1] = GetGroups(k);
 				}
 			}
 			nb_assigns++; // Up the number of assignments (including duplicates!)
@@ -1290,7 +1374,7 @@ int SaveSet(int max, int insert) {
 // This only applies to channel strips that are modified (i.e. those for which
 // Sst[i] > 0 and Sst[i] != the destination strip number)
 void CustomSet() {
-	int i, k;
+int i, k;
 	//
 	for (i = MinChn - 1; i < MaxSet; i++) {
 		k = Sst[i];
@@ -1299,6 +1383,7 @@ void CustomSet() {
 			LoadCStrip(k, i);
 			// now set audio source of channel i+1
 			SetASource(i, Asrc[k - 1]);
+			SetGroups(i, Agrp[k - 1]);
 		}
 	}
 	return;
@@ -1306,43 +1391,43 @@ void CustomSet() {
 //
 //
 // Insert a channel strip at the only position where (Sst[k] > 0).
-// All channel strips right of the insert-selected one are shift right one position.
+// All channel strips right of the insert-selected one will shift right one position.
 //
 void InsertSet(int set) {
-	int i, k;
+int i, k, strip;
 	//
-	// Find strip where a channel is to be inserted
+	// Find strip index k where a channel is to be inserted
+	strip = -1;
 	for (k = MinChn - 1; k < MaxIns; k++) {
-		if (Sst[k] >= 0)
+		if (Sst[k] >= 0) {
+			strip = Sst[k];
 			break;
+		}
 	}
-	if (set) {
-		// Sst[k] contains the channel to be used. Remember the audio-source for this
-		// channel strip is in Asrc[Sst[k] - 1];
-		if (Asrc[Sst[k] - 1] < 0)
-			Asrc[Sst[k] - 1] = GetASource(Sst[k]);
-	}
-	//
-	// k represents the insertion point, and the last channel to shift as we'll
-	// start from the very last channel to perform right shift operations below
-	for (i = MaxIns - 1; i > k; i--) {
-		ShiftCStrip(i);
-	}
-	//
-	// Done shifting channels strips,
-	if (set) {
-		// copy channel (Sst[k]) to position k
-		LoadCStrip(Sst[k], k);
-		// set audio-source of channel k (previously saved in Asrc[Sst[k] - 1])
-		SetASource(k, Asrc[Sst[k] - 1]);
-	} else {
+	if (strip > -1) {
 		//
-		// set a new (blank)strip at index k with audio source = Sst[k]
-		LoadNStrip(k, Sst[k]);
+		// k represents the insertion point, and the last channel to shift as we'll
+		// start from the very last channel to perform right shift operations below
+		for (i = MaxIns - 1; i > k; i--) {
+			ShiftCStrip(i);
+		}
+		//
+		// Done shifting channels strips,
+		if (set) {
+			// copy channel 'strip' to position k
+			LoadCStrip(strip, k);
+			// set audio-source & dca/mute groups of channel k previously saved in Asrc/Agrp
+			SetASource(k, Asrc[strip-1]);
+			SetGroups(k, Agrp[strip-1]);
+		} else {
+			//
+			// set a new (blank)strip at index k with audio source = strip
+			LoadNStrip(k, strip);
+			SetGroups(k, 0);
+		}
 	}
 	return;
 }
-//
 //
 // The main program
 //
@@ -1350,16 +1435,15 @@ void InsertSet(int set) {
 // registers with wWinMain() to launch the main window, and main loop
 //
 int main(int argc, char **argv) {
-	HINSTANCE hPrevInstance = 0;
-	PWSTR pCmdLine = 0;
-	int nCmdShow = 0;
-	int i;
-
+HINSTANCE hPrevInstance = 0;
+PWSTR pCmdLine = 0;
+int nCmdShow = 0;
+int i;
+	//
 	Xdebug = 0;
 	Xsave = 0;
 	Xa_saved = 0;
 	p_status = 0;
-	//
 	// Open and read resource file
 	if ((res_file = fopen("./.X32CustomLayer.ini", "r")) != NULL) {
 		// get and remember real path
@@ -1373,8 +1457,8 @@ int main(int argc, char **argv) {
 		while (*r_buf == '#') fgets(r_buf, sizeof(r_buf), res_file);
 		// read parameter dataset
 		sscanf(r_buf, "%d %d\n", &bWidth, &bHeight);
-		wWidth = 16 * bWidth5 + 20;
-		wHeight = 6 * (bHeight + 5) + 80;
+		wWidth = 16 * bWidth5 + 12;
+		wHeight = 6 * (bHeight + 5) + 72;
 		fscanf(res_file, "%d %d %d %d\n", &MinChn, &MaxSet, &MaxIns, &MaxPre);
 		fgets(Xip_str, sizeof(Xip_str), res_file);
 		Xip_str[strlen(Xip_str)] = 0;
