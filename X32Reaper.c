@@ -1,3 +1,4 @@
+
 /*
  * X32Reaper.c
  *
@@ -38,7 +39,7 @@
  *           Also limits the actual number physical channels that can be used
  * Ver 2.63: Small bug fixes to 2.62
  * Ver 2.64: Added a specific delay for banks (Xdelayb)
- * Ver 2.65: Fixed bug where the first RDCA REAPER track would not update X32 desk
+ * Ver 2.65: Fixed a bug where the first RDCA REAPER track would not update X32
  *
  */
 #include <stdio.h>
@@ -112,10 +113,10 @@ extern int Xfprint(char *bd, int index, char* text, char format, void *bs);
 	do {																\
 		if (Xverbose) Xlogf("->X", Xb_s, Xb_ls);						\
 		if (sendto(Xfd, Xb_s, Xb_ls, 0, XX32IP_pt, XX32IP_len) < 0) {	\
-			fprintf(log_file, errorX32);								\
+			fprintf(log_file, "Error sending data to X32\n");			\
 			exit(EXIT_FAILURE);											\
 		} 																\
-		if (delay > 0) Sleep(delay);									\
+		if (delay > 0) MySleep(delay);									\
 	} while (0);
 //
 //
@@ -123,7 +124,7 @@ extern int Xfprint(char *bd, int index, char* text, char format, void *bs);
 	do {																\
 		if (Xverbose) Xlogf("->R", Rb_s, Rb_ls);						\
 		if (sendto(Rfd, Rb_s, Rb_ls, 0, RHstIP_pt, RHstIP_len) < 0) {	\
-			fprintf(log_file, errorRea);								\
+			fprintf(log_file, "Error sending data to REAPER\n");		\
 			exit(EXIT_FAILURE);											\
 		} 																\
 	} while (0);
@@ -336,7 +337,7 @@ int main(int argc, char **argv) {
 				if (Xfd > Rfd) Mfd = Xfd + 1;
 				if (select(Mfd, &fds, NULL, NULL, &timeout) > 0) {
 					if (FD_ISSET(Rfd, &fds) > 0) {
-						if ((Rb_lr = recvfrom(Rfd, Rb_r, RBrmax, 0, RFrmIP_pt, &RFrmIP_len)) > 0) {
+						if ((Rb_lr = recvfrom(Rfd, Rb_r, RBrmax, 0, RFrmIP_pt, (unsigned int*)&RFrmIP_len)) > 0) {
 // Parse Reaper Messages and send corresponding data to X32
 // These can be simple or #bundle messages!
 // Can result in several/many messages to X32
@@ -346,7 +347,7 @@ int main(int argc, char **argv) {
 						}
 					}
 					if (FD_ISSET(Xfd, &fds) > 0) {
-						if ((Xb_lr = recvfrom(Xfd, Xb_r, XBrmax, 0, XX32IP_pt, &XX32IP_len)) > 0) {
+						if ((Xb_lr = recvfrom(Xfd, Xb_r, XBrmax, 0, XX32IP_pt, (unsigned int*)&XX32IP_len)) > 0) {
 // X32 transmitted something
 // Parse and send (if applicable) to REAPER
 //							printf("X32 sent data\n"); fflush(stdout);
@@ -1852,4 +1853,3 @@ void X32ParseReaperMessage() {
 	} while (bundle);
 	return;
 }
-
