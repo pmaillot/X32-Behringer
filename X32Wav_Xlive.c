@@ -31,9 +31,11 @@
  *	ver 1.20: removed malloc support (not used) / accepts Pro-tools generated files
  *	ver 1.21: enabled no session name (so defaults to time stamp, as on X32)
  *	ver 1.22: Improved a few calls to write()
+ *	ver 1.23: small logic bug in case of full 32 channels in
  *
  */
-
+#define GUI
+//
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
@@ -59,25 +61,26 @@
 			(((a)<(b))?(a):(b))
 #endif
 //
-#define riff 0x66666972
-#define RIFF 0x46464952
-#define wave 0x65766177
-#define WAVE 0x45564157
-#define fmt  0x20746D66
-#define FMT  0x20544D46
-#define junk 0x6B6E756A
-#define JUNK 0x4B4E554A
-#define data 0x61746164
-#define DATA 0x41544144
-#define bext 0x74786562
-#define BEXT 0x54584542
-#define minf 0x666E696D
-#define MINF 0x464E494D
-#define elm1 0x316D6C65
-#define ELM1 0x314D4C45
-#define BLNK 0x20202020
+#define riff	0x66666972	// "riff"
+#define RIFF	0x46464952	// "RIFF"
+#define wave	0x65766177	// "wave"
+#define WAVE	0x45564157	// "WAVE"
+#define fmt		0x20746D66	// "fmt "
+#define FMT		0x20544D46	// "FMT "
+#define junk	0x6B6E756A	// "junk"
+#define JUNK	0x4B4E554A	// "JUNK"
+#define data	0x61746164	// "data"
+#define DATA	0x41544144	// "DATA"
+#define bext	0x74786562	// "bext"
+#define BEXT	0x54584542	// "BEXT"
+#define minf	0x666E696D	// "minf"
+#define MINF	0x464E494D	// "MINF"
+#define elm1	0x316D6C65	// "elm1"
+#define ELM1	0x314D4C45	// "ELM1"
+#define BLNK	0x20202020	// "    "
 //
-#define FOUR 4 // sizeof(unsinged int), for 4 bytes
+#define FOUR	4 // sizeof(unsinged int), for 4 bytes
+#define TWO		2 // sizeof(unsinged short), for 2 bytes
 //
 typedef union {
 	char			s[FOUR];
@@ -87,7 +90,7 @@ typedef union {
 // Private functions
 int	MergeWavFiles(int num_markers, float* markers);
 //
-#ifdef _WIN32
+#if defined(_WIN32) && defined(GUI)
 // Windows Declarations
 WINBASEAPI HWND WINAPI GetConsoleWindow(VOID);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -171,7 +174,7 @@ unsigned int	Blnk = BLNK;			// "    " on one unsigned int
 //
 long long		audio_bytes;			// size of audio data (multi channels)
 unsigned int	r_audio_bytes;			// audio data remainder on 32bits for file writing
-#ifdef _WIN32
+#if defined(_WIN32) && defined(GUI)
 //
 // Windows main function and main loop
 //
@@ -257,7 +260,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 1.22 - ©2017-18 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 1.23 - ©2017-19 - Patrick-Gilles Maillot"));
 		TextOut(hdc, 128, 57, str1, wsprintf(str1, "Session Name:"));
 		TextOut(hdc, 128, 90, str1, wsprintf(str1, "Markers:"));
 		DeleteObject(htmp);
@@ -393,7 +396,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 //
 //
 int main(int argc, char **argv) {
-#ifdef _WIN32
+#if defined(_WIN32) && defined(GUI)
 	HINSTANCE hPrevInstance = 0;
 	PWSTR pCmdLine = 0;
 	int nCmdFile = 0;
@@ -422,7 +425,7 @@ int main(int argc, char **argv) {
 	wheader.Junk = JUNK;
 	wheader.Junk_bytes= 32716;
 	//
-#ifdef _WIN32
+#if defined(_WIN32) && defined(GUI)
 	ShowWindow(GetConsoleWindow(), SW_HIDE); // Hide console window
 	wWinMain(hInstance, hPrevInstance, pCmdLine, nCmdFile);
 	//
@@ -448,7 +451,7 @@ int main(int argc, char **argv) {
 				break;
 			default:
 			case 'h':
-				printf("X32Wav_Xlive - ver 1.22 - ©2018 - Patrick-Gilles Maillot\n\n");
+				printf("X32Wav_Xlive - ver 1.23 - ©2018-19 - Patrick-Gilles Maillot\n\n");
 				printf("usage: X32Wav_Xlive [-f Marker file []: file containing markers]\n");
 				printf("                    [-m marker, [,]: marker time in increasing order values]\n");
 				printf("                    <Session dir> [<Session name>]\n\n");
@@ -498,36 +501,43 @@ return 0;
 //
 //
 int	MergeWavFiles(int num_markers, float* markers) {
-	int				numb_chls;
+	int				numb_chls, last_chl;
 	int				fill_chls;			// numb_chls + fill_chls = 32
 	int				i, j;
 	unsigned int 	k, PassNumber;
 	//
 	//
 	ftime (&start);
-	numb_chls = 0;
+	numb_chls = last_chl = 0;
 	for (i = 0; i < 32; i++) {
 		sprintf(Xspath + slen, "./ch_%d.wav", i + 1);
 		if ((Xin[i] = fopen(Xspath, "rb")) == NULL) {
-			numb_chls = i;
+			last_chl = i;
 			break;
+		} else {
+			numb_chls = i + 1;
 		}
 	}
 	if (numb_chls == 0) {
 		MESSAGE("No wave files found!", NULL);
 		return -1;
 	}
-	//calc fill channels, in case the number of wav files does not match 8, 16 or 32
-	if (numb_chls <= 8) {
-		fill_chls = 8 - numb_chls;
-	} else if (numb_chls <= 16) {
-		fill_chls = 16 - numb_chls;
-	} else if (numb_chls <= 32) {
-		fill_chls = 32 - numb_chls;
+	if (last_chl != 0) {
+		//calc fill channels, in case the number of wav files does not match 8, 16 or 32
+		if (numb_chls <= 8) {
+			fill_chls = 8 - numb_chls;
+		} else if (numb_chls <= 16) {
+			fill_chls = 16 - numb_chls;
+		} else if (numb_chls <= 32) {
+			fill_chls = 32 - numb_chls;
+		} else {
+			numb_chls = 32;	// limit to 32 channels
+			fill_chls = 0;
+			printf("More than 32 channels found, exceeding channels will be ignored!\n");
+		}
 	} else {
-		numb_chls = 32;	// limit to 32 channels
+		numb_chls = 32;
 		fill_chls = 0;
-		printf("More than 32 channels found, exceeding channels will be ignored!\n");
 	}
 	// read wav files
 	for (i = 0; i < numb_chls; i++) {
@@ -555,7 +565,7 @@ int	MergeWavFiles(int num_markers, float* markers) {
 		// also:
 		// 4 	"data" 	"data" chunk header. Marks the beginning of the data section.
 		// 4 	File size (data) 	Size of the data section.
-		fread(&Chunk, sizeof(Chunk), 1, Xin[i]);					// Chunk: RIFF/riff?
+		fread(&Chunk, FOUR, 1, Xin[i]);					// Chunk: RIFF/riff?
 		if ((Chunk != RIFF) && (Chunk != riff)) {
 			sprintf(str1, "ch_%d.wav is not a Riff file!\n", i + 1);
 			MESSAGE(str1, NULL);
@@ -564,35 +574,35 @@ int	MergeWavFiles(int num_markers, float* markers) {
 		fread(&file_size[i], FOUR, 1, Xin[i]);		// size
 		k = 8;
 		while (k) {
-			fread(&Chunk, sizeof(Chunk), 1, Xin[i]);				// Chunk
+			fread(&Chunk, FOUR, 1, Xin[i]);				// Chunk
 			switch (Chunk) {
-			case WAVE: case wave:									// wave
-				k += 4;												// skip word
+			case WAVE: case wave:						// wave
+				k += 4;									// skip word
 				break;
-			case FMT: case fmt:										// fmt
-				fread(&fmt_size, sizeof(fmt_size), 1, Xin[i]);		// fmt chunk size
-				fread(&wav_format, sizeof(wav_format), 1, Xin[i]);	// wave format: PCM
+			case FMT: case fmt:							// fmt
+				fread(&fmt_size, FOUR, 1, Xin[i]);		// fmt chunk size
+				fread(&wav_format, TWO, 1, Xin[i]);		// wave format: PCM
 				if (wav_format != 1) {
 					sprintf(str1, "ch_%d.wav WAV format not supported!\n", i + 1);
 					MESSAGE(str1, NULL);
 					return -1;
 				}
-				fread(&wav_chs, sizeof(wav_chs), 1, Xin[i]);		// # of channels
+				fread(&wav_chs, TWO, 1, Xin[i]);		// # of channels
 				if (wav_chs != 1) {
 					sprintf(str1, "multichannels ch_%d.wav not supported\n", i + 1);
 					MESSAGE(str1, NULL);
 					return -1;
 				}
-				fread(&samp_rate, sizeof(samp_rate), 1, Xin[i]);				// sample rate
+				fread(&samp_rate, FOUR, 1, Xin[i]);		// sample rate
 				if ((samp_rate != 44100) && (samp_rate != 48000)) {
 					sprintf(str1, "ch_%d.wav WAV sample rate not supported!\n", i + 1);
 					MESSAGE(str1, NULL);
 					return -1;
 				}
 				wav_samp_rate[i] = samp_rate;
-				fread(&dwAvgBytesPerSec, sizeof(dwAvgBytesPerSec), 1, Xin[i]);	// av. bytes per sec.
-				fread(&wBlockAlign, sizeof(wBlockAlign), 1, Xin[i]);			// alignment
-				fread(&bits_per_samp, sizeof(bits_per_samp), 1, Xin[i]);		// bits per sample
+				fread(&dwAvgBytesPerSec, FOUR, 1, Xin[i]);	// av. bytes per sec.
+				fread(&wBlockAlign, TWO, 1, Xin[i]);		// alignment
+				fread(&bits_per_samp, TWO, 1, Xin[i]);		// bits per sample
 				if (bits_per_samp != 24) {
 					sprintf(str1, "ch_%d.wav WAV bit resolution not supported!\n", i + 1);
 					MESSAGE(str1, NULL);
@@ -603,12 +613,12 @@ int	MergeWavFiles(int num_markers, float* markers) {
 				break;
 			case JUNK: case junk: case BEXT: case bext:
 			case MINF: case minf: case ELM1: case elm1:		// don't care cases
-				fread(&JunkSize, sizeof(JunkSize), 1, Xin[i]);
+				fread(&JunkSize, FOUR, 1, Xin[i]);
 				k += (JunkSize + 8);						// evaluate data to skip
 				fseek(Xin[i], k, SEEK_SET);					// Jump to next chunk
 				break;
 			case DATA: case data:							// "data"
-				fread(&data_size[i], sizeof(data_size[i]), 1, Xin[i]);	// read data chunk size
+				fread(&data_size[i], FOUR, 1, Xin[i]);		// read data chunk size
 				k = 0;										// stop parsing
 				break;
 			default:
@@ -689,7 +699,7 @@ int	MergeWavFiles(int num_markers, float* markers) {
 			fwrite(&total_length, FOUR, 1, Xout);
 			// write take size data
 			for (i = 0; i < nb_takes; i++)
-				fwrite(&take_size[i], sizeof(int), 1, Xout);
+				fwrite(&take_size[i], FOUR, 1, Xout);
 			for (; i < 256; i++)
 				fwrite(Zero, FOUR, 1, Xout);
 			//write marker data
