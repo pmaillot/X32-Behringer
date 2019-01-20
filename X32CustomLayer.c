@@ -29,6 +29,7 @@
 //	ver 2.05: changed some functions to extern
 //	ver 2.06: preventing window resizing
 //	ver 2.07: taking into account DCA and Mute Groups assignments for channels
+//	ver 2.08: incorrect mask applied at loading saved presets implied wrong channel settings
 //
 #ifdef __WIN32__
 #include <winsock2.h>
@@ -118,7 +119,7 @@ int bWidth = B_XSIZE;                  // values, but these 4 variables are used
 int bHeight = B_YSIZE;  // default values if the resource file cannot be read
 int yPos = YPOS;        // top/start y value for box positions
 int tPos = TPOS;        // top/start y value for box-text positions
-int Sixty3 = 63;        // mask value for X32 /load and /save command
+int Sixty2 = 62;        // mask value for X32 /load and /save command
 int bWidth5 = B_XSIZE + 5;             // bWidth + 5
 
 wchar_t W32_ip_str[20]; // X32 IP address in Windows text format
@@ -425,7 +426,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 		ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 15, 2, "X32CustomLayer - V2.07 - ©2016 - Patrick-Gilles Maillot", 55);
+		TextOut(hdc, 15, 2, "X32CustomLayer - V2.08 - ©2016 - Patrick-Gilles Maillot", 55);
 		DeleteObject(htmp);
 		DeleteObject(hfont);
 //
@@ -1120,7 +1121,7 @@ int Xlock;
 	s_len = Xsprint(s_buf, s_len, 'i', &j);
 	j = i;
 	s_len = Xsprint(s_buf, s_len, 'i', &j);
-	s_len = Xsprint(s_buf, s_len, 'i', &Sixty3);
+	s_len = Xsprint(s_buf, s_len, 'i', &Sixty2);
 	SEND_TO(s_buf, s_len)
 	Xlock = 1;
 	while (Xlock) {
