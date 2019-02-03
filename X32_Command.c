@@ -41,8 +41,8 @@ HANDLE clip;
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <sys/fcntl.h>
-#define closesocket(s) 	close(s)
-#define millisleep(a)	usleep(a*1000)
+#define closesocket(s) 	close((s))
+#define millisleep(a)	usleep((a)*1000)
 #define WSACleanup()
 #define SOCKET_ERROR -1
 typedef int SOCKET;
