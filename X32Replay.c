@@ -12,25 +12,24 @@
 //    v 0.3 - Use select() rather than poll()
 //            Enable recording user tags (text lines) that are printed during play mode
 //            A better help. Added stop and pause commands (same as record pause)
-//
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <string.h>
 #include <sys/time.h>
 #include <time.h>
-//
+
 #ifdef __WIN32__
-#include <winsock2.h>
+#include <windows.h>
 #include <conio.h>
-#define millisleep(a)	Sleep(a)
+#define millisleep(a)	Sleep((a))
 #else
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <arpa/inet.h>
 #include <sys/fcntl.h>
-#define closesocket(s) 	close(s)
-#define millisleep(a)	usleep(a*1000)
+#define closesocket(s) 	close((s))
+#define millisleep(a)	usleep((a)*1000)
 #define WSACleanup()
 #define SOCKET_ERROR -1
 typedef int SOCKET;
@@ -38,7 +37,7 @@ typedef struct sockaddr_in SOCKADDR_IN;
 typedef struct sockaddr SOCKADDR;
 typedef struct in_addr IN_ADDR;
 #endif
-//
+
 #define RPOLL													\
 	do {														\
 		FD_ZERO (&Xfs);											\
@@ -61,9 +60,9 @@ typedef struct in_addr IN_ADDR;
 #ifndef timercmp
 #define timercmp(a, b, CMP)									\
 	do {													\
-		(((a)->tv_sec == (b)->tv_sec) ?						\
-		((a)->tv_usec CMP (b)->tv_usec) :					\
-		((a)->tv_sec CMP (b)->tv_sec))						\
+		(((a)->tv_sec != (b)->tv_sec) ?						\
+		((a)->tv_sec CMP (b)->tv_sec)) :					\
+		((a)->tv_usec CMP (b)->tv_usec)						\
 	} while (0)
 #endif
 //
@@ -151,7 +150,8 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			printf("    play:         reports playing state\n");
 			printf("    play off:     stops playing\n");
 			printf("    play on:      starts playing\n");
-			printf("    # typed line: during recording, records the typed line as a user tag\n\n");
+			printf("    # typed line: during recording, records the typed line as a user tag\n");
+			printf("    exit:         exits the program\n\n");
 			fflush(stdout);
 			return(0);
 			break;
@@ -449,3 +449,10 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 	}
 	return 0;
 }
+
+
+
+
+
+
+
