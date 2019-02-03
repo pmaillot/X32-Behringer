@@ -21,6 +21,7 @@
 // v 1.37: code cleaning
 // v 1.38: finally got rid of call to kbhit() which was causing issues with ",`, %, even
 //         for non-international US keyboard
+// v 1.39: corrected handling of non-printable characters, and ctrl-V
 //
 
 #include <stdlib.h>
@@ -33,6 +34,7 @@
 #include <windows.h>
 #include <conio.h>
 #define millisleep(a)	Sleep(a)
+HANDLE clip;
 #else
 #include <sys/socket.h>
 #include <sys/select.h>
@@ -61,6 +63,7 @@ extern int Xcparse(char *buf, char *line);
 	#define BACKSPACE	8		// need to use <ctl>h
 	#define EOL			13		// enter key
 	#define CTRLC		3		// Ctrl-C
+	#define CTRLV		22		// Ctrl-V
 	#define BACKCHARS	2		// 2 chars to remove from line
 	#define NO_CHAR		-1		// not a real/printable char
 #else
@@ -167,11 +170,13 @@ int getkey() {
 	PeekConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &buf, 1, &len);
 	if (len > 0) {
 		if (buf.EventType == KEY_EVENT && buf.Event.KeyEvent.bKeyDown) {
-			ch = _getche();		// set ch to input char only under right conditions
-		}						// _getche() returns char and echoes it to console out
+			ch = _getch();		// set ch to input char only under right conditions
+			if (ch > 31 || ch == 8) putc(ch, stdout);	// echoes char to console out if displayable
+		}
 		FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE)); // remove consumed events
+		// ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &buf, 1, &len); // could call this too
 	} else {
-		Sleep(5);				// avoids too High a CPU usage when no input
+		Sleep(2);				// avoids too High a CPU usage when no input
 	}
 	return ch;
 }
@@ -211,7 +216,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // Initialize communication with X32 server at IP ip and PORT port
 // Set default values to match your X32 desk
-	strcpy (Xip_str, "192.168.1.78");
+	strcpy (Xip_str, "192.168.1.62");
 	strcpy (Xport_str, "10023");
 //
 // Manage arguments
@@ -312,7 +317,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with X32 server
-	printf(" X32_Command - v1.38 - (c)2014-18 Patrick-Gilles Maillot\n\nConnecting to X32.");
+	printf(" X32_Command - v1.39 - (c)2014-19 Patrick-Gilles Maillot\n\nConnecting to X32.");
 //
 	keep_on = 1;
 	xremote_on = X32verbose;	// Momentarily save X32verbose
@@ -394,7 +399,20 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			XREMOTE()	// process /xremote if needded
 		    // build command by reading keyboard characters (from stdin)
 			KEYBOARDINPUT()
+#ifdef __WIN32__
 			if (input_intch == CTRLC) exit(0);
+			if (input_intch == CTRLV) {
+				clip = NULL;
+				if (OpenClipboard(NULL)) {
+					clip = GetClipboardData(CF_TEXT);
+					strcpy(input_line + l_index, clip);
+					s_len = Xcparse(s_buf, input_line);
+					SEND // send parsed data
+					CloseClipboard();
+				}
+				l_index = 0;
+			} else
+#endif
 			if (input_intch == EOL) {
 				if (l_index) {
 					MANAGEEOL()
