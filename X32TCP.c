@@ -22,7 +22,7 @@
 #include <time.h>
 
 #ifdef __WIN32__
-#include <winsock2.h>
+#include <windows.h>
 #else
 #include <netdb.h>
 #include <sys/types.h>
@@ -52,17 +52,16 @@ int X32debug, X32verbose;
 // Macros:
 //
 #ifdef __WIN32__
-#define millisleep(x)	Sleep(x)
-#define skt_close(s)	closesocket(s)
+#define millisleep(x)	Sleep((x))
+#define skt_close(s)	closesocket((s))
 #else
-#define millisleep(x)	usleep(x*1000)
-#define skt_close(s)	close(s)
+#define millisleep(x)	usleep((x)*1000)
+#define skt_close(s)	close((s))
 #endif
 
 // External calls used
 extern void Xfdump(char *header, char *buf, int len, int debug);
 extern void Xsdump(char *out, char *buf, int len);
-extern int Xsprint(char *bd, int index, char format, void *bs);
 extern int Xcparse(char *buf, char *line);
 
 //
@@ -444,4 +443,3 @@ void XRcvClean(int X_fd) {
 	} while (p_status > 0);
 	return;
 }
-
