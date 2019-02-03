@@ -42,7 +42,7 @@
 #include <time.h>
 
 #ifdef __WIN32__
-#include <winsock2.h>
+#include <windows.h>
 #else
 #include <sys/socket.h>
 #include <sys/param.h>
@@ -118,9 +118,9 @@ int f_loadName(char* name);	// load or run command from file file name
 int f_help();				// display help - command reminder
 
 #ifdef __WIN32__
-#define millisleep(x)	Sleep(x)
+#define millisleep(x)	Sleep((x))
 #else
-#define millisleep(x)	usleep(x*1000)
+#define millisleep(x)	usleep((x)*1000)
 #endif
 
 #define LINEMAX				256
