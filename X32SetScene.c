@@ -17,9 +17,7 @@
 #include <stdlib.h>
 #include <math.h>
 
-
 #ifdef __WIN32__
-#include <winsock2.h>
 #include <windows.h>
 #else
 #include <sys/socket.h>
@@ -29,7 +27,7 @@
 
 #define MAXLREAD 512
 
-void 	Xlogf(char *header, char *buf, int len);
+void 	X32logf(char *header, char *buf, int len);
 
 extern int SetSceneParse(char *l_read);
 
@@ -156,5 +154,5 @@ char				c1;
 	return(0);
 }
 
-void 	Xlogf(char *header, char *buf, int len) {} // dummy function for X32SetScene
 
+void 	X32logf(char *header, char *buf, int len) {};
