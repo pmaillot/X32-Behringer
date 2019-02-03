@@ -15,11 +15,15 @@
 //	Windows sections are used in a core version of the program that can
 //	be ported or used with different GUI environments.
 //
-
+// change log:
+//      v1.00: refactoring of code, passing some calls into extern modules
+//      v1.01: preventing Windows resizing
+//      v1.02: small changes to GUI geometry
+//
+//
 #ifdef __WIN32__
-#include <winsock2.h>
 #include <windows.h>
-#define millisleep(a)	Sleep(a)
+#define millisleep(a)	Sleep((a))
 #else
 #include <sys/socket.h>
 #include <sys/param.h>
@@ -27,7 +31,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <fcntl.h>
-#define millisleep(a)	usleep(a*1000)
+#define millisleep(a)	usleep((a)*1000)
 #endif
 
 #include <stdlib.h>
@@ -75,11 +79,12 @@
 #define ck_width 58
 #define	ck_height 25;
 
-int					Fade_connect();
 void				Fader_init();
 void 				Fader_update(int len, int f_index, int v_index, int dir);
 void 				Fader_read(int len, int f_index, int v_index);
-int					validateIP4Dotted(const char *s);
+//
+extern int			X32Connect(int Xconnected, char* Xip_str, int btime);
+extern int			validateIP4Dotted(const char *s);
 extern int 			Xsprint(char *bd, int index, char format, void *bs);
 extern int 			Xfprint(char *bd, int index, char* text, char format, void *bs);
 extern void			Xfdump(char *header, char *buf, int len, int debug);
@@ -106,7 +111,7 @@ BITMAP		bmp;
 
 int		keep_running = 1;
 int		len, x, y;
-int		wWidth = 80 + 16 * ck_width;
+int		wWidth = 70 + 16 * ck_width;
 int		check[80];
 
 wchar_t	W32_ip_str[20], W32_fd_in[8], W32_fd_out[8], W32_fd_stp[8];
@@ -138,20 +143,19 @@ int					Xverbose, Xdebug;
 
 int					Xfd;				// our socket
 struct sockaddr_in	Xip;
+struct sockaddr		*Xip_addr = (struct sockaddr*)&Xip;
 char				r_buf[BSIZE], s_buf[BSIZE];
-int					r_len, s_len;
-char				Xport_str[8];
-struct timeval		Tstart, Tstep, Tnow;
-
+int					r_len, s_len, p_status;
 struct timeval		timeout;
 fd_set 				ufds;
-
 #ifdef __WIN32__
 WSADATA 			wsa;
 int					Xip_len = sizeof(Xip);	// length of addresses
 #else
 socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 #endif
+//
+struct timeval		Tstart, Tstep, Tnow;
 //
 FILE 				*res_file;
 int					r_status;
@@ -188,8 +192,8 @@ int	i, j;
 
 	RegisterClassW(&wc);
 	CreateWindowW(wc.lpszClassName, L"X32Fade - Time Control X32 Faders",
-			WS_OVERLAPPEDWINDOW | WS_VISIBLE,
-			100, 220, wWidth, 235, 0, 0, hInstance, 0);
+			WS_OVERLAPPED | WS_VISIBLE | WS_MINIMIZEBOX | WS_SYSMENU,
+			100, 220, wWidth, 225, 0, 0, hInstance, 0);
 
 	while (keep_running) {
 		if(PeekMessage(&msg, NULL, 0, 0, PM_REMOVE)) {
@@ -224,7 +228,6 @@ int	i, j;
 	}
 	return (int) msg.wParam;
 }
-extern
 
 
 
@@ -242,7 +245,7 @@ char 	str1[8];
 				280, 35, 80, 20, hwnd, (HMENU)200, NULL, NULL);
 		for (len = 1; len < 6; len++) {
 			hwndfdact[len] = CreateWindowW(L"button", txt_fdact[len], WS_VISIBLE | WS_CHILD,
-					465 + 87 * len, 5, 80, 50, hwnd,
+					465 + 87 * len, 7, 80, 50, hwnd,
 					(HMENU)(len + 200),	0, 0);
 		}
 //
@@ -258,11 +261,11 @@ char 	str1[8];
 		}
 //
 		hwndfdin = CreateWindowW(L"Edit", NULL, WS_CHILD | WS_VISIBLE | WS_BORDER,
-				375, 1, 50, 18, hwnd, hipedit, NULL, NULL);
+				375, 2, 50, 20, hwnd, hipedit, NULL, NULL);
 		hwndfdout = CreateWindowW(L"Edit", NULL, WS_CHILD | WS_VISIBLE | WS_BORDER,
-				375, 20, 50, 18, hwnd, hipedit, NULL, NULL);
+				375, 21, 50, 20, hwnd, hipedit, NULL, NULL);
 		hwndfdstp = CreateWindowW(L"Edit", NULL, WS_CHILD | WS_VISIBLE | WS_BORDER,
-				375, 39, 50, 18, hwnd, hipedit, NULL, NULL);
+				375, 40, 50, 20, hwnd, hipedit, NULL, NULL);
 //
 		hBmp = (HBITMAP)LoadImage(NULL,(LPCTSTR)"./.X32Fade.bmp",IMAGE_BITMAP,0,0,LR_LOADFROMFILE|LR_SHARED);
 		if(hBmp==NULL) {
@@ -278,11 +281,11 @@ char 	str1[8];
 		BitBlt(hdc, 5, 2, 100, 55, hdcMem, 0, 0, SRCCOPY);
 		DeleteDC(hdcMem);
 //
-		MoveToEx(hdc, 5, 60, NULL);
-		LineTo(hdc, wWidth - 10, 60);
-		MoveToEx(hdc, 370, 55, NULL);
+		MoveToEx(hdc, 5, 62, NULL);
+		LineTo(hdc, wWidth - 10, 62);
+		MoveToEx(hdc, 370, 58, NULL);
 		LineTo(hdc, 370, 2);
-		MoveToEx(hdc, 540, 55, NULL);
+		MoveToEx(hdc, 540, 58, NULL);
 		LineTo(hdc, 540, 2);
 //
 		SetBkMode(hdc, TRANSPARENT);
@@ -290,7 +293,8 @@ char 	str1[8];
 		DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 		ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 150, 20, "Enter X32 IP below:", 18);
+		TextOut(hdc, 150, 20, "Enter X32 IP below:", 19);
+		TextOut(hdc, 315, 20, "ver. 1.02", 9);
 		DeleteObject(htmp);
 		DeleteObject(hfont);
 //
@@ -365,7 +369,7 @@ char 	str1[8];
 					WideCharToMultiByte(CP_ACP, 0, W32_ip_str, len, Xip_str, len, NULL, NULL);
 					if (Xdebug) {printf("IP = %s\n", Xip_str); fflush(stdout);}
 					if (validateIP4Dotted(Xip_str)) {
-						Xconnected = Fade_connect();
+						Xconnected = X32Connect(Xconnected, Xip_str, 5000);
 						if (Xconnected)	SetWindowTextW(hwndfdact[0], L"Connected");
 						else			SetWindowTextW(hwndfdact[0], L"Connect");
 					} else {
@@ -560,77 +564,7 @@ char 	str1[8];
 		keep_running = 0;
 		break;
 	}
-
 	return DefWindowProcW(hwnd, msg, wParam, lParam);
-}
-
-
-int Fade_connect() {
-	int p_status = 0;
-//
-//
-	if (Xconnected) {
-		close (Xfd);
-		return 0;
-	} else {
-//
-// initialize communication with X32 server at IP ip and PORT port
-//	Xport_str[] = "10023" - change to use a different port
-		strcpy (Xport_str, "10023");
-#ifdef __WIN32__
-//Initialize winsock
-		if (WSAStartup(MAKEWORD(2,2),&wsa) != 0) {
-			perror("WSA Startup Error");
-			exit(EXIT_FAILURE);
-		}
-#endif
-		memset(&Xip, 0, sizeof(Xip));				// Clear struct
-		Xip.sin_family = AF_INET;					// Internet/IP
-		Xip.sin_addr.s_addr = inet_addr(Xip_str);	// IP address
-		Xip.sin_port = htons(atoi(Xport_str));		// server port
-//
-// Load the X32 address we connect to; we're a client to X32, keep it simple.
-		// Create the UDP socket
-		if ((Xfd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
-			perror("X32 socket creation error");
-			return 0; // Make sure we don't considered being connected
-		} else {
-			// Construct the server sockaddr_in structure
-			memset(&Xip, 0, sizeof(Xip));				// Clear struct
-			Xip.sin_family = AF_INET;					// Internet/IP
-			Xip.sin_addr.s_addr = inet_addr(Xip_str);	// IP address
-			Xip.sin_port = htons(atoi(Xport_str));		// server port
-// Non blocking mode
-			timeout.tv_sec = 0;
-			timeout.tv_usec = 100000; //Set timeout for non blocking recvfrom(): 100ms
-//
-			s_len = Xsprint(s_buf, 0, 's', "/info");
-			if (Xverbose) {Xfdump("->X", s_buf, s_len, Xdebug); fflush(stdout);}
-			if (sendto(Xfd, s_buf, s_len, 0, (struct sockaddr *)&Xip, Xip_len) < 0) {
-				perror("Error sending data");
-				return 0; // Make sure we don't considered being connected
-			} else {
-				RPOLL;		// poll for data in
-				if (p_status < 0) {
-					perror("Polling for data failed");
-					return 0; // Make sure we don't considered being connected
-				} else if (p_status > 0) {
-				// We have received data - process it!
-					r_len = recvfrom(Xfd, r_buf, BSIZE, 0, 0, 0); //(struct sockaddr *)&Xip, &Xip_len);
-					if (Xverbose) {Xfdump("X->", r_buf, r_len, Xdebug); fflush(stdout);}
-					if (strcmp(r_buf, "/info") != 0) {
-						perror ("Unexpected answer from X32");
-						return 0;
-					}
-				} else {
-				// time out... Not connected or Not an X32
-					perror("X32 reception timeout");
-					return 0; // Make sure we don't considered being connected
-				}
-			}
-		}
-	}
-	return 1; // We are connected !
 }
 
 
@@ -651,7 +585,6 @@ void Fader_init() {
 void Fader_read(int len, int f_index, int v_index) {
 //
 int		k, l;
-int		p_status = 0;
 char 	*fader_str = Xmsg[len];
 int 	b_index = ind_num[len];
 int 	format = ind_len[len];
@@ -667,7 +600,7 @@ int 	fad_pos = ind_pos[len];
 		s_buf[b_index + 1] = f_index -((f_index / 10) * 10) + 48;
 	} 													// no index
 	if (Xverbose) {Xfdump("->X", s_buf, s_len, Xdebug); fflush(stdout);}
-	if (sendto(Xfd, s_buf, s_len, 0, (struct sockaddr *)&Xip, Xip_len) < 0) {
+	if (sendto(Xfd, s_buf, s_len, 0, Xip_addr, Xip_len) < 0) {
 		perror("Error sending data");
 		Fade_in = Fade_out = 0; // stop fade
 	} else {
@@ -712,30 +645,11 @@ int 	format = ind_len[len];
 		s_buf[b_index + 1] = f_index -((f_index / 10) * 10) + 48;
 	} 												// no index
 	if (Xverbose) {Xfdump("->X", s_buf, s_len, Xdebug); fflush(stdout);}
-	if (sendto(Xfd, s_buf, s_len, 0, (struct sockaddr *)&Xip, Xip_len) < 0) {
+	if (sendto(Xfd, s_buf, s_len, 0, Xip_addr, Xip_len) < 0) {
 		perror("Error sending data");
 		Fade_in = Fade_out = 0; // stop fade
 	}
 	return;
-}
-
-
-
-int validateIP4Dotted(const char *s)
-{
-int i;
-char tail[16];
-unsigned int d[4];
-
-    int len = strlen(s);
-    if (len < 7 || len > 15) return 0;
-    tail[0] = 0;
-    int c = sscanf(s, "%3u.%3u.%3u.%3u%s", &d[0], &d[1], &d[2], &d[3], tail);
-    if (c != 4 || tail[0]) return 0;
-    for (i = 0; i < 4; i++)
-        if (d[i] > 255)
-            return 0;
-    return 1;
 }
 
 
