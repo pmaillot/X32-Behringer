@@ -15,7 +15,6 @@
 #include "X32SetScene.h"
 
 #ifdef __WIN32__
-#include <winsock2.h>
 #include <windows.h>
 #else
 #include <sys/socket.h>
@@ -38,7 +37,7 @@ extern int Xp_list(char *buf, int k, char **list, int list_max);
 extern int Xp_fxlist(char *buf, int k, char **list, int list_max, int *p_ival);
 extern int Xp_frequency(char *buf, int k, int nsteps);
 extern int Xp_level(char *buf, int k, int nsteps);
-extern void Xlogf(char *header, char *buf, int len);
+extern void X32logf(char *header, char *buf, int len);
 
 
 extern int					Xdebug;
@@ -59,18 +58,18 @@ extern FILE					*Xin, *log_file;
 
 #define MILLISLEEP(t)													\
 	do {																\
-		Sleep(t);														\
+		Sleep((t));														\
 	} while (0);
 #else
 
 #define MILLISLEEP(t)													\
 	do {																\
-		usleep(t*1000);													\
+		usleep((t)*1000);												\
 	} while (0);
 #endif
 
 #define SendDataToX32 do {														\
-		if (X32SHOW) {if (Xverbose) Xlogf("->X", buf, k);}						\
+		if (X32SHOW) {if (Xverbose) X32logf("->X", buf, k);}					\
 		else {if (Xverbose) {Xfdump("->X", buf, k, Xdebug); fflush(stdout);}}	\
 		if (sendto(Xfd, buf, k, 0, Xip_pt, Xip_len) < 0) {						\
 			perror("coundn't send data");										\
