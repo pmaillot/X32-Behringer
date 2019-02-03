@@ -24,7 +24,6 @@
 
 
 #ifdef __WIN32__
-#include <winsock2.h>
 #include <windows.h>
 #include <Commdlg.h>
 #include <CommCtrl.h>
@@ -243,8 +242,8 @@ union littlebig {
 //
 #define SEND_TO(b, l)												\
 	do {															\
-		if (Xverbose) Xlogf("->X", b, l);							\
-		if (sendto(Xfd, b, l, 0, Xip_pt, Xip_len) < 0) {			\
+		if (Xverbose) Xlogf("->X", (b), (l));						\
+		if (sendto(Xfd, (b), (l), 0, Xip_pt, Xip_len) < 0) {		\
 			fprintf (log_file, "Coundn't send data to X32\r\n");	\
 			exit(EXIT_FAILURE);										\
 		} 															\
@@ -252,8 +251,8 @@ union littlebig {
 //
 #define RECV_FR(b, l)											\
 	do {														\
-		if ((l = recvfrom(Xfd, b, BSIZE, 0, 0, 0)) > 0) {		\
-			if (Xverbose) Xlogf("X->", b, l);					\
+		if (((l) = recvfrom(Xfd, (b), BSIZE, 0, 0, 0)) > 0) {	\
+			if (Xverbose) Xlogf("X->", (b), (l));				\
 		} 														\
 	} while (0);
 //
@@ -268,12 +267,12 @@ union littlebig {
 #ifdef __WIN32__
 #define MILLISLEEP(t)											\
 	do {														\
-		Sleep(t);												\
+		Sleep((t));												\
 	} while (0);
 #else
 #define MILLISLEEP(t)											\
 	do {														\
-		usleep(t*1000);											\
+		usleep((t)*1000);										\
 	} while (0);
 #endif
 //
