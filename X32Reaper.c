@@ -54,16 +54,16 @@
 #define BSIZE 			512	// Buffer sizes (enough to take into account FX parameters)
 
 #ifdef __WIN32
-#include <winsock2.h>
-#define MySleep(a)	Sleep(a)
+#include <windows.h>
+#define MySleep(a)	Sleep((a))
 #define socklen_t	int
 #else
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#define closesocket(s) 	close(s)
-#define MySleep(a)	usleep(a*1000)
+#define closesocket(s) 	close((s))
+#define MySleep(a)	usleep((a)*1000)
 #define WSACleanup()
 #define SOCKET_ERROR -1
 typedef int SOCKET;
@@ -121,7 +121,7 @@ extern int Xfprint(char *bd, int index, char* text, char format, void *bs);
 			fprintf(log_file, "Error sending data to X32\n");			\
 			exit(EXIT_FAILURE);											\
 		} 																\
-		if (delay > 0) MySleep(delay);									\
+		if (delay > 0) MySleep((delay));								\
 	} while (0);
 //
 //
@@ -350,7 +350,7 @@ int main(int argc, char **argv) {
 				if (Xfd > Rfd) Mfd = Xfd + 1;
 				if (select(Mfd, &fds, NULL, NULL, &timeout) > 0) {
 					if (FD_ISSET(Rfd, &fds) > 0) {
-						if ((Rb_lr = recvfrom(Rfd, Rb_r, RBrmax, 0, RFrmIP_pt, (unsigned int*)&RFrmIP_len)) > 0) {
+						if ((Rb_lr = recvfrom(Rfd, Rb_r, RBrmax, 0, RFrmIP_pt, &RFrmIP_len)) > 0) {
 // Parse Reaper Messages and send corresponding data to X32
 // These can be simple or #bundle messages!
 // Can result in several/many messages to X32
@@ -360,7 +360,7 @@ int main(int argc, char **argv) {
 						}
 					}
 					if (FD_ISSET(Xfd, &fds) > 0) {
-						if ((Xb_lr = recvfrom(Xfd, Xb_r, XBrmax, 0, XX32IP_pt, (unsigned int*)&XX32IP_len)) > 0) {
+						if ((Xb_lr = recvfrom(Xfd, Xb_r, XBrmax, 0, XX32IP_pt, &XX32IP_len)) > 0) {
 // X32 transmitted something
 // Parse and send (if applicable) to REAPER
 //							printf("X32 sent data\n"); fflush(stdout);
@@ -1745,7 +1745,7 @@ void X32ParseReaperMessage() {
 						// 13(enable) is covered by bypass and 14(wetdry) is not used
 						if (fpnum > 0 && fpnum < 13) {
 							Rb_i++; // skip '/'                  ^
-							if (Rb_r[Rb_i] == 'v') {
+							if ((Rb_r[Rb_i] == 'v')) {
 								// /track/<tnum>/fx/1/fxparam/<fpnum>/value
 								while(Rb_r[Rb_i] != ',') Rb_i++;
 								Rb_i += 4;
