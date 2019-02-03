@@ -18,7 +18,6 @@
 #include "XAirSetScene.h"
 
 #ifdef __WIN32__
-#include <winsock2.h>
 #include <windows.h>
 #else
 #include <sys/socket.h>
@@ -46,9 +45,7 @@ extern void Xlogf(char *header, char *buf, int len);
 extern int					Xdebug;
 extern int					Xverbose;
 extern int					Xdelay;
-extern int					X32VER;
 extern int					X32SHOW;
-extern int					X32PRESET;
 
 extern struct sockaddr		*Xip_pt;
 extern int					Xip_len;	// length of addresses
@@ -61,13 +58,13 @@ extern FILE					*Xin, *log_file;
 
 #define MILLISLEEP(t)													\
 	do {																\
-		Sleep(t);														\
+		Sleep((t));														\
 	} while (0);
 #else
 
 #define MILLISLEEP(t)													\
 	do {																\
-		usleep(t*1000);													\
+		usleep((t)*1000);												\
 	} while (0);
 #endif
 
@@ -109,7 +106,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 			} else {
 				if(Xverbose) printf ("scene data in: %s - found: %d %s\n", l_read, Xsc_index, Xsc[Xsc_index]);
 			}
-			
+
 			switch (Xsc_index) {
 			case config_chlink: // /config/chlink 1-2 ... 15-16
 				for (ch = 1; ch < 16; ch+=2) {
@@ -151,7 +148,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = Xsprint(buf, 0, 's', "/config/solo/sourcetrim");
 				// rev 1.09 spec says -18..+12db log(73)
 				// but firmware 1.12 acts like -18..+18db lin(72)
-				k = Xp_linf(buf, k, -18., 36., 0.5); 
+				k = Xp_linf(buf, k, -18., 36., 0.5);
 				SendDataToXAir // send to XAir
 				k = Xsprint(buf, 0, 's', "/config/solo/chmode");
 				k = XOff_On(buf, k, "PFL");
@@ -593,7 +590,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = XOff_On(buf, k, "OFF");
 				SendDataToXAir // send to XAir
 				break;
-			case rtn_aux_eq_1: case rtn_aux_eq_2: case rtn_aux_eq_3: case rtn_aux_eq_4: 
+			case rtn_aux_eq_1: case rtn_aux_eq_2: case rtn_aux_eq_3: case rtn_aux_eq_4:
 				sscanf(l_read + 12, "%c", &c1);
 				sprintf(tmp, "/rtn/aux/eq/%c/type", c1);
 				k = Xsprint(buf, 0, 's', tmp);
@@ -627,7 +624,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				SendDataToXAir // send to XAir
 				break;
 	// Only _01, _03, _05 have "pan"
-			case rtn_aux_mix_01: case rtn_aux_mix_03: case rtn_aux_mix_05: 
+			case rtn_aux_mix_01: case rtn_aux_mix_03: case rtn_aux_mix_05:
 				sscanf(l_read + 14, "%d", &mx);
 				sprintf(tmp, "/rtn/aux/mix/%02d/level", mx);
 				k = Xsprint(buf, 0, 's', tmp);
@@ -647,7 +644,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				SendDataToXAir // send to XAir
 				break;
 // _02, _04, _06 and _07 - _10 don't have "pan"
-			case rtn_aux_mix_02: case rtn_aux_mix_04: case rtn_aux_mix_06: case rtn_aux_mix_07: 
+			case rtn_aux_mix_02: case rtn_aux_mix_04: case rtn_aux_mix_06: case rtn_aux_mix_07:
 			case rtn_aux_mix_08: case rtn_aux_mix_09: case rtn_aux_mix_10:
 				sscanf(l_read + 14, "%d", &mx);
 				sprintf(tmp, "/rtn/aux/mix/%02d/level", mx);
@@ -671,7 +668,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = Xp_bit(buf, k);
 				SendDataToXAir // send to XAir
 				break;
-			case rtn_1_config: case rtn_2_config: case rtn_3_config: case rtn_4_config: 
+			case rtn_1_config: case rtn_2_config: case rtn_3_config: case rtn_4_config:
 				sscanf(l_read + 5, "%d", &rt);
 				sprintf(tmp, "/rtn/%d/config/name", rt);
 				k = Xsprint(buf, 0, 's', tmp);
@@ -686,7 +683,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = Xp_list(buf, k, Xrtnrtnsrc, Xrtnrtnsrc_max);
 				SendDataToXAir // send to XAir
 				break;
-			case rtn_1_preamp: case rtn_2_preamp: case rtn_3_preamp: case rtn_4_preamp: 
+			case rtn_1_preamp: case rtn_2_preamp: case rtn_3_preamp: case rtn_4_preamp:
 				sscanf(l_read + 5, "%d", &rt);
 				sprintf(tmp, "/rtn/%d/preamp/rtntrim", rt);
 				k = Xsprint(buf, 0, 's', tmp);
@@ -704,10 +701,10 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = XOff_On(buf, k, "OFF");
 				SendDataToXAir // send to XAir
 				break;
-			case rtn_1_eq_1: case rtn_2_eq_1: case rtn_3_eq_1: case rtn_4_eq_1: 
-			case rtn_1_eq_2: case rtn_2_eq_2: case rtn_3_eq_2: case rtn_4_eq_2: 
-			case rtn_1_eq_3: case rtn_2_eq_3: case rtn_3_eq_3: case rtn_4_eq_3: 
-			case rtn_1_eq_4: case rtn_2_eq_4: case rtn_3_eq_4: case rtn_4_eq_4: 
+			case rtn_1_eq_1: case rtn_2_eq_1: case rtn_3_eq_1: case rtn_4_eq_1:
+			case rtn_1_eq_2: case rtn_2_eq_2: case rtn_3_eq_2: case rtn_4_eq_2:
+			case rtn_1_eq_3: case rtn_2_eq_3: case rtn_3_eq_3: case rtn_4_eq_3:
+			case rtn_1_eq_4: case rtn_2_eq_4: case rtn_3_eq_4: case rtn_4_eq_4:
 				sscanf(l_read + 5, "%d", &rt);
 				sscanf(l_read + 10, "%c", &c1);
 				sprintf(tmp, "/rtn/%d/eq/%c/type", rt, c1);
@@ -727,7 +724,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = Xp_logf(buf, k, 10., -3.506557897, 71); // log(0.3/10) = -3.506557897
 				SendDataToXAir // send to XAir
 				break;
-			case rtn_1_mix: case rtn_2_mix: case rtn_3_mix: case rtn_4_mix: 
+			case rtn_1_mix: case rtn_2_mix: case rtn_3_mix: case rtn_4_mix:
 				sscanf(l_read + 5, "%d", &rt);
 				sprintf(tmp, "/rtn/%d/mix/on", rt);
 				k = Xsprint(buf, 0, 's', tmp);
@@ -747,9 +744,9 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				SendDataToXAir // send to XAir
 				break;
 	// "pan" is only available on sends _01, _03, and _05
-			case rtn_1_mix_01: case rtn_2_mix_01: case rtn_3_mix_01: case rtn_4_mix_01: 
-			case rtn_1_mix_03: case rtn_2_mix_03: case rtn_3_mix_03: case rtn_4_mix_03: 
-			case rtn_1_mix_05: case rtn_2_mix_05: case rtn_3_mix_05: case rtn_4_mix_05: 
+			case rtn_1_mix_01: case rtn_2_mix_01: case rtn_3_mix_01: case rtn_4_mix_01:
+			case rtn_1_mix_03: case rtn_2_mix_03: case rtn_3_mix_03: case rtn_4_mix_03:
+			case rtn_1_mix_05: case rtn_2_mix_05: case rtn_3_mix_05: case rtn_4_mix_05:
 				sscanf(l_read + 5, "%d", &rt);
 				sscanf(l_read + 11, "%d", &mx);
 				sprintf(tmp, "/rtn/%d/mix/%02d/level", rt, mx);
@@ -770,13 +767,13 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				SendDataToXAir // send to XAir
 				break;
 	// All others don't have "pan"
-			case rtn_1_mix_02: case rtn_2_mix_02: case rtn_3_mix_02: case rtn_4_mix_02: 
-			case rtn_1_mix_04: case rtn_2_mix_04: case rtn_3_mix_04: case rtn_4_mix_04: 
-			case rtn_1_mix_06: case rtn_2_mix_06: case rtn_3_mix_06: case rtn_4_mix_06: 
-			case rtn_1_mix_07: case rtn_2_mix_07: case rtn_3_mix_07: case rtn_4_mix_07: 
-			case rtn_1_mix_08: case rtn_2_mix_08: case rtn_3_mix_08: case rtn_4_mix_08: 
-			case rtn_1_mix_09: case rtn_2_mix_09: case rtn_3_mix_09: case rtn_4_mix_09: 
-			case rtn_1_mix_10: case rtn_2_mix_10: case rtn_3_mix_10: case rtn_4_mix_10: 
+			case rtn_1_mix_02: case rtn_2_mix_02: case rtn_3_mix_02: case rtn_4_mix_02:
+			case rtn_1_mix_04: case rtn_2_mix_04: case rtn_3_mix_04: case rtn_4_mix_04:
+			case rtn_1_mix_06: case rtn_2_mix_06: case rtn_3_mix_06: case rtn_4_mix_06:
+			case rtn_1_mix_07: case rtn_2_mix_07: case rtn_3_mix_07: case rtn_4_mix_07:
+			case rtn_1_mix_08: case rtn_2_mix_08: case rtn_3_mix_08: case rtn_4_mix_08:
+			case rtn_1_mix_09: case rtn_2_mix_09: case rtn_3_mix_09: case rtn_4_mix_09:
+			case rtn_1_mix_10: case rtn_2_mix_10: case rtn_3_mix_10: case rtn_4_mix_10:
 				sscanf(l_read + 5, "%d", &rt);
 				sscanf(l_read + 11, "%d", &mx);
 				sprintf(tmp, "/rtn/%d/mix/%02d/level", rt, mx);
@@ -792,7 +789,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = Xp_list(buf, k, Xmxtap, Xmxtap_max);
 				SendDataToXAir // send to XAir
 				break;
-			case rtn_1_grp: case rtn_2_grp: case rtn_3_grp: case rtn_4_grp: 
+			case rtn_1_grp: case rtn_2_grp: case rtn_3_grp: case rtn_4_grp:
 				sscanf(l_read + 5, "%d", &rt);
 				sprintf(tmp, "/rtn/%d/grp/dca", rt);
 				k = Xsprint(buf, 0, 's', tmp);
@@ -803,8 +800,8 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = Xp_bit(buf, k);
 				SendDataToXAir // send to XAir
 				break;
-			case bus_1_config: case bus_2_config: case bus_3_config: case bus_4_config: 
-			case bus_5_config: case bus_6_config: 
+			case bus_1_config: case bus_2_config: case bus_3_config: case bus_4_config:
+			case bus_5_config: case bus_6_config:
 				sscanf(l_read + 5, "%d", &bus);
 				sprintf(tmp, "/bus/%d/config/name", bus);
 				k = Xsprint(buf, 0, 's', tmp);
@@ -948,9 +945,9 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				break;
 //
 // 20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1k,
-// 1k25, 1k6, 2k, 2k5, 3k15, 4k, 5k, 6k3, 8k, 10k, 12k5, 16k, 20k 
-			case bus_1_geq: case bus_2_geq: case bus_3_geq: case bus_4_geq: 
-			case bus_5_geq: case bus_6_geq: 
+// 1k25, 1k6, 2k, 2k5, 3k15, 4k, 5k, 6k3, 8k, 10k, 12k5, 16k, 20k
+			case bus_1_geq: case bus_2_geq: case bus_3_geq: case bus_4_geq:
+			case bus_5_geq: case bus_6_geq:
 				sscanf(l_read + 5, "%d", &bus);
 				sprintf(tmp, "/bus/%d/geq/20", bus);
 				k = Xsprint(buf, 0, 's', tmp);
@@ -1109,7 +1106,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = Xp_bit(buf, k);
 				SendDataToXAir // send to XAir
 				break;
-			case fxsend_1_config: case fxsend_2_config: case fxsend_3_config: case fxsend_4_config: 
+			case fxsend_1_config: case fxsend_2_config: case fxsend_3_config: case fxsend_4_config:
 				sscanf(l_read + 8, "%d", &ch);
 				sprintf(tmp, "/fxsend/%d/config/name", ch);
 				k = Xsprint(buf, 0, 's', tmp);
@@ -1120,7 +1117,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = Xp_int(buf, k);
 				SendDataToXAir // send to XAir
 				break;
-			case fxsend_1_mix: case fxsend_2_mix: case fxsend_3_mix: case fxsend_4_mix: 
+			case fxsend_1_mix: case fxsend_2_mix: case fxsend_3_mix: case fxsend_4_mix:
 				sscanf(l_read + 8, "%d", &ch);
 				sprintf(tmp, "/ch/%02d/mix/on", ch);
 				k = Xsprint(buf, 0, 's', tmp);
@@ -1131,7 +1128,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = Xp_level(buf, k, 1023);
 				SendDataToXAir // send to XAir
 				break;
-			case fxsend_1_grp: case fxsend_2_grp: case fxsend_3_grp: case fxsend_4_grp: 
+			case fxsend_1_grp: case fxsend_2_grp: case fxsend_3_grp: case fxsend_4_grp:
 				sscanf(l_read + 8, "%d", &ch);
 				sprintf(tmp, "/ch/%d/grp/dca", ch);
 				k = Xsprint(buf, 0, 's', tmp);
@@ -1142,7 +1139,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = Xp_bit(buf, k);
 				SendDataToXAir // send to XAir
 				break;
-			case lr_config:  
+			case lr_config:
 				k = Xsprint(buf, 0, 's', "/lr/config/name");
 				k = Xp_str(buf, k);
 				SendDataToXAir // send to XAir
@@ -1241,7 +1238,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				break;
 //
 // 20, 25, 31.5, 40, 50, 63, 80, 100, 125, 160, 200, 250, 315, 400, 500, 630, 800, 1k,
-// 1k25, 1k6, 2k, 2k5, 3k15, 4k, 5k, 6k3, 8k, 10k, 12k5, 16k, 20k 
+// 1k25, 1k6, 2k, 2k5, 3k15, 4k, 5k, 6k3, 8k, 10k, 12k5, 16k, 20k
 			case lr_geq:
 				k = Xsprint(buf, 0, 's', "/lr/geq/20");
 				k = Xp_linf(buf, k, -15., 30., 0.5);
@@ -1381,7 +1378,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = XOff_On(buf, k, "OFF");
 				SendDataToXAir // send to XAir
 				break;
-			case fx_1_par: case fx_2_par: case fx_3_par: case fx_4_par: 
+			case fx_1_par: case fx_2_par: case fx_3_par: case fx_4_par:
 				sscanf(l_read + 4, "%c", &c1);
 				sprintf(tmp, "/fx/%c/par", c1);
 				k = Xsprint(buf, 0, 's', tmp);
@@ -1394,49 +1391,49 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				sprintf(tmp, "/routing/main/%02d/src", rt);
 				k = Xsprint(buf, 0, 's', tmp);
 				k = Xp_list(buf, k, Xmainsrc, Xmainsrc_max);
-				SendDataToXAir // send to XAir				
+				SendDataToXAir // send to XAir
 				break;
 			case routing_aux_01: case routing_aux_02: case routing_aux_03: case routing_aux_04:
-			case routing_aux_05: case routing_aux_06: 
+			case routing_aux_05: case routing_aux_06:
 				sscanf(l_read + 13, "%d", &rt);
 				sprintf(tmp, "/routing/aux/%02d/src", rt);
 				k = Xsprint(buf, 0, 's', tmp);
 				k = Xp_list(buf, k, Xauxsrc, Xauxsrc_max);
-				SendDataToXAir // send to XAir				
+				SendDataToXAir // send to XAir
 				sprintf(tmp, "/routing/aux/%02d/pos", rt);
 				k = Xsprint(buf, 0, 's', tmp);
 				k = Xp_list(buf, k, Xsrcpos, Xsrcpos_max);
-				SendDataToXAir // send to XAir				
+				SendDataToXAir // send to XAir
 				break;
 			case routing_p16_01: case routing_p16_02: case routing_p16_03: case routing_p16_04:
 			case routing_p16_05: case routing_p16_06: case routing_p16_07: case routing_p16_08:
 			case routing_p16_09: case routing_p16_10: case routing_p16_11: case routing_p16_12:
-			case routing_p16_13: case routing_p16_14: case routing_p16_15: case routing_p16_16: 
+			case routing_p16_13: case routing_p16_14: case routing_p16_15: case routing_p16_16:
 				sscanf(l_read + 13, "%d", &rt);
 				sprintf(tmp, "/routing/p16/%02d/src", rt);
 				k = Xsprint(buf, 0, 's', tmp);
 				k = Xp_list(buf, k, Xauxsrc, Xauxsrc_max);
-				SendDataToXAir // send to XAir				
+				SendDataToXAir // send to XAir
 				sprintf(tmp, "/routing/p16/%02d/pos", rt);
 				k = Xsprint(buf, 0, 's', tmp);
 				k = Xp_list(buf, k, Xsrcpos, Xsrcpos_max);
-				SendDataToXAir // send to XAir				
+				SendDataToXAir // send to XAir
 				break;
 			case routing_usb_01: case routing_usb_02: case routing_usb_03: case routing_usb_04:
 			case routing_usb_05: case routing_usb_06: case routing_usb_07: case routing_usb_08:
 			case routing_usb_09: case routing_usb_10: case routing_usb_11: case routing_usb_12:
-			case routing_usb_13: case routing_usb_14: case routing_usb_15: case routing_usb_16: 
-			case routing_usb_17: case routing_usb_18: 
+			case routing_usb_13: case routing_usb_14: case routing_usb_15: case routing_usb_16:
+			case routing_usb_17: case routing_usb_18:
 				sscanf(l_read + 13, "%d", &rt);
 				sprintf(tmp, "/routing/usb/%02d/src", rt);
 				k = Xsprint(buf, 0, 's', tmp);
 				k = Xp_list(buf, k, Xusbsrc, Xusbsrc_max);
-				SendDataToXAir // send to XAir				
+				SendDataToXAir // send to XAir
 				sprintf(tmp, "/routing/usb/%02d/pos", rt);
 				k = Xsprint(buf, 0, 's', tmp);
 				k = Xp_list(buf, k, Xsrcpos, Xsrcpos_max);
-				SendDataToXAir // send to XAir				
-				break;			
+				SendDataToXAir // send to XAir
+				break;
 		// Only _01 - _16 have phantom power
 			case headamp_01: case headamp_02: case headamp_03: case headamp_04:
 			case headamp_05: case headamp_06: case headamp_07: case headamp_08:
