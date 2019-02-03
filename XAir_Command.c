@@ -20,7 +20,6 @@
 // v 1.37: addresses limitations in certain C compilers wit getopt()
 // v 1.38: kb input is now treated as int
 // v 1.39: following changes to X32_cparse.c
-// v 1.40: Restore -s "node format" option for XAir mixers
 //
 #include <stdlib.h>
 #include <stdio.h>
@@ -28,20 +27,17 @@
 #include <string.h>
 #include <time.h>
 
-#define QUOTE  '"'
-#define SQUOTE '\''
-
 #ifdef __WIN32__
-#include <winsock2.h>
+#include <windows.h>
 #include <conio.h>
-#define millisleep(a)	Sleep(a)
+#define millisleep(a)	Sleep((a))
 #else
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <arpa/inet.h>
 #include <sys/fcntl.h>
-#define closesocket(s) 	close(s)
-#define millisleep(a)	usleep(a*1000)
+#define closesocket(s) 	close((s))
+#define millisleep(a)	usleep((a)*1000)
 #define WSACleanup()
 #define SOCKET_ERROR -1
 typedef int SOCKET;
@@ -296,7 +292,9 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 	filein = 0;
 	do_keyboard = 1;
 	s_delay = 10;
-	while ((input_intch = getopt(argc, argv, "i:d:k:f:s:t:v:h")) != -1) {
+// Removed "s" option as it's not support by XAir series
+//	while ((input_intch = getopt(argc, argv, "i:d:k:f:s:t:v:h")) != -1) {
+	while ((input_intch = getopt(argc, argv, "i:d:k:f:t:v:h")) != -1) {
 		switch (input_intch) {
 		case 'i':
 			strcpy(Xip_str, optarg );
@@ -311,10 +309,10 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 		case 'k':
 			sscanf(optarg, "%d", &do_keyboard);
 			break;
-		case 's':
-			filein = 2;
-			sscanf(optarg, "%s", input_line);
-			break;
+//		case 's':
+//			filein = 2;
+//			sscanf(optarg, "%s", input_line);
+//			break;
 		case 't':
 			sscanf(optarg, "%d", &s_delay);
 			break;
@@ -328,11 +326,11 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			printf("                    [-v 0/1  [1], verbose option]\n");
 			printf("                    [-k 0/1  [1], keyboard mode on]\n");
 			printf("                    [-t int  [10], delay between batch commands in ms]\n");
-			printf("                    [-s file, reads X32node formatted data lines from 'file']\n");
+//			printf("                    [-s file, reads X32node formatted data lines from 'file']\n");
 			printf("                    [-f file, sets batch mode on, getting input data from 'file']\n");
 			printf("                     default IP is 192.168.0.64\n\n");
-			printf(" If option -s file is used, the program reads data from the provided file \n");
-			printf(" until EOF has been reached, and exits after that.\n\n");
+//			printf(" If option -s file is used, the program reads data from the provided file \n");
+//			printf(" until EOF has been reached, and exits after that.\n\n");
 			printf(" If option -f file is used, the program runs in batch mode, taking data from\n");
 			printf(" the provided file until EOF has been reached, or 'exit' or 'kill' entered.\n\n");
 			printf(" If not killed or no -f option, the program runs in standard mode, taking data\n");
@@ -453,65 +451,14 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			timeout.tv_usec = 10000; // Set timeout to 10ms
 			do_keyboard = 0;	// force exit after end-of-file
 			while (fgets(input_line, LINEMAX, fdk) != NULL) {
-				// skip comment lines and blank lines
-				if ((input_line[0] != '#') && (strlen(input_line) > 1)) {
+				// skip comment lines
+				if (input_line[0] != '#') {
 					input_line[strlen(input_line) - 1] = 0;	// avoid trailing '\n'
-				    char *inptr = input_line;
-				    char inword[128];
-				    char argwords[128];
-				    char quotetype;
-				    int  posn, cmdend;
-				    int inquote=0;
-					int argnum=0;
-				    sscanf(inptr, "%127s%n", inword, &posn);
-				    cmdend = posn;
-				    inptr += posn;
-				    s_len = Xsprint(s_buf, 0, 's', inword);
-				    r_len = 0;
-			        while (sscanf(inptr, "%127s%n", inword, &posn) == 1)
-			        {
-			        		inptr += posn;
-
-						if (((inword[0] == QUOTE) || (inword[0] == SQUOTE)) && (inquote == 0)) {
-								quotetype = inword[0];
-								inquote = 1;
-								if (inword[strlen(inword)-1] == quotetype) {
-									strcpy(argwords, inword+1);
-									argwords[strlen(argwords)-1] = 0;
-									strcpy(inword, argwords);
-									inquote = 0;
-								}
-								strcat(argwords, " ");
-						}
-						if (inquote == 1) {
-							if (inword[0] == quotetype) strcpy(argwords, inword+1);
-							else strcat(argwords, inword);
-							if (inword[strlen(inword)-1] == quotetype) {
-								argwords[strlen(argwords)-1] = 0;
-								strcpy(inword, argwords);
-								inquote = 0;
-							} else {
-								strcat(argwords, " ");
-							}
-						}
-				        	if (inquote == 0) {
-			            		argnum+=1;
-			            		r_len = Xsprint(r_buf, r_len, 's', inword);
-			            }
-			        }
-			        inword[0] = ',';
-			        for(int i = 1; i <= argnum; i = i + 1 ) {
-			              inword[i] = 's';
-			              posn = i;
-			        }
-			        inword[posn+1] = 0;
-			        s_len = Xsprint(s_buf, s_len, 's', inword);
-					memcpy(s_buf+s_len, r_buf, r_len * sizeof(char));
-					s_len += r_len;
+					s_len = Xsprint(s_buf, 0, 's', "/");
+					s_len = Xsprint(s_buf, s_len, 's', ",s");
+					s_len = Xsprint(s_buf, s_len, 's', input_line);
 					SEND				// send data to XR
-					if (X32verbose) {    // No use checking for a response if not printing them
-						CHECKXR()		// XR18 will echo back the line
-					}
+					CHECKXR()		// XR18 will echo back the line
 				}
 			}
             printf ("---end of file\n");
