@@ -32,8 +32,8 @@
 //	ver 2.08: incorrect mask applied at loading saved presets implied wrong channel settings
 //
 #ifdef __WIN32__
-#include <winsock2.h>
-#define  millisleep(a)    Sleep(a)
+#include <windows.h>
+#define  millisleep(a)    Sleep((a))
 #else
 #include <sys/socket.h>
 #include <sys/param.h>
@@ -41,7 +41,7 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 #include <fcntl.h>
-#define  millisleep(a)    usleep(a*1000)
+#define  millisleep(a)    usleep((a)*1000)
 #endif
 
 #include <stdlib.h>
