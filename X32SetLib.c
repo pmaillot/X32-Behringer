@@ -24,8 +24,7 @@
 
 
 #ifdef __WIN32__
-#include <winsock2.h>
-#include <WinError.h>
+#include <windows.h>
 #include <Commdlg.h>
 #else
 #include <sys/socket.h>
@@ -52,15 +51,15 @@
 // Private functions
 void	LaunchPresetXfer();		// return status is in PSstatus
 int		X32_Connect();
-int		validateIP4Dotted(const char *s);
 void 	XRcvClean();
-void 	Xlogf(char *header, char *buf, int len);
 //
 // External calls used
 extern int Xsprint(char *bd, int index, char format, void *bs);
 extern int Xfprint(char *bd, int index, char* text, char format, void *bs);
 extern int SetSceneParse(char *l_read);
-
+extern void X32logf(char *header, char *buf, int len);
+extern void X32logfile(FILE *f);
+extern int  validateIP4Dotted(const char *s);
 //
 
 WINBASEAPI HWND WINAPI	GetConsoleWindow(VOID);
@@ -181,8 +180,8 @@ union littlebig {
 //
 #define SEND_TO(b, l)												\
 	do {															\
-		if (Xverbose) Xlogf("->X", b, l);							\
-		if (sendto(Xfd, b, l, 0, Xip_pt, Xip_len) < 0) {			\
+		if (Xverbose) X32logf("->X", (b), (l));						\
+		if (sendto(Xfd, (b), (l), 0, Xip_pt, Xip_len) < 0) {		\
 			fprintf (log_file, "Coundn't send data to X32\r\n");	\
 			exit(EXIT_FAILURE);										\
 		} 															\
@@ -192,8 +191,8 @@ union littlebig {
 //
 #define RECV_FR(b, l)											\
 	do {														\
-		if ((l = recvfrom(Xfd, b, BSIZE, 0, 0, 0)) > 0) {		\
-			if (Xverbose) Xlogf("X->", b, l);					\
+		if (((l) = recvfrom(Xfd, (b), BSIZE, 0, 0, 0)) > 0) {	\
+			if (Xverbose) X32logf("X->", (b), (l));				\
 		} 														\
 	} while (0);
 //
@@ -209,7 +208,7 @@ union littlebig {
 
 #define MILLISLEEP(t)													\
 	do {																\
-		Sleep(t);														\
+		Sleep((t));														\
 	} while (0);
 #else
 #define RPOLL															\
@@ -219,7 +218,7 @@ union littlebig {
 
 #define MILLISLEEP(t)													\
 	do {																\
-		usleep(t*1000);													\
+		usleep((t)*1000);												\
 	} while (0);
 #endif
 //
@@ -508,7 +507,7 @@ int X32_Connect() {
 			ufds.events = POLLIN; //Check for normal data
 #endif
 			s_len = Xsprint(s_buf, 0, 's', "/info");
-			if (Xverbose) Xlogf("->X", s_buf, s_len);
+			if (Xverbose) X32logf("->X", s_buf, s_len);
 			if (sendto(Xfd, s_buf, s_len, 0, (struct sockaddr *)&Xip, Xip_len) < 0) {
 				fprintf (log_file, "Error sending data\r\n");
 				return 0; // Make sure we don't considered being connected
@@ -520,7 +519,7 @@ int X32_Connect() {
 				} else if (p_status > 0) {
 				// We have received data - process it!
 					r_len = recvfrom(Xfd, r_buf, BSIZE, 0, 0, 0);
-					if (Xverbose) Xlogf("X->", r_buf, r_len);
+					if (Xverbose) X32logf("X->", r_buf, r_len);
 					if (strcmp(r_buf, "/info") != 0) {
 						fprintf (log_file, "Unexpected answer from X32\r\n");
 						return 0;
@@ -583,82 +582,6 @@ void XRcvClean() {
 //
 //
 //
-void Xlogf(char *header, char *buf, int len)
-{
-	int i, k, n, j, l, comma = 0, data = 0, dtc = 0;
-	unsigned char c;
-
-	fprintf (log_file, "%s, %4d B: ", header, len);
-	for (i = 0; i < len; i++) {
-		c = (unsigned char)buf[i];
-		if (c < 32 || c == 127 || c == 255 ) c = '~'; // Manage unprintable chars
-		fprintf (log_file, "%c", c);
-		if (c == ',') {
-			comma = i;
-			dtc = 1;
-		}
-		if (dtc && (buf[i] == 0)) {
-			data = (i + 4) & ~3;
-			for (dtc = i + 1; dtc < data ; dtc++) {
-				if (dtc < len) {
-					fprintf (log_file, "~");
-				}
-			}
-			dtc = 0;
-			l = data;
-			while (++comma < l && data < len) {
-				switch (buf[comma]) {
-				case 's':
-					k = (strlen((char*)(buf+data)) + 4) & ~3;
-					for (j = 0; j < k; j++) {
-						if (data < len) {
-							c = (unsigned char)buf[data++];
-							if (c < 32 || c == 127 || c == 255 ) c = '~'; // Manage unprintable chars
-								fprintf (log_file, "%c", c);
-						}
-					}
-					break;
-				case 'i':
-					for (k = 4; k > 0; endian.cc[--k] = buf[data++]);
-					fprintf (log_file, "[%6d]", endian.ii);
-					break;
-				case 'f':
-					for (k = 4; k > 0; endian.cc[--k] = buf[data++]);
-					if (endian.ff < 10.) fprintf (log_file, "[%06.4f]", endian.ff);
-					else if (endian.ff < 100.) fprintf (log_file, "[%06.3f]", endian.ff);
-					else if (endian.ff < 1000.) fprintf (log_file, "[%06.2f]", endian.ff);
-					else if (endian.ff < 10000.) fprintf (log_file, "[%06.1f]", endian.ff);
-					break;
-				case 'b':
-					// Get the number of bytes
-					for (k = 4; k > 0; endian.cc[--k] = buf[data++]);
-					n = endian.ii;
-					// Get the number of data (floats or ints ???) in little-endian format
-					for (k = 0; k < 4; endian.cc[k++] = buf[data++]);
-					if (n == endian.ii) {
-						// Display blob as string
-						fprintf (log_file, "%d chrs: ", n);
-						for (j = 0; j < n; j++) fprintf (log_file, "%c ", buf[data++]);
-					} else {
-						// Display blob as floats
-						n = endian.ii;
-						fprintf (log_file, "%d flts: ", n);
-						for (j = 0; j < n; j++) {
-							//floats are little-endian format
-							for (k = 0; k < 4; endian.cc[k++] = buf[data++]);
-							fprintf (log_file, "%06.2f ", endian.ff);
-						}
-					}
-					break;
-				default:
-					break;
-				}
-			}
-			i = data - 1;
-		}
-	}
-	fprintf (log_file, "\r\n");
-}
 
 int
 main(int argc, char **argv)
@@ -711,6 +634,7 @@ main(int argc, char **argv)
 	strcat(r_buf, "/.X32SetLib.log");
 	// create logfile and run program
 	if ((log_file = fopen(r_buf, "wb")) != NULL) {
+		X32logfile(log_file);
 		fprintf(log_file,"*\r\n*\r\n");
 		fprintf(log_file,"*    X32SetLib Log data - ©2015 - Patrick-Gilles Maillot\r\n");
 		fprintf(log_file,"*\r\n*\r\n");
@@ -977,6 +901,7 @@ int		showctrl, prepos_cur;
 			// Done with the file
 			if (Xin) fclose (Xin);
 			fprintf (log_file, "Saving Preset %s to X32 Library, at position %d\r\n", XPname, PSstartid);
+
 			// Save Preset to X32 Library
 			s_len = Xsprint(s_buf, 0, 's', "/save");
 			s_len = Xsprint(s_buf, s_len, 's', ",sisi");
@@ -1067,6 +992,7 @@ int		showctrl, prepos_cur;
 			// Done with the file
 			if (Xin) fclose (Xin);
 			fprintf (log_file, "Saving Preset %s to X32 Library, at position %d\r\n", XPname, PSstartid);
+
 			// Save Preset to X32 Library
 			s_len = Xsprint(s_buf, 0, 's', "/save");
 			s_len = Xsprint(s_buf, s_len, 's', ",sisi");
@@ -1149,6 +1075,7 @@ int		showctrl, prepos_cur;
 			// Done with the file
 			if (Xin) fclose (Xin);
 			fprintf (log_file, "Saving Preset %s to X32 Library, at position %d\r\n", XPname, PSstartid);
+
 			// Save Preset to X32 Library
 			s_len = Xsprint(s_buf, 0, 's', "/save");
 			s_len = Xsprint(s_buf, s_len, 's', ",sis");
@@ -1224,6 +1151,7 @@ int		showctrl, prepos_cur;
 				}
 			}
 		}
+
 		// Delete scene 99
 		s_len = Xsprint(s_buf, 0, 's', "/delete");
 		s_len = Xsprint(s_buf, s_len, 's', ",si");
@@ -1248,6 +1176,7 @@ int		showctrl, prepos_cur;
 				}
 			}
 		}
+
 		// restore scene pointer
 		s_len = Xfprint(s_buf, 0, "/-show/prepos/current", 'i', &prepos_cur);
 		SEND_TO(s_buf, s_len)
@@ -1262,6 +1191,8 @@ int		showctrl, prepos_cur;
 		SEND_TO(s_buf, s_len)
 		s_len = Xfprint(s_buf, 0, "/main/st/mix/fader", 'f', &stfader);
 		SEND_TO(s_buf, s_len)
+
+
 	}
 	return;
 }
