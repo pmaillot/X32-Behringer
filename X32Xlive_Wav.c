@@ -53,6 +53,7 @@
  *	ver. 0.33: provide default channel names at memory reserve/malloc time
  *	ver. 0.34: bug fixes, added a "Reset" button
  *	ver. 0.35: fixes in command line version to enable default channel names and session name handling
+ *	ver. 0.36: fixed a missing init value for the destination directory (command line version only)
  *
  */
 
@@ -288,7 +289,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.35 - ©2018 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.36 - ©2018 - Patrick-Gilles Maillot"));
 
 		DeleteObject(htmp);
 		DeleteObject(hfont);
@@ -611,12 +612,16 @@ int main(int argc, char **argv) {
 #else
 	// manage command-line parameters
 	nchange = -1;
+	strcpy(Xdpath, "./");
 	while ((input_intch = getopt(argc, argv, "d:m:n:c:s:w:h")) != -1) {
 		switch ((char)input_intch) {
 			case 'd':
 				strcpy(Xdpath, optarg);
 				dlen = strlen(Xdpath);
-				Xdpath[dlen++] =  '/';
+				if (Xdpath[dlen - 1] != '/') {
+					Xdpath[dlen++] =  '/';
+					Xdpath[dlen] =  0;
+				}
 				break;
 			case 'm':
 				strcpy(Sname, optarg);
@@ -659,7 +664,7 @@ int main(int argc, char **argv) {
 				break;
 			default:
 			case 'h':
-				printf("X32Xlive_Wav - ver 0.35 - ©2018 - Patrick-Gilles Maillot\n\n");
+				printf("X32Xlive_Wav - ver 0.36 - ©2018 - Patrick-Gilles Maillot\n\n");
 				printf("usage: X32Xlive_wav [-d dir [./]: Mono wave files path]\n");
 				printf("                    [-m name []: Sets or Replaces Session name read from source]\n");
 				printf("                    [-n 1..32 [0]: number of channels to explode to mono wave files]\n");
