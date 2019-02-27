@@ -17,7 +17,7 @@ This software is distributed in the hope that it will be useful, but WITHOUT ANY
 You should have received a copy of the GNU General Public License
 
 ## Thank you Note ##
-Thanks to Javier Iglesias for providing a Makefile file for some of the tools (Initially X32_lib and X32Reaper).
+Thanks to all contributors who submitted issues, helping these tools to get better for the benefit of everyone. Javier Iglesias just recently provided a Makefile file for some of the tools (Initially X32_lib and X32Reaper).
 
 
 ## Demos and documentation ##
