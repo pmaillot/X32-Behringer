@@ -16,6 +16,10 @@ This software is distributed in the hope that it will be useful, but WITHOUT ANY
 
 You should have received a copy of the GNU General Public License
 
+## Thank you Note ##
+Thanks to Javier Iglesias for providing a Makefile file for some of the tools (Initially X32_lib and X32Reaper).
+
+
 ## Demos and documentation ##
 The software in this repository heavily relies on OSC commands sent or received to/from an X32 digital mixer, using UDP communication protocol. The latest version of the unofficial X32 OSC Protocol documentation, and compiled/built versions of the tools, demos, examples and snapshots can be found at https://sites.google.com/site/patrickmaillot/x32.
 
