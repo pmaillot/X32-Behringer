@@ -5,7 +5,7 @@
  *      Author: Patrick-Gilles Maillot
  */
 #include <stdio.h>
-#include <strings.h>
+#include <string.h>
 #include <stdlib.h>
 
 FILE	*fp;
