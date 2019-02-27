@@ -21,7 +21,7 @@
 #include <winsock2.h>	// Windows functions for std GUI & sockets
 #include <mmsystem.h>	// Multimedia functions (such as MIDI) for Windows
 #include <stdio.h>
-#include <strings.h>
+#include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
