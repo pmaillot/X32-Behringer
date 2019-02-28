@@ -216,9 +216,9 @@ struct sockaddr *RFrmIP_pt = (struct sockaddr*) &RFrmIP;// R socket IP pointer w
 int Xfd, Rfd, Mfd;			// X32 and Reaper receive and send sockets; Mfd is max(Xfd, Rfd)+1 for select()
 //
 //
-int XX32IP_len = sizeof(XX32IP);	// length of X32 address
-int RHstIP_len = sizeof(RHstIP);	// length of Reaper send to address
-int RFrmIP_len = sizeof(RFrmIP);	// length of Reaper received from address
+unsigned int XX32IP_len = sizeof(XX32IP);	// length of X32 address
+unsigned int RHstIP_len = sizeof(RHstIP);	// length of Reaper send to address
+unsigned int RFrmIP_len = sizeof(RFrmIP);	// length of Reaper received from address
 //
 #ifdef __WIN32__
 WSADATA wsa;
@@ -1745,7 +1745,7 @@ void X32ParseReaperMessage() {
 						// 13(enable) is covered by bypass and 14(wetdry) is not used
 						if (fpnum > 0 && fpnum < 13) {
 							Rb_i++; // skip '/'                  ^
-							if ((Rb_r[Rb_i] == 'v')) {
+							if (Rb_r[Rb_i] == 'v') {
 								// /track/<tnum>/fx/1/fxparam/<fpnum>/value
 								while(Rb_r[Rb_i] != ',') Rb_i++;
 								Rb_i += 4;
