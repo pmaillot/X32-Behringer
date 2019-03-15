@@ -49,6 +49,7 @@ $(DIRS):
 
 clean:
 	$(RM) $(OBJS) $(BUILD)
+	$(MKDIR) $(BUILD)
 	$(MAKE) -C $(DIRS) clean
 
 .PHONY:	$(DIRS)
