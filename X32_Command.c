@@ -152,6 +152,7 @@ do {																			\
 //
 //
 //
+#ifdef __WIN32__
 int getkey();
 //
 // int getkey(): returns the typed character at keyboard or NO_CHAR if no keyboard key was pressed.
@@ -180,6 +181,7 @@ int getkey() {
 	}
 	return ch;
 }
+#endif
 //
 //
 //
