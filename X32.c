@@ -27,12 +27,13 @@
 //
 #ifdef __WIN32__
 #include <windows.h>
+#include <winsock2.h>
+#include <ws2tcpip.h>
 #define ZMemory(a,b)	ZeroMemory(a, b)
 #else
 #define ZMemory(a,b)	memset(a, 0, b)
 #include <net/if.h>
 #include <ifaddrs.h>
-#include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/param.h>
@@ -49,6 +50,7 @@
 #include <string.h>
 #include <math.h>
 #include <sys/time.h>
+#include <sys/types.h>
 #include <time.h>
 
 #define EPSILON 0.0001	// epsilon for float comparisons
@@ -836,6 +838,7 @@ struct timeval timeout;
 #ifdef __WIN32__
 WSADATA wsa;
 int Client_ip_len = sizeof(Client_ip);			// length of addresses
+INT WSAAPI getaddrinfo(char *pNodeName, char *pServiceName, struct addrinfo *pHints, struct addrinfo **ppResult);
 #else
 socklen_t Client_ip_len = sizeof(Client_ip);	// length of addresses
 #endif
@@ -843,41 +846,9 @@ socklen_t Client_ip_len = sizeof(Client_ip);	// length of addresses
 int main(int argc, char **argv) {
 	int i, whoto, noIP;
 	char input_ch;
-
 	struct addrinfo hints;
 	struct addrinfo *result, *rp;
-
-//// test for IP addresses
-//    memset(&hints, 0, sizeof(struct addrinfo));
-//    hints.ai_flags = AI_PASSIVE;
-//    hints.ai_socktype = SOCK_DGRAM;
-//	hints.ai_family = AF_INET;
-//	hints.ai_protocol = 0;          /* Any protocol */
-//	hints.ai_canonname = NULL;
-//	hints.ai_addr = NULL;
-//	hints.ai_next = NULL;
-//	i = getaddrinfo("10.46.100.28", "10023", &hints, &result);
-//    fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(i));
-//    for (rp = result; rp != NULL; rp = rp->ai_next) {
-//		printf("IP address\n");
-//		for (i = 0; i < 14; i++) {
-//			printf("i= %2d: %x\n", i, rp->ai_addr->sa_data[i]);
-//		}
-//		printf("IP: %s\n", (inet_ntoa(*(struct in_addr *)&(rp->ai_addr->sa_data[2])))); // copy IP (string) address to r_buf
-////		printf("IP: %s\n", (inet_ntoa(*(struct in_addr *) *pp))); // copy IP (string) address to r_buf
 //
-//		printf("\n\n");
-//
-//		Xfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
-//		if (Xfd == -1)
-//			continue;
-////
-//		if (bind(Xfd, rp->ai_addr, rp->ai_addrlen) == 0) {
-//			printf("Socket: %d\n", Xfd); fflush(stdout);
-//			break;                  /* Success */
-//		}
-//		close(Xfd);
-//	}
 // Manage arguments
 	fflush(stdout);
 	noIP = 1;
@@ -1086,7 +1057,6 @@ int main(int argc, char **argv) {
 
 #ifdef __WIN32__
 void getmyIP() {
-	int i;
 	char **pp = NULL;
 	struct hostent *host = NULL;
 
