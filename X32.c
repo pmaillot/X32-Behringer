@@ -31,6 +31,7 @@
 #define ZMemory(a,b)	memset(a, 0, b)
 #include <net/if.h>
 #include <ifaddrs.h>
+#include <sys/types.h>
 #include <sys/ioctl.h>
 #include <sys/socket.h>
 #include <sys/param.h>
@@ -839,11 +840,52 @@ socklen_t Client_ip_len = sizeof(Client_ip);	// length of addresses
 #endif
 
 int main(int argc, char **argv) {
-	int i, whoto;
+	int i, whoto, noIP;
 	char input_ch;
+
+	struct addrinfo hints;
+	struct addrinfo *result, *rp;
+
+//// test for IP addresses
+//    memset(&hints, 0, sizeof(struct addrinfo));
+//    hints.ai_flags = AI_PASSIVE;
+//    hints.ai_socktype = SOCK_DGRAM;
+//	hints.ai_family = AF_INET;
+//	hints.ai_protocol = 0;          /* Any protocol */
+//	hints.ai_canonname = NULL;
+//	hints.ai_addr = NULL;
+//	hints.ai_next = NULL;
+//	i = getaddrinfo("10.46.100.28", "10023", &hints, &result);
+//    fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(i));
+//    for (rp = result; rp != NULL; rp = rp->ai_next) {
+//		printf("IP address\n");
+//		for (i = 0; i < 14; i++) {
+//			printf("i= %2d: %x\n", i, rp->ai_addr->sa_data[i]);
+//		}
+//		printf("IP: %s\n", (inet_ntoa(*(struct in_addr *)&(rp->ai_addr->sa_data[2])))); // copy IP (string) address to r_buf
+////		printf("IP: %s\n", (inet_ntoa(*(struct in_addr *) *pp))); // copy IP (string) address to r_buf
+//
+//		printf("\n\n");
+//
+//		Xfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol);
+//		if (Xfd == -1)
+//			continue;
+////
+//		if (bind(Xfd, rp->ai_addr, rp->ai_addrlen) == 0) {
+//			printf("Socket: %d\n", Xfd); fflush(stdout);
+//			break;                  /* Success */
+//		}
+//		close(Xfd);
+//	}
 // Manage arguments
+	fflush(stdout);
+	noIP = 1;
 	while ((input_ch = getopt(argc, argv, "i:d:v:x:b:f:r:m:h")) != -1) {
 		switch (input_ch) {
+		case 'i':
+			strcpy(Xip_str, optarg );
+			noIP = 0;
+			break;
 		case 'd':
 			sscanf(optarg, "%d", &Xdebug);
 			break;
@@ -867,14 +909,15 @@ int main(int argc, char **argv) {
 			break;
 		default:
 		case 'h':
-			printf("usage: X32 [-d 0/1, debug option] -default: 0\n");
-			printf(" [-v 0/1, verbose option] -default: 1\n");
+			printf("usage: X32 [-i <IP address>] - default: first IP available on system\n");
+			printf(" [-d 0/1, debug option] - default: 0\n");
+			printf(" [-v 0/1, verbose option] - default: 1\n");
 			printf(" The options below apply in conjunction with -v 1\n");
-			printf(" [-x 0/1, echoes incoming verbose for /xremote] -default: 0\n");
-			printf(" [-b 0/1, echoes incoming verbose for /batchsubscribe] -default: 0\n");
-			printf(" [-f 0/1, echoes incoming verbose for /formatsubscribe] -default: 0\n");
-			printf(" [-r 0/1, echoes incoming verbose for /renew] -default: 0\n");
-			printf(" [-m 0/1, echoes incoming verbose for /meters] -default: 0\n\n");
+			printf("     [-x 0/1, echoes incoming verbose for /xremote] - default: 0\n");
+			printf("     [-b 0/1, echoes incoming verbose for /batchsubscribe] - default: 0\n");
+			printf("     [-f 0/1, echoes incoming verbose for /formatsubscribe] - default: 0\n");
+			printf("     [-r 0/1, echoes incoming verbose for /renew] - default: 0\n");
+			printf("     [-m 0/1, echoes incoming verbose for /meters] - default: 0\n\n");
 			printf(" The (non-Behringer) command \"/shutdown\" will save data and quit\n");
 			return (0);
 			break;
@@ -895,8 +938,6 @@ int main(int argc, char **argv) {
 		X32Client[i].vlid = 0;
 		X32Client[i].xrem = 0;
 	}
-// read initial data (if exists)
-	i = X32Init();
 //
 #ifdef __WIN32__
 //Initialize winsock
@@ -905,35 +946,58 @@ int main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 #endif
-// Create a UDP socket
-	if ((Xfd = socket(PF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
-		perror("X32 Socket Creation Error");
-		exit(EXIT_FAILURE);
-	}
-// Load up address structures:
-	memset(&Client_ip, 0, sizeof(Client_ip));	// Clear struct
-	memset(&Server_ip, 0, sizeof(Server_ip));	// Clear struct
-	Server_ip.sin_family = AF_INET;				// IP4
-	Server_ip.sin_addr.s_addr = INADDR_ANY;		// any address in
-	Server_ip.sin_port = htons(atoi(Xport_str));// server port
 //
-// Bind IP & port information
-	if (bind(Xfd, Server_ip_pt, sizeof(Server_ip)) == SOCKET_ERROR) {
-		perror("Bind failed");
-		exit(EXIT_FAILURE);
+	r_len = 0;
+	printf("X32 - v0.75 - An X32 Emulator - (c)2014-2017 Patrick-Gilles Maillot\n");
+	//
+	// Get or use IP address
+	if (noIP) {
+		// Try to get an IP on this system (the first one is OK...otherwise, use -i option!)
+		getmyIP();
 	}
-//
-// make socket non blocking
+	// We now have an IP address in Xip_str; test it, create a sock and bind to it if OK
+	memset(&hints, 0, sizeof(struct addrinfo));
+	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_family = AF_INET;
+	hints.ai_protocol = IPPROTO_UDP;
+	if ((i = getaddrinfo(Xip_str, Xport_str, &hints, &result)) != 0) {
+		printf("Error getaddrinfo: %s\n", gai_strerror(i));
+		exit(0);
+	}
+	noIP = 1;	/* set error state flag */
+	for (rp = result; rp != NULL; rp = rp->ai_next) {
+		if ((Xfd = socket(rp->ai_family, rp->ai_socktype, rp->ai_protocol)) >= 0) {
+			if (bind(Xfd, rp->ai_addr, rp->ai_addrlen) == 0) {
+				noIP = 0;			/* Success !*/
+				break;
+			}
+			close(Xfd);
+		}
+	}
+	if (noIP) {
+		printf("Error on IP address: %s - cannot run\n", Xip_str);
+		exit(1);
+	} else {
+		printf("Listening to port: %s, X32 IP = %s\n", Xport_str, Xip_str);
+	}
+	// read initial data (if exists)
+	if (X32Init()) {
+		printf("X32 resource file does not exist, create one with '/shutdown' command\n");
+		// set IP address in local structure
+		// search for /-prefs/ip/addr dataset and set IP address in 4 consecutine ints
+		for (i = 0; i < Xprefs_max; i++) {
+			if (strcmp("/-prefs/ip/addr/0", Xprefs[i].command) == 0) {
+				sscanf(Xip_str, "%d.%d.%d.%d",	&Xprefs[i].value.ii,
+												&Xprefs[i+1].value.ii,
+												&Xprefs[i+2].value.ii,
+												&Xprefs[i+3].value.ii);
+				break;
+			}
+		}
+	}
+	// Wait for messages from client, with non blocking socket
 	timeout.tv_sec = 0;
 	timeout.tv_usec = 10000; //Set timeout for non blocking recvfrom(): 10ms
-//
-// Wait for messages from client
-	i = 0;
-	r_len = 0;
-	printf("X32 - v0.74 - An X32 Emulator - (c)2014-2017 Patrick-Gilles Maillot\n");
-	getmyIP(); // Try to get our IP...
-//	printf("Xport=%s\n",Xport_str); //
-	if (Xverbose) printf("Listening to port: %s, X32 IP = %s\n", Xport_str, Xip_str);
 	while (keep_on) { // Main, receiving loop (active as long as keep_on is 1)
 		whoto = 0;
 		FD_ZERO(&readfds);
@@ -1028,17 +1092,6 @@ void getmyIP() {
 	if (!gethostname(r_buf, 256) && (host = gethostbyname(r_buf)) != NULL) {
 		for (pp = host->h_addr_list; *pp != NULL; pp++) {
 			strcpy(Xip_str, (inet_ntoa(*(struct in_addr *) *pp))); // copy IP (string) address to r_buf
-			// set IP address in local structure
-			// search for /-prefs/ip/addr dataset
-			for (i = 0; i < Xprefs_max; i++) {
-				if (strcmp("/-prefs/ip/addr/0", Xprefs[i].command) == 0) {
-					Xprefs[i++].value.ii = (int) ((struct in_addr *) *pp)->S_un.S_un_b.s_b1;
-					Xprefs[i++].value.ii = (int) ((struct in_addr *) *pp)->S_un.S_un_b.s_b2;
-					Xprefs[i++].value.ii = (int) ((struct in_addr *) *pp)->S_un.S_un_b.s_b3;
-					Xprefs[i++].value.ii = (int) ((struct in_addr *) *pp)->S_un.S_un_b.s_b4;
-					return;
-				}
-			}
 			return;
 		}
 	}
@@ -5360,8 +5413,7 @@ int X32Init() {
 	X32command* Xarray;
 	FILE *X32File;
 //
-	if ((X32File = fopen(".X32res.rc", "r")) == NULL)
-		return 0;
+	if ((X32File = fopen(".X32res.rc", "r")) == NULL) return 1;
 	printf("Reading init file...");
 	fflush(stdout);
 // read file init values for all data
