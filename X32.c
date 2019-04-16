@@ -23,6 +23,7 @@
 // 0.72: bug fixes
 // 0.73: better handling of float comaparisons (using EPSILON)
 // 0.74: new functions /-libs, bug fixes
+// 0.75: new f-i flag to select IP address and changes in the way the bind() is done
 //
 #ifdef __WIN32__
 #include <windows.h>
