@@ -56,6 +56,7 @@
  *	ver. 0.36: fixed a missing init value for the destination directory (command line version only)
  *	ver. 0.37: added a flag to prepend numbering before channel names automatically; can help in getting
  *	           recorded channels in the correct order
+  *	ver. 0.38: Scene empty names are set to Xlive_Wav_xx.wav vs. "".wav
  *
  */
 
@@ -294,7 +295,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.37 - ©2018 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.38 - ©2018 - Patrick-Gilles Maillot"));
 
 		DeleteObject(htmp);
 		DeleteObject(hfont);
@@ -448,8 +449,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 					} else {
 						// create and assign default channel names
 						for (i = 0; i < nbchans; i++) {
-							sprintf(str1, "Xlive_Wav_%d", i + 1);
-							strcpy(ChNamTable + i * NAMSIZ, str1);
+							sprintf(ChNamTable + i * NAMSIZ, "Xlive_Wav_%d", i + 1);
 						}
 					}
 				}
@@ -679,7 +679,7 @@ int main(int argc, char **argv) {
 				break;
 			default:
 			case 'h':
-				printf("X32Xlive_Wav - ver 0.37 - ©2018 - Patrick-Gilles Maillot\n\n");
+				printf("X32Xlive_Wav - ver 0.38 - ©2018 - Patrick-Gilles Maillot\n\n");
 				printf("usage: X32Xlive_wav [-d dir [./]: Mono wave files path]\n");
 				printf("                    [-m name []: Sets or Replaces Session name read from source]\n");
 				printf("                    [-n 1..32 [0]: number of channels to explode to mono wave files]\n");
@@ -769,7 +769,7 @@ int main(int argc, char **argv) {
 //
 int	SetNamesFromScene() {
 //
-int				i, j, k;
+int				i, j, k, l;
 char			line[MAXLR];
 char			*rs;
 FILE			*Sfile;
@@ -793,12 +793,21 @@ FILE			*Sfile;
 		// we're now pointing to the right item
 		// i.e. /ch/xx/config "sssss" d SS d
 		// extract the sssss portion of the line and save it at the right place
-		k = 15;
-		// limit string length to 12 chars (per X32 limits)
-		if ((j = strlen(line)) > 15 + 12) j = 15 + 12;
-		while ((k < j) && (line[k] != '"')) k++;
-		line[k] = 0;
-		strcpy(ChNamTable + i * NAMSIZ, line + 15);
+		// '15' is the starting position for the name string of the channel
+		// if the characters at index 15 and 16 are '"', this means the name is empty
+		if((line[15] == '"') && (line[16] == '"')) {
+			sprintf(ChNamTable + i * NAMSIZ, "Xlive_Wav_%d", i + 1);
+		} else {
+			// limit string length to 12 chars (per X32 limits)
+			k = 15;
+			if (line[k] == '"') k++;	// avoid leading '"' if there's one
+			l = k;
+			if ((j = strlen(line)) > l + 12) j = l + 12;
+			while ((l < j) && (line[l] != '"')) l++;
+			line[l] = 0;
+			strcpy(ChNamTable + i * NAMSIZ, line + k);
+		}
+
 	}
 	fclose (Sfile);
 	return 0;
@@ -847,7 +856,7 @@ FILE			*Sfile;
 	// create output files in directory Xdpath[]
 	for (i = 0; i < nbchans; i++) {
 		if (cnpre) {
-			sprintf(Xdpath + dlen, "%02d_", i);
+			sprintf(Xdpath + dlen, "%02d_", i+1);
 			strcpy(Xdpath + dlen + 3, ChNamTable + NAMSIZ * i);
 		} else {
 			strcpy(Xdpath + dlen, ChNamTable + NAMSIZ * i);
