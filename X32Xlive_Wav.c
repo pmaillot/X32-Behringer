@@ -686,8 +686,8 @@ int main(int argc, char **argv) {
 				printf("                    [-c 8/16/24/32 [24]: sample size]\n");
 				printf("                    [-s file []: optional scene file]\n");
 				printf("                    [-w #,name, [,]: ch. number ',' followed by respective wave file name]\n");
-				printf("                    Xlive! Session\n\n");
-				printf("                    [-p 0/1: prepends number in front of the channel name]\n");
+				printf("                    Xlive! Session\n");
+				printf("                    [-p 0/1 [0]: prepends number in front of the channel name]\n\n");
 				printf("       X32Xlive_wav will take into account all command-line parameter and run its\n");
 				printf("       'magic', generating mono-wave files from the XLive! session given as input.\n");
 				printf("       Sample size conversion may take place depending on the -c option.\n");
