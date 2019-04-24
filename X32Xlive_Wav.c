@@ -54,6 +54,8 @@
  *	ver. 0.34: bug fixes, added a "Reset" button
  *	ver. 0.35: fixes in command line version to enable default channel names and session name handling
  *	ver. 0.36: fixed a missing init value for the destination directory (command line version only)
+ *	ver. 0.37: added a flag to prepend numbering before channel names automatically; can help in getting
+ *	           recorded channels in the correct order
  *
  */
 
@@ -107,7 +109,7 @@ HINSTANCE		hInstance = 0;
 HWND			hwndCProg, hwndProg, hwndClean;
 HWND			hwndInDir, hwndOutDir, hwndSource, hwndDestin, hwndsample;
 HWND			hwndNbChan, hwndChannels, hwndSetCh, hwndGetCh, hwndChNum;
-HWND			hwndChName, hwndInScn, hwndScene, hwndSNSet, hwndSName;
+HWND			hwndChName, hwndInScn, hwndScene, hwndSNSet, hwndSName, hwndCnpre;
 HWND			hwndXplod;
 HFONT			hfont, htmp;
 HDC				hdc, hdcMem;
@@ -118,7 +120,7 @@ MSG				wMsg;				// Windows msg event
 OPENFILENAME	ofn;       			// common dialog box structure
 BROWSEINFO 		bi;					// Windows Shell structure
 ITEMIDLIST 		*pidl;				// dir item list
-unsigned int		smplstep;			// progress bar update
+unsigned int	smplstep;			// progress bar update
 #endif
 //
 #define NLINES	6					// number of active lines of the window
@@ -138,6 +140,7 @@ int				chan_id;				// current channel number [1 to 32]
 int				sampsel;				// sample selection factor
 int				dlen, slen;				// string lengths used in exploding function
 int				cprog;					// Progress bar check-box status (default is 1/checked)
+int				cnpre;					// num prepend check-box status (default is 0/unchecked)
 char			str0[16];				// used for Windows strings conversions
 char			str1[MAX_PATH];			// used for Windows strings conversions
 char			Sname[32];				// keeps session name from log file
@@ -220,9 +223,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		SendMessage(hwndProg, PBM_SETRANGE, 0, MAKELPARAM(0, 80));
 		SendMessage(hwndProg, PBM_SETSTEP, (WPARAM)5, 0);
 
-		hwndXplod = CreateWindow("button", "Explode",
-				WS_VISIBLE | WS_CHILD, 432, 5*LINEHI-1, 109, 2*LINEHI-3, hwnd, (HMENU )1, NULL, NULL);
-
 		hwndClean = CreateWindow("button", "Reset",
 				WS_VISIBLE | WS_CHILD, 432, 4*LINEHI-1, 109, LINEHI-3, hwnd, (HMENU )10, NULL, NULL);
 
@@ -265,7 +265,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		hwndInScn = CreateWindow("button", "Scene File",
 				WS_VISIBLE | WS_CHILD, 128, 6*LINEHI, 75, 20, hwnd, (HMENU )8, NULL, NULL);
 		hwndScene = CreateWindow("Edit", NULL,
-				WS_CHILD | WS_VISIBLE | WS_BORDER, 208, 6*LINEHI, 220, 20, hwnd, (HMENU )0, NULL, NULL);
+				WS_CHILD | WS_VISIBLE | WS_BORDER, 208, 6*LINEHI, 170, 20, hwnd, (HMENU )0, NULL, NULL);
+		hwndCnpre = CreateWindowW(L"button", L"Num", BS_CHECKBOX | WS_VISIBLE | WS_CHILD,
+				380, 6*LINEHI, 74, 20, hwnd, (HMENU)11, NULL, NULL);
+
+		hwndXplod = CreateWindow("button", "Explode",
+				WS_VISIBLE | WS_CHILD, 432, 5*LINEHI-1, 109, 2*LINEHI-3, hwnd, (HMENU )1, NULL, NULL);
 
 		hBmp = (HBITMAP)LoadImage(NULL,(LPCTSTR)"./sdcard1.bmp", IMAGE_BITMAP, 0, 0,
 				LR_LOADFROMFILE|LR_SHARED);
@@ -289,7 +294,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.36 - ©2018 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.37 - ©2018 - Patrick-Gilles Maillot"));
 
 		DeleteObject(htmp);
 		DeleteObject(hfont);
@@ -495,10 +500,10 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				if (GetOpenFileName(&ofn)) {
 					// remove filename from returned path so we can either save to
 					// existing directory or newly created one
-					if ((i = strlen(Spath)) > 31) {
-						strncpy(str1, Spath, 11);
-						strcpy(str1 + 11, " ... ");
-						strcpy(str1 + 16, Spath + i - 17);
+					if ((i = strlen(Spath)) > 21) {
+						strncpy(str1, Spath, 8);
+						strcpy(str1 + 7, "...");
+						strcpy(str1 + 10, Spath + i - 16);
 					} else {
 						strcpy(str1, Spath);
 					}
@@ -532,6 +537,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				SetWindowText(hwndScene, (LPSTR)str1);
 				cprog = 1;
 				SendMessage(hwndCProg, BM_SETCHECK, cprog, 0);
+				cnpre = 0;
+				SendMessage(hwndCnpre, BM_SETCHECK, cnpre, 0);
+				break;
+			case 11:
+				cnpre ^= 1;
+				SendMessage(hwndCnpre, BM_SETCHECK, cnpre, 0);
 				break;
 			}
 		}
@@ -582,6 +593,7 @@ int main(int argc, char **argv) {
 	dlen = 2;				// string lengths for paths are global
 	slen = 0;				// so they can be reused in sequential calls to "Explode"
 	cprog = 1;				// progress bar 'on'
+	cnpre = 0;				// prepend number 'off'
 	SBIN = NULL;
 	//
 	zeromem(Spath, sizeof(Spath));
@@ -644,6 +656,9 @@ int main(int argc, char **argv) {
 					}
 				}
 				break;
+			cese 'p':
+				sscanf(optarg, "%d", &cnpre);
+				break;
 			case 'c':
 				if (strcmp(optarg, "8") == 0) sampsel = 1;
 				if (strcmp(optarg, "16") == 0) sampsel = 2;
@@ -664,7 +679,7 @@ int main(int argc, char **argv) {
 				break;
 			default:
 			case 'h':
-				printf("X32Xlive_Wav - ver 0.36 - ©2018 - Patrick-Gilles Maillot\n\n");
+				printf("X32Xlive_Wav - ver 0.37 - ©2018 - Patrick-Gilles Maillot\n\n");
 				printf("usage: X32Xlive_wav [-d dir [./]: Mono wave files path]\n");
 				printf("                    [-m name []: Sets or Replaces Session name read from source]\n");
 				printf("                    [-n 1..32 [0]: number of channels to explode to mono wave files]\n");
@@ -672,6 +687,7 @@ int main(int argc, char **argv) {
 				printf("                    [-s file []: optional scene file]\n");
 				printf("                    [-w #,name, [,]: ch. number ',' followed by respective wave file name]\n");
 				printf("                    Xlive! Session\n\n");
+				prinft("                    [-p 0/1: prepends number in front of the channel name]\n");
 				printf("       X32Xlive_wav will take into account all command-line parameter and run its\n");
 				printf("       'magic', generating mono-wave files from the XLive! session given as input.\n");
 				printf("       Sample size conversion may take place depending on the -c option.\n");
@@ -830,7 +846,12 @@ FILE			*Sfile;
 	wheader.Dbytes  = 0;				// updated at the end of the process
 	// create output files in directory Xdpath[]
 	for (i = 0; i < nbchans; i++) {
-		strcpy(Xdpath + dlen, ChNamTable + NAMSIZ * i);
+		if (cnpre) {
+			sprintf(Xdpath + dlen, "%02d_", i);
+			strcpy(Xdpath + dlen + 3, ChNamTable + NAMSIZ * i);
+		} else {
+			strcpy(Xdpath + dlen, ChNamTable + NAMSIZ * i);
+		}
 		strcpy(Xdpath + strlen(Xdpath), ".wav");
 		if ((Wfile[i] = fopen(Xdpath, "wb")) == NULL) {
 			MESSAGE(Xdpath, "Error creating File");
