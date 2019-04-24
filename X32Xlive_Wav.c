@@ -656,7 +656,7 @@ int main(int argc, char **argv) {
 					}
 				}
 				break;
-			cese 'p':
+			case 'p':
 				sscanf(optarg, "%d", &cnpre);
 				break;
 			case 'c':
@@ -687,7 +687,7 @@ int main(int argc, char **argv) {
 				printf("                    [-s file []: optional scene file]\n");
 				printf("                    [-w #,name, [,]: ch. number ',' followed by respective wave file name]\n");
 				printf("                    Xlive! Session\n\n");
-				prinft("                    [-p 0/1: prepends number in front of the channel name]\n");
+				printf("                    [-p 0/1: prepends number in front of the channel name]\n");
 				printf("       X32Xlive_wav will take into account all command-line parameter and run its\n");
 				printf("       'magic', generating mono-wave files from the XLive! session given as input.\n");
 				printf("       Sample size conversion may take place depending on the -c option.\n");
