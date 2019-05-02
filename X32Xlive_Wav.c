@@ -58,6 +58,7 @@
  *	           recorded channels in the correct order
  *	ver. 0.38: Scene empty names are set to Xlive_Wav_xx.wav vs. "".wav
  *	ver. 0.39: Take source # into account when filling names from scene, reorganized control pannel
+ *	ver. 0.40: Take source # as index vs. ch number when filling names from scene file
  */
 
 #include <stdio.h>
@@ -297,7 +298,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.39 - ©2018 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.40 - ©2018 - Patrick-Gilles Maillot"));
 
 		DeleteObject(htmp);
 		DeleteObject(hfont);
@@ -712,7 +713,7 @@ int main(int argc, char **argv) {
 				break;
 			default:
 			case 'h':
-				printf("X32Xlive_Wav - ver 0.39 - ©2018 - Patrick-Gilles Maillot\n\n");
+				printf("X32Xlive_Wav - ver 0.40 - ©2018 - Patrick-Gilles Maillot\n\n");
 				printf("usage: X32Xlive_wav [-d dir [./]: Mono wave files path]\n");
 				printf("                    [-m name []: Sets or Replaces Session name read from source]\n");
 				printf("                    [-n 1..32 [0]: number of channels to explode to mono wave files]\n");
@@ -901,7 +902,7 @@ FILE			*Sfile;
 			}
 			if (j == nbchans) j = i;	// force j to i value if no source occurrence found
 			if (cnpre) {
-				sprintf(Xdpath + dlen, "%02d_", i+1);
+				sprintf(Xdpath + dlen, "%02d_", j+1);
 				strcpy(Xdpath + dlen + 3, ChNamTable + NAMSIZ * j);
 			} else {
 				strcpy(Xdpath + dlen, ChNamTable + NAMSIZ * j);
