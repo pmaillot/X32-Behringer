@@ -8,7 +8,7 @@
 #ifndef X32PREFSTAT_H_
 #define X32PREFSTAT_H_
 
-
+#define X32NAME 23			// the position/index of /-prefs/name
 
 X32command Xprefs[] = {
 		{"/-prefs",							{PREFS}, F_FND, {0}, NULL},
