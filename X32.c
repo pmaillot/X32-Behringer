@@ -24,6 +24,7 @@
 // 0.73: better handling of float comaparisons (using EPSILON)
 // 0.74: new functions /-libs, bug fixes
 // 0.75: new f-i flag to select IP address and changes in the way the bind() is done
+// 0.76: /-prefs/name correctly updates the name of the console (in /info and /status)
 //
 #ifdef __WIN32__
 #include <windows.h>
@@ -920,7 +921,7 @@ int main(int argc, char **argv) {
 #endif
 //
 	r_len = 0;
-	printf("X32 - v0.75 - An X32 Emulator - (c)2014-2017 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.76 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
 	//
 	// Get or use IP address
 	if (noIP) {
@@ -2964,7 +2965,8 @@ int function_info() {
 	s_len = Xsprint(s_buf, 0, 's', "/info");
 	s_len = Xsprint(s_buf, s_len, 's', ",ssss");
 	s_len = Xsprint(s_buf, s_len, 's', "V2.07");
-	s_len = Xsprint(s_buf, s_len, 's', "X32-02-4A-53");
+	if (Xprefs[X32NAME].value.str) s_len = Xsprint(s_buf, s_len, 's', Xprefs[X32NAME].value.str);
+	else                           s_len = Xsprint(s_buf, s_len, 's', "X32 Emulator");
 	s_len = Xsprint(s_buf, s_len, 's', "X32");
 	s_len = Xsprint(s_buf, s_len, 's', XVERSION);
 	return S_SND; // send reply only to requesting client
@@ -2976,7 +2978,8 @@ int function_xinfo() {
 	s_len = Xsprint(s_buf, 0, 's', "/xinfo");
 	s_len = Xsprint(s_buf, s_len, 's', ",ssss");
 	s_len = Xsprint(s_buf, s_len, 's', Xip_str);
-	s_len = Xsprint(s_buf, s_len, 's', "X32-02-4A-53");
+	if (Xprefs[X32NAME].value.str) s_len = Xsprint(s_buf, s_len, 's', Xprefs[X32NAME].value.str);
+	else                           s_len = Xsprint(s_buf, s_len, 's', "X32 Emulator");
 	s_len = Xsprint(s_buf, s_len, 's', "X32");
 	s_len = Xsprint(s_buf, s_len, 's', XVERSION);
 	return S_SND; // send reply only to requesting client
@@ -2991,7 +2994,8 @@ int function_status() {
 	s_len = Xsprint(s_buf, s_len, 's', ",sss");
 	s_len = Xsprint(s_buf, s_len, 's', "active");
 	s_len = Xsprint(s_buf, s_len, 's', Xip_str);
-	s_len = Xsprint(s_buf, s_len, 's', "X32-02-4A-53");
+	if (Xprefs[X32NAME].value.str) s_len = Xsprint(s_buf, s_len, 's', Xprefs[X32NAME].value.str);
+	else                           s_len = Xsprint(s_buf, s_len, 's', "X32 Emulator");
 	return S_SND; // send reply only to requesting client
 }
 
