@@ -27,7 +27,7 @@ DIRS := X32lib
 
 CFLAGS=-O0 -g3 -Wall $(addprefix -I,$(DIRS))
 LDFLAGS=$(addprefix -L,$(DIRS)) $(addprefix -l,$(LIBS))
-TARGETS=X32lib X32Reaper 
+TARGETS=X32lib X32Reaper X32Wav_Xlive
 
 
 all: 	dirs $(TARGETS)
@@ -39,6 +39,9 @@ X32Reaper: X32lib
 	$(CC) $(CFLAGS) -o $(BUILD)/$@ $@.c $(LDFLAGS)
 
 X32_Command: #X32lib
+	$(CC) $(CFLAGS) -o $(BUILD)/$@ $@.c $(LDFLAGS)
+
+X32Wav_Xlive: 
 	$(CC) $(CFLAGS) -o $(BUILD)/$@ $@.c $(LDFLAGS)
 
 $(DIRS):

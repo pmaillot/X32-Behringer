@@ -60,6 +60,7 @@
 #define min(a,b) 		\
 			(((a)<(b))?(a):(b))
 #endif
+#define NULLSTR ""
 //
 #define riff	0x66666972	// "riff"
 #define RIFF	0x46464952	// "RIFF"
@@ -300,7 +301,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 							fclose(Xout);
 						} else {
 							no_markers = 0;
-							MESSAGE("Can't find Markers File", NULL);
+							MESSAGE("Can't find Markers File", NULLSTR);
 						}
 					}
 					marker_vec[no_markers] = 0.0;	// the last marker must be 0.0
@@ -310,7 +311,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 						sprintf(str1, "Elapsed time: %dms", i);
 						MESSAGE(str1, "Done!");
 					} else {
-						MESSAGE("Something went wrong!", NULL);
+						MESSAGE("Something went wrong!", NULLSTR);
 					}
 				}
 				break;
@@ -443,7 +444,7 @@ int main(int argc, char **argv) {
 					fclose(Xout);
 				} else {
 					no_markers = 0;
-					MESSAGE(NULL, "Can't find Markers File");
+					MESSAGE(NULLSTR, "Can't find Markers File");
 				}
 				break;
 			case 'm':
@@ -489,7 +490,7 @@ int main(int argc, char **argv) {
 			sprintf(str1, "Elapsed time: %dms", i);
 			MESSAGE(str1, "Done!");
 		} else {
-			MESSAGE("Something went wrong!", NULL);
+			MESSAGE("Something went wrong!", NULLSTR);
 		}
 		return (i);
 	} else {
@@ -519,7 +520,7 @@ int	MergeWavFiles(int num_markers, float* markers) {
 		}
 	}
 	if (numb_chls == 0) {
-		MESSAGE("No wave files found!", NULL);
+		MESSAGE("No wave files found!", NULLSTR);
 		return -1;
 	}
 	if (last_chl != 0) {
@@ -568,7 +569,7 @@ int	MergeWavFiles(int num_markers, float* markers) {
 		fread(&Chunk, FOUR, 1, Xin[i]);					// Chunk: RIFF/riff?
 		if ((Chunk != RIFF) && (Chunk != riff)) {
 			sprintf(str1, "ch_%d.wav is not a Riff file!\n", i + 1);
-			MESSAGE(str1, NULL);
+			MESSAGE(str1, NULLSTR);
 			return -1;
 		}
 		fread(&file_size[i], FOUR, 1, Xin[i]);		// size
@@ -584,19 +585,19 @@ int	MergeWavFiles(int num_markers, float* markers) {
 				fread(&wav_format, TWO, 1, Xin[i]);		// wave format: PCM
 				if (wav_format != 1) {
 					sprintf(str1, "ch_%d.wav WAV format not supported!\n", i + 1);
-					MESSAGE(str1, NULL);
+					MESSAGE(str1, NULLSTR);
 					return -1;
 				}
 				fread(&wav_chs, TWO, 1, Xin[i]);		// # of channels
 				if (wav_chs != 1) {
 					sprintf(str1, "multichannels ch_%d.wav not supported\n", i + 1);
-					MESSAGE(str1, NULL);
+					MESSAGE(str1, NULLSTR);
 					return -1;
 				}
 				fread(&samp_rate, FOUR, 1, Xin[i]);		// sample rate
 				if ((samp_rate != 44100) && (samp_rate != 48000)) {
 					sprintf(str1, "ch_%d.wav WAV sample rate not supported!\n", i + 1);
-					MESSAGE(str1, NULL);
+					MESSAGE(str1, NULLSTR);
 					return -1;
 				}
 				wav_samp_rate[i] = samp_rate;
@@ -605,7 +606,7 @@ int	MergeWavFiles(int num_markers, float* markers) {
 				fread(&bits_per_samp, TWO, 1, Xin[i]);		// bits per sample
 				if (bits_per_samp != 24) {
 					sprintf(str1, "ch_%d.wav WAV bit resolution not supported!\n", i + 1);
-					MESSAGE(str1, NULL);
+					MESSAGE(str1, NULLSTR);
 					return -1;
 				}
 				k += (fmt_size + 8);						// evaluate data to skip
@@ -623,7 +624,7 @@ int	MergeWavFiles(int num_markers, float* markers) {
 				break;
 			default:
 				sprintf(str1, "ch_%d.wav is not a WAVE file!\n", i + 1);
-				MESSAGE(str1, NULL);
+				MESSAGE(str1, NULLSTR);
 				return -1;
 				break;
 			}
@@ -635,11 +636,11 @@ int	MergeWavFiles(int num_markers, float* markers) {
 	wheader.audio_samprate = wav_samp_rate[0];
 	for (i = 0; i < numb_chls; i++) {
 		if (data_size[i] != audio_len) {
-			MESSAGE("files are not the same length!\n", NULL);
+			MESSAGE("files are not the same length!\n", NULLSTR);
 			return -1;
 		}
 		if (wav_samp_rate[i] != wheader.audio_samprate) {
-			MESSAGE("files are not the same sample rate!\n", NULL);
+			MESSAGE("files are not the same sample rate!\n", NULLSTR);
 			return -1;
 		}
 	}
@@ -762,18 +763,18 @@ int	MergeWavFiles(int num_markers, float* markers) {
 					}
 					fclose(Xout);
 				} else {
-					MESSAGE("Cannot create session wav file!\n", NULL);
+					MESSAGE("Cannot create session wav file!\n", NULLSTR);
 				}
 			}
 			// All done hopefully without errors
 			ftime (&end);
 			k = (int)(1000.0 * (end.time - start.time) + (end.millitm - start.millitm));
 		} else {
-			MESSAGE("Cannot create session log file!\n", NULL);
+			MESSAGE("Cannot create session log file!\n", NULLSTR);
 			k = -1;
 		}
 	} else {
-		MESSAGE("Cannot create session directory!\n", NULL);
+		MESSAGE("Cannot create session directory!\n", NULLSTR);
 		k = -1;
 	}
 	//
