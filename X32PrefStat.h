@@ -36,7 +36,6 @@ X32command Xprefs[] = {
 		{"/-prefs/invertmutes",			{E32}, F_XET, {0}, Pinvmut},
 		{"/-prefs/name",				{S32}, F_XET, {0}, NULL},
 		{"/-prefs/rec_control",			{E32}, F_XET, {0}, Purrctl},
-		{"/-prefs/rec_control",			{E32}, F_XET, {0}, NULL},
 
 		{"/-prefs/remote",					{PIR}, F_FND, {0}, NULL},
 		{"/-prefs/remote/enable",		{E32}, F_XET, {0}, OffOn},
