@@ -100,6 +100,7 @@ X32command Xchannel01[] = {
 		{"/ch/01/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/01/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/01/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/01/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/01/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/01/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/01/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -108,6 +109,7 @@ X32command Xchannel01[] = {
 		{"/ch/01/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/01/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/01/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/01/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/01/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/01/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/01/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -116,6 +118,7 @@ X32command Xchannel01[] = {
 		{"/ch/01/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/01/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/01/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/01/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/01/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/01/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/01/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -124,6 +127,7 @@ X32command Xchannel01[] = {
 		{"/ch/01/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/01/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/01/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/01/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/01/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/01/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/01/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -132,6 +136,7 @@ X32command Xchannel01[] = {
 		{"/ch/01/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/01/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/01/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/01/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/01/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/01/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/01/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -140,6 +145,7 @@ X32command Xchannel01[] = {
 		{"/ch/01/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/01/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/01/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/01/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/01/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/01/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/01/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -148,6 +154,7 @@ X32command Xchannel01[] = {
 		{"/ch/01/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/01/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/01/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/01/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/01/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/01/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/01/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -156,6 +163,7 @@ X32command Xchannel01[] = {
 		{"/ch/01/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/01/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/01/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/01/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/01/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/01/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/01/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -167,7 +175,6 @@ int 	Xchannel01_max = sizeof(Xchannel01) / sizeof(X32command);
 
 
 X32command Xchannel02[] = {
-		{"/ch/02",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/02/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/02/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/02/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
@@ -256,6 +263,7 @@ X32command Xchannel02[] = {
 		{"/ch/02/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/02/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/02/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/02/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/02/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/02/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/02/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -264,6 +272,7 @@ X32command Xchannel02[] = {
 		{"/ch/02/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/02/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/02/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/02/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/02/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/02/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/02/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -272,6 +281,7 @@ X32command Xchannel02[] = {
 		{"/ch/02/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/02/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/02/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/02/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/02/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/02/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/02/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -280,6 +290,7 @@ X32command Xchannel02[] = {
 		{"/ch/02/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/02/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/02/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/02/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/02/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/02/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/02/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -288,6 +299,7 @@ X32command Xchannel02[] = {
 		{"/ch/02/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/02/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/02/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/02/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/02/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/02/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/02/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -296,6 +308,7 @@ X32command Xchannel02[] = {
 		{"/ch/02/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/02/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/02/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/02/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/02/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/02/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/02/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -304,6 +317,7 @@ X32command Xchannel02[] = {
 		{"/ch/02/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/02/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/02/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/02/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/02/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/02/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/02/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -312,6 +326,7 @@ X32command Xchannel02[] = {
 		{"/ch/02/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/02/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/02/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/02/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/02/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/02/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/02/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -323,7 +338,6 @@ int 	Xchannel02_max = sizeof(Xchannel02) / sizeof(X32command);
 
 
 X32command Xchannel03[] = {
-		{"/ch/03",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/03/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/03/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/03/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
@@ -412,6 +426,7 @@ X32command Xchannel03[] = {
 		{"/ch/03/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/03/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/03/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/03/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/03/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/03/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/03/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -420,6 +435,7 @@ X32command Xchannel03[] = {
 		{"/ch/03/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/03/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/03/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/03/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/03/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/03/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/03/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -428,6 +444,7 @@ X32command Xchannel03[] = {
 		{"/ch/03/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/03/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/03/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/03/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/03/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/03/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/03/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -436,6 +453,7 @@ X32command Xchannel03[] = {
 		{"/ch/03/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/03/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/03/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/03/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/03/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/03/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/03/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -444,6 +462,7 @@ X32command Xchannel03[] = {
 		{"/ch/03/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/03/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/03/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/03/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/03/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/03/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/03/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -452,6 +471,7 @@ X32command Xchannel03[] = {
 		{"/ch/03/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/03/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/03/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/03/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/03/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/03/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/03/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -460,6 +480,7 @@ X32command Xchannel03[] = {
 		{"/ch/03/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/03/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/03/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/03/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/03/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/03/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/03/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -468,6 +489,7 @@ X32command Xchannel03[] = {
 		{"/ch/03/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/03/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/03/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/03/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/03/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/03/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/03/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -479,11 +501,10 @@ int 	Xchannel03_max = sizeof(Xchannel03) / sizeof(X32command);
 
 
 X32command Xchannel04[] = {
-		{"/ch/04",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/04/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/04/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/04/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/04/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/04/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/04/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/04/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/04/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -499,7 +520,7 @@ X32command Xchannel04[] = {
 		{"/ch/04/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/04/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/04/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/04/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/04/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/04/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/04/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/04/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -512,11 +533,11 @@ X32command Xchannel04[] = {
 		{"/ch/04/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/04/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/04/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/04/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/04/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/04/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/04/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/04/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/04/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/04/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/04/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/04/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/04/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -526,13 +547,13 @@ X32command Xchannel04[] = {
 		{"/ch/04/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/04/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/04/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/04/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/04/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/04/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/04/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/04/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/04/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/04/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/04/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/04/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/04/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/04/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/04/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -568,6 +589,7 @@ X32command Xchannel04[] = {
 		{"/ch/04/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/04/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/04/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/04/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/04/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/04/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/04/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -576,6 +598,7 @@ X32command Xchannel04[] = {
 		{"/ch/04/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/04/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/04/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/04/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/04/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/04/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/04/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -584,6 +607,7 @@ X32command Xchannel04[] = {
 		{"/ch/04/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/04/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/04/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/04/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/04/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/04/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/04/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -592,6 +616,7 @@ X32command Xchannel04[] = {
 		{"/ch/04/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/04/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/04/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/04/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/04/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/04/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/04/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -600,6 +625,7 @@ X32command Xchannel04[] = {
 		{"/ch/04/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/04/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/04/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/04/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/04/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/04/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/04/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -608,6 +634,7 @@ X32command Xchannel04[] = {
 		{"/ch/04/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/04/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/04/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/04/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/04/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/04/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/04/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -616,6 +643,7 @@ X32command Xchannel04[] = {
 		{"/ch/04/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/04/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/04/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/04/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/04/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/04/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/04/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -624,6 +652,7 @@ X32command Xchannel04[] = {
 		{"/ch/04/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/04/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/04/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/04/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/04/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/04/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/04/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -635,11 +664,10 @@ int 	Xchannel04_max = sizeof(Xchannel04) / sizeof(X32command);
 
 
 X32command Xchannel05[] = {
-		{"/ch/05",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/05/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/05/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/05/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/05/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/05/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/05/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/05/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/05/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -655,7 +683,7 @@ X32command Xchannel05[] = {
 		{"/ch/05/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/05/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/05/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/05/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/05/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/05/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/05/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/05/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -668,11 +696,11 @@ X32command Xchannel05[] = {
 		{"/ch/05/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/05/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/05/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/05/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/05/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/05/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/05/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/05/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/05/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/05/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/05/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/05/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/05/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -682,13 +710,13 @@ X32command Xchannel05[] = {
 		{"/ch/05/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/05/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/05/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/05/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/05/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/05/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/05/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/05/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/05/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/05/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/05/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/05/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/05/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/05/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/05/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -724,6 +752,7 @@ X32command Xchannel05[] = {
 		{"/ch/05/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/05/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/05/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/05/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/05/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/05/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/05/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -732,6 +761,7 @@ X32command Xchannel05[] = {
 		{"/ch/05/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/05/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/05/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/05/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/05/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/05/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/05/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -740,6 +770,7 @@ X32command Xchannel05[] = {
 		{"/ch/05/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/05/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/05/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/05/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/05/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/05/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/05/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -748,6 +779,7 @@ X32command Xchannel05[] = {
 		{"/ch/05/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/05/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/05/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/05/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/05/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/05/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/05/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -756,6 +788,7 @@ X32command Xchannel05[] = {
 		{"/ch/05/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/05/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/05/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/05/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/05/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/05/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/05/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -764,6 +797,7 @@ X32command Xchannel05[] = {
 		{"/ch/05/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/05/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/05/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/05/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/05/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/05/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/05/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -772,6 +806,7 @@ X32command Xchannel05[] = {
 		{"/ch/05/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/05/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/05/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/05/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/05/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/05/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/05/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -780,6 +815,7 @@ X32command Xchannel05[] = {
 		{"/ch/05/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/05/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/05/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/05/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/05/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/05/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/05/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -791,11 +827,10 @@ int 	Xchannel05_max = sizeof(Xchannel05) / sizeof(X32command);
 
 
 X32command Xchannel06[] = {
-		{"/ch/06",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/06/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/06/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/06/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/06/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/06/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/06/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/06/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/06/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -811,7 +846,7 @@ X32command Xchannel06[] = {
 		{"/ch/06/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/06/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/06/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/06/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/06/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/06/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/06/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/06/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -824,11 +859,11 @@ X32command Xchannel06[] = {
 		{"/ch/06/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/06/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/06/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/06/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/06/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/06/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/06/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/06/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/06/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/06/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/06/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/06/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/06/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -838,13 +873,13 @@ X32command Xchannel06[] = {
 		{"/ch/06/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/06/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/06/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/06/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/06/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/06/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/06/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/06/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/06/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/06/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/06/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/06/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/06/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/06/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/06/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -880,6 +915,7 @@ X32command Xchannel06[] = {
 		{"/ch/06/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/06/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/06/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/06/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/06/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/06/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/06/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -888,6 +924,7 @@ X32command Xchannel06[] = {
 		{"/ch/06/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/06/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/06/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/06/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/06/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/06/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/06/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -896,6 +933,7 @@ X32command Xchannel06[] = {
 		{"/ch/06/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/06/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/06/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/06/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/06/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/06/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/06/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -904,6 +942,7 @@ X32command Xchannel06[] = {
 		{"/ch/06/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/06/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/06/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/06/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/06/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/06/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/06/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -912,6 +951,7 @@ X32command Xchannel06[] = {
 		{"/ch/06/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/06/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/06/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/06/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/06/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/06/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/06/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -920,6 +960,7 @@ X32command Xchannel06[] = {
 		{"/ch/06/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/06/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/06/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/06/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/06/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/06/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/06/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -928,6 +969,7 @@ X32command Xchannel06[] = {
 		{"/ch/06/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/06/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/06/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/06/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/06/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/06/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/06/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -936,6 +978,7 @@ X32command Xchannel06[] = {
 		{"/ch/06/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/06/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/06/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/06/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/06/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/06/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/06/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -947,11 +990,10 @@ int 	Xchannel06_max = sizeof(Xchannel06) / sizeof(X32command);
 
 
 X32command Xchannel07[] = {
-		{"/ch/07",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/07/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/07/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/07/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/07/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/07/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/07/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/07/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/07/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -967,7 +1009,7 @@ X32command Xchannel07[] = {
 		{"/ch/07/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/07/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/07/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/07/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/07/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/07/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/07/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/07/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -980,11 +1022,11 @@ X32command Xchannel07[] = {
 		{"/ch/07/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/07/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/07/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/07/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/07/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/07/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/07/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/07/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/07/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/07/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/07/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/07/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/07/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -994,13 +1036,13 @@ X32command Xchannel07[] = {
 		{"/ch/07/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/07/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/07/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/07/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/07/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/07/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/07/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/07/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/07/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/07/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/07/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/07/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/07/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/07/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/07/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -1036,6 +1078,7 @@ X32command Xchannel07[] = {
 		{"/ch/07/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/07/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/07/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/07/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/07/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/07/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/07/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -1044,6 +1087,7 @@ X32command Xchannel07[] = {
 		{"/ch/07/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/07/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/07/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/07/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/07/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/07/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/07/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -1052,6 +1096,7 @@ X32command Xchannel07[] = {
 		{"/ch/07/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/07/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/07/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/07/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/07/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/07/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/07/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -1060,6 +1105,7 @@ X32command Xchannel07[] = {
 		{"/ch/07/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/07/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/07/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/07/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/07/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/07/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/07/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -1068,6 +1114,7 @@ X32command Xchannel07[] = {
 		{"/ch/07/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/07/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/07/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/07/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/07/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/07/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/07/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -1076,6 +1123,7 @@ X32command Xchannel07[] = {
 		{"/ch/07/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/07/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/07/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/07/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/07/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/07/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/07/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -1084,6 +1132,7 @@ X32command Xchannel07[] = {
 		{"/ch/07/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/07/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/07/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/07/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/07/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/07/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/07/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -1092,6 +1141,7 @@ X32command Xchannel07[] = {
 		{"/ch/07/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/07/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/07/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/07/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/07/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/07/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/07/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -1103,11 +1153,10 @@ int 	Xchannel07_max = sizeof(Xchannel07) / sizeof(X32command);
 
 
 X32command Xchannel08[] = {
-		{"/ch/08",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/08/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/08/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/08/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/08/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/08/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/08/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/08/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/08/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -1123,7 +1172,7 @@ X32command Xchannel08[] = {
 		{"/ch/08/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/08/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/08/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/08/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/08/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/08/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/08/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/08/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -1136,11 +1185,11 @@ X32command Xchannel08[] = {
 		{"/ch/08/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/08/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/08/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/08/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/08/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/08/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/08/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/08/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/08/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/08/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/08/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/08/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/08/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -1150,13 +1199,13 @@ X32command Xchannel08[] = {
 		{"/ch/08/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/08/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/08/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/08/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/08/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/08/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/08/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/08/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/08/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/08/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/08/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/08/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/08/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/08/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/08/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -1192,6 +1241,7 @@ X32command Xchannel08[] = {
 		{"/ch/08/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/08/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/08/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/08/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/08/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/08/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/08/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -1200,6 +1250,7 @@ X32command Xchannel08[] = {
 		{"/ch/08/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/08/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/08/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/08/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/08/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/08/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/08/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -1208,6 +1259,7 @@ X32command Xchannel08[] = {
 		{"/ch/08/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/08/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/08/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/08/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/08/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/08/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/08/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -1216,6 +1268,7 @@ X32command Xchannel08[] = {
 		{"/ch/08/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/08/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/08/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/08/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/08/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/08/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/08/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -1224,6 +1277,7 @@ X32command Xchannel08[] = {
 		{"/ch/08/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/08/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/08/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/08/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/08/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/08/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/08/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -1232,6 +1286,7 @@ X32command Xchannel08[] = {
 		{"/ch/08/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/08/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/08/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/08/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/08/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/08/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/08/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -1240,6 +1295,7 @@ X32command Xchannel08[] = {
 		{"/ch/08/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/08/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/08/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/08/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/08/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/08/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/08/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -1248,6 +1304,7 @@ X32command Xchannel08[] = {
 		{"/ch/08/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/08/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/08/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/08/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/08/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/08/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/08/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -1259,11 +1316,10 @@ int 	Xchannel08_max = sizeof(Xchannel08) / sizeof(X32command);
 
 
 X32command Xchannel09[] = {
-		{"/ch/09",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/09/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/09/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/09/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/09/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/09/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/09/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/09/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/09/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -1279,7 +1335,7 @@ X32command Xchannel09[] = {
 		{"/ch/09/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/09/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/09/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/09/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/09/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/09/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/09/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/09/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -1292,11 +1348,11 @@ X32command Xchannel09[] = {
 		{"/ch/09/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/09/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/09/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/09/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/09/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/09/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/09/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/09/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/09/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/09/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/09/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/09/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/09/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -1306,13 +1362,13 @@ X32command Xchannel09[] = {
 		{"/ch/09/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/09/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/09/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/09/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/09/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/09/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/09/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/09/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/09/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/09/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/09/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/09/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/09/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/09/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/09/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -1348,6 +1404,7 @@ X32command Xchannel09[] = {
 		{"/ch/09/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/09/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/09/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/09/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/09/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/09/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/09/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -1356,6 +1413,7 @@ X32command Xchannel09[] = {
 		{"/ch/09/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/09/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/09/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/09/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/09/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/09/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/09/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -1364,6 +1422,7 @@ X32command Xchannel09[] = {
 		{"/ch/09/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/09/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/09/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/09/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/09/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/09/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/09/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -1372,6 +1431,7 @@ X32command Xchannel09[] = {
 		{"/ch/09/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/09/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/09/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/09/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/09/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/09/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/09/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -1380,6 +1440,7 @@ X32command Xchannel09[] = {
 		{"/ch/09/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/09/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/09/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/09/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/09/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/09/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/09/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -1388,6 +1449,7 @@ X32command Xchannel09[] = {
 		{"/ch/09/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/09/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/09/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/09/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/09/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/09/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/09/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -1396,6 +1458,7 @@ X32command Xchannel09[] = {
 		{"/ch/09/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/09/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/09/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/09/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/09/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/09/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/09/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -1404,6 +1467,7 @@ X32command Xchannel09[] = {
 		{"/ch/09/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/09/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/09/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/09/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/09/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/09/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/09/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -1415,11 +1479,10 @@ int 	Xchannel09_max = sizeof(Xchannel09) / sizeof(X32command);
 
 
 X32command Xchannel10[] = {
-		{"/ch/10",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/10/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/10/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/10/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/10/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/10/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/10/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/10/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/10/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -1435,7 +1498,7 @@ X32command Xchannel10[] = {
 		{"/ch/10/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/10/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/10/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/10/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/10/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/10/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/10/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/10/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -1448,11 +1511,11 @@ X32command Xchannel10[] = {
 		{"/ch/10/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/10/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/10/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/10/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/10/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/10/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/10/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/10/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/10/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/10/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/10/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/10/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/10/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -1462,13 +1525,13 @@ X32command Xchannel10[] = {
 		{"/ch/10/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/10/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/10/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/10/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/10/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/10/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/10/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/10/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/10/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/10/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/10/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/10/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/10/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/10/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/10/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -1504,6 +1567,7 @@ X32command Xchannel10[] = {
 		{"/ch/10/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/10/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/10/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/10/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/10/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/10/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/10/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -1512,6 +1576,7 @@ X32command Xchannel10[] = {
 		{"/ch/10/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/10/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/10/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/10/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/10/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/10/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/10/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -1520,6 +1585,7 @@ X32command Xchannel10[] = {
 		{"/ch/10/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/10/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/10/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/10/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/10/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/10/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/10/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -1528,6 +1594,7 @@ X32command Xchannel10[] = {
 		{"/ch/10/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/10/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/10/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/10/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/10/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/10/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/10/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -1536,6 +1603,7 @@ X32command Xchannel10[] = {
 		{"/ch/10/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/10/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/10/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/10/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/10/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/10/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/10/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -1544,6 +1612,7 @@ X32command Xchannel10[] = {
 		{"/ch/10/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/10/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/10/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/10/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/10/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/10/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/10/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -1552,6 +1621,7 @@ X32command Xchannel10[] = {
 		{"/ch/10/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/10/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/10/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/10/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/10/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/10/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/10/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -1560,6 +1630,7 @@ X32command Xchannel10[] = {
 		{"/ch/10/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/10/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/10/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/10/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/10/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/10/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/10/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -1571,11 +1642,10 @@ int 	Xchannel10_max = sizeof(Xchannel10) / sizeof(X32command);
 
 
 X32command Xchannel11[] = {
-		{"/ch/11",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/11/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/11/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/11/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/11/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/11/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/11/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/11/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/11/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -1591,7 +1661,7 @@ X32command Xchannel11[] = {
 		{"/ch/11/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/11/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/11/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/11/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/11/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/11/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/11/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/11/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -1604,11 +1674,11 @@ X32command Xchannel11[] = {
 		{"/ch/11/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/11/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/11/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/11/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/11/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/11/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/11/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/11/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/11/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/11/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/11/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/11/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/11/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -1618,13 +1688,13 @@ X32command Xchannel11[] = {
 		{"/ch/11/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/11/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/11/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/11/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/11/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/11/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/11/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/11/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/11/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/11/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/11/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/11/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/11/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/11/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/11/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -1660,6 +1730,7 @@ X32command Xchannel11[] = {
 		{"/ch/11/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/11/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/11/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/11/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/11/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/11/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/11/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -1668,6 +1739,7 @@ X32command Xchannel11[] = {
 		{"/ch/11/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/11/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/11/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/11/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/11/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/11/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/11/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -1676,6 +1748,7 @@ X32command Xchannel11[] = {
 		{"/ch/11/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/11/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/11/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/11/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/11/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/11/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/11/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -1684,6 +1757,7 @@ X32command Xchannel11[] = {
 		{"/ch/11/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/11/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/11/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/11/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/11/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/11/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/11/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -1692,6 +1766,7 @@ X32command Xchannel11[] = {
 		{"/ch/11/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/11/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/11/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/11/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/11/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/11/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/11/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -1700,6 +1775,7 @@ X32command Xchannel11[] = {
 		{"/ch/11/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/11/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/11/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/11/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/11/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/11/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/11/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -1708,6 +1784,7 @@ X32command Xchannel11[] = {
 		{"/ch/11/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/11/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/11/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/11/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/11/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/11/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/11/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -1716,6 +1793,7 @@ X32command Xchannel11[] = {
 		{"/ch/11/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/11/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/11/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/11/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/11/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/11/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/11/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -1727,11 +1805,10 @@ int 	Xchannel11_max = sizeof(Xchannel11) / sizeof(X32command);
 
 
 X32command Xchannel12[] = {
-		{"/ch/12",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/12/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/12/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/12/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/12/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/12/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/12/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/12/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/12/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -1747,7 +1824,7 @@ X32command Xchannel12[] = {
 		{"/ch/12/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/12/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/12/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/12/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/12/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/12/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/12/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/12/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -1760,11 +1837,11 @@ X32command Xchannel12[] = {
 		{"/ch/12/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/12/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/12/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/12/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/12/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/12/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/12/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/12/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/12/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/12/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/12/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/12/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/12/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -1774,13 +1851,13 @@ X32command Xchannel12[] = {
 		{"/ch/12/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/12/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/12/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/12/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/12/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/12/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/12/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/12/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/12/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/12/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/12/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/12/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/12/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/12/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/12/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -1816,6 +1893,7 @@ X32command Xchannel12[] = {
 		{"/ch/12/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/12/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/12/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/12/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/12/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/12/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/12/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -1824,6 +1902,7 @@ X32command Xchannel12[] = {
 		{"/ch/12/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/12/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/12/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/12/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/12/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/12/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/12/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -1832,6 +1911,7 @@ X32command Xchannel12[] = {
 		{"/ch/12/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/12/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/12/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/12/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/12/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/12/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/12/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -1840,6 +1920,7 @@ X32command Xchannel12[] = {
 		{"/ch/12/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/12/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/12/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/12/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/12/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/12/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/12/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -1848,6 +1929,7 @@ X32command Xchannel12[] = {
 		{"/ch/12/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/12/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/12/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/12/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/12/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/12/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/12/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -1856,6 +1938,7 @@ X32command Xchannel12[] = {
 		{"/ch/12/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/12/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/12/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/12/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/12/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/12/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/12/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -1864,6 +1947,7 @@ X32command Xchannel12[] = {
 		{"/ch/12/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/12/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/12/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/12/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/12/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/12/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/12/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -1872,6 +1956,7 @@ X32command Xchannel12[] = {
 		{"/ch/12/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/12/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/12/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/12/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/12/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/12/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/12/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -1883,11 +1968,10 @@ int 	Xchannel12_max = sizeof(Xchannel12) / sizeof(X32command);
 
 
 X32command Xchannel13[] = {
-		{"/ch/13",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/13/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/13/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/13/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/13/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/13/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/13/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/13/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/13/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -1903,7 +1987,7 @@ X32command Xchannel13[] = {
 		{"/ch/13/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/13/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/13/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/13/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/13/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/13/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/13/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/13/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -1916,11 +2000,11 @@ X32command Xchannel13[] = {
 		{"/ch/13/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/13/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/13/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/13/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/13/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/13/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/13/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/13/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/13/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/13/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/13/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/13/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/13/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -1930,13 +2014,13 @@ X32command Xchannel13[] = {
 		{"/ch/13/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/13/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/13/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/13/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/13/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/13/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/13/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/13/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/13/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/13/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/13/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/13/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/13/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/13/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/13/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -1972,6 +2056,7 @@ X32command Xchannel13[] = {
 		{"/ch/13/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/13/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/13/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/13/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/13/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/13/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/13/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -1980,6 +2065,7 @@ X32command Xchannel13[] = {
 		{"/ch/13/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/13/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/13/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/13/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/13/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/13/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/13/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -1988,6 +2074,7 @@ X32command Xchannel13[] = {
 		{"/ch/13/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/13/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/13/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/13/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/13/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/13/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/13/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -1996,6 +2083,7 @@ X32command Xchannel13[] = {
 		{"/ch/13/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/13/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/13/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/13/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/13/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/13/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/13/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -2004,6 +2092,7 @@ X32command Xchannel13[] = {
 		{"/ch/13/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/13/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/13/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/13/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/13/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/13/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/13/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -2012,6 +2101,7 @@ X32command Xchannel13[] = {
 		{"/ch/13/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/13/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/13/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/13/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/13/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/13/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/13/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -2020,6 +2110,7 @@ X32command Xchannel13[] = {
 		{"/ch/13/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/13/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/13/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/13/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/13/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/13/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/13/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -2028,6 +2119,7 @@ X32command Xchannel13[] = {
 		{"/ch/13/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/13/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/13/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/13/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/13/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/13/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/13/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -2039,11 +2131,10 @@ int 	Xchannel13_max = sizeof(Xchannel13) / sizeof(X32command);
 
 
 X32command Xchannel14[] = {
-		{"/ch/14",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/14/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/14/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/14/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/14/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/14/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/14/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/14/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/14/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -2059,7 +2150,7 @@ X32command Xchannel14[] = {
 		{"/ch/14/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/14/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/14/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/14/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/14/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/14/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/14/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/14/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -2072,11 +2163,11 @@ X32command Xchannel14[] = {
 		{"/ch/14/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/14/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/14/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/14/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/14/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/14/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/14/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/14/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/14/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/14/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/14/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/14/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/14/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -2086,13 +2177,13 @@ X32command Xchannel14[] = {
 		{"/ch/14/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/14/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/14/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/14/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/14/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/14/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/14/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/14/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/14/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/14/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/14/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/14/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/14/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/14/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/14/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -2128,6 +2219,7 @@ X32command Xchannel14[] = {
 		{"/ch/14/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/14/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/14/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/14/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/14/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/14/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/14/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -2136,6 +2228,7 @@ X32command Xchannel14[] = {
 		{"/ch/14/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/14/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/14/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/14/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/14/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/14/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/14/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -2144,6 +2237,7 @@ X32command Xchannel14[] = {
 		{"/ch/14/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/14/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/14/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/14/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/14/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/14/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/14/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -2152,6 +2246,7 @@ X32command Xchannel14[] = {
 		{"/ch/14/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/14/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/14/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/14/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/14/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/14/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/14/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -2160,6 +2255,7 @@ X32command Xchannel14[] = {
 		{"/ch/14/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/14/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/14/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/14/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/14/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/14/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/14/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -2168,6 +2264,7 @@ X32command Xchannel14[] = {
 		{"/ch/14/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/14/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/14/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/14/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/14/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/14/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/14/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -2176,6 +2273,7 @@ X32command Xchannel14[] = {
 		{"/ch/14/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/14/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/14/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/14/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/14/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/14/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/14/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -2184,6 +2282,7 @@ X32command Xchannel14[] = {
 		{"/ch/14/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/14/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/14/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/14/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/14/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/14/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/14/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -2195,11 +2294,10 @@ int 	Xchannel14_max = sizeof(Xchannel14) / sizeof(X32command);
 
 
 X32command Xchannel15[] = {
-		{"/ch/15",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/15/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/15/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/15/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/15/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/15/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/15/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/15/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/15/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -2215,7 +2313,7 @@ X32command Xchannel15[] = {
 		{"/ch/15/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/15/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/15/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/15/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/15/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/15/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/15/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/15/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -2228,11 +2326,11 @@ X32command Xchannel15[] = {
 		{"/ch/15/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/15/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/15/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/15/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/15/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/15/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/15/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/15/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/15/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/15/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/15/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/15/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/15/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -2242,13 +2340,13 @@ X32command Xchannel15[] = {
 		{"/ch/15/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/15/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/15/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/15/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/15/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/15/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/15/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/15/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/15/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/15/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/15/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/15/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/15/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/15/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/15/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -2284,6 +2382,7 @@ X32command Xchannel15[] = {
 		{"/ch/15/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/15/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/15/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/15/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/15/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/15/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/15/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -2292,6 +2391,7 @@ X32command Xchannel15[] = {
 		{"/ch/15/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/15/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/15/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/15/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/15/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/15/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/15/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -2300,6 +2400,7 @@ X32command Xchannel15[] = {
 		{"/ch/15/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/15/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/15/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/15/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/15/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/15/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/15/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -2308,6 +2409,7 @@ X32command Xchannel15[] = {
 		{"/ch/15/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/15/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/15/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/15/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/15/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/15/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/15/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -2316,6 +2418,7 @@ X32command Xchannel15[] = {
 		{"/ch/15/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/15/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/15/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/15/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/15/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/15/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/15/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -2324,6 +2427,7 @@ X32command Xchannel15[] = {
 		{"/ch/15/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/15/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/15/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/15/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/15/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/15/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/15/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -2332,6 +2436,7 @@ X32command Xchannel15[] = {
 		{"/ch/15/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/15/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/15/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/15/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/15/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/15/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/15/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -2340,6 +2445,7 @@ X32command Xchannel15[] = {
 		{"/ch/15/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/15/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/15/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/15/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/15/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/15/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/15/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -2351,11 +2457,10 @@ int 	Xchannel15_max = sizeof(Xchannel15) / sizeof(X32command);
 
 
 X32command Xchannel16[] = {
-		{"/ch/16",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/16/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/16/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/16/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/16/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/16/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/16/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/16/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/16/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -2371,7 +2476,7 @@ X32command Xchannel16[] = {
 		{"/ch/16/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/16/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/16/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/16/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/16/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/16/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/16/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/16/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -2384,11 +2489,11 @@ X32command Xchannel16[] = {
 		{"/ch/16/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/16/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/16/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/16/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/16/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/16/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/16/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/16/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/16/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/16/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/16/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/16/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/16/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -2398,13 +2503,13 @@ X32command Xchannel16[] = {
 		{"/ch/16/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/16/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/16/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/16/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/16/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/16/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/16/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/16/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/16/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/16/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/16/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/16/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/16/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/16/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/16/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -2440,6 +2545,7 @@ X32command Xchannel16[] = {
 		{"/ch/16/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/16/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/16/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/16/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/16/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/16/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/16/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -2448,6 +2554,7 @@ X32command Xchannel16[] = {
 		{"/ch/16/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/16/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/16/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/16/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/16/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/16/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/16/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -2456,6 +2563,7 @@ X32command Xchannel16[] = {
 		{"/ch/16/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/16/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/16/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/16/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/16/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/16/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/16/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -2464,6 +2572,7 @@ X32command Xchannel16[] = {
 		{"/ch/16/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/16/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/16/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/16/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/16/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/16/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/16/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -2472,6 +2581,7 @@ X32command Xchannel16[] = {
 		{"/ch/16/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/16/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/16/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/16/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/16/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/16/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/16/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -2480,6 +2590,7 @@ X32command Xchannel16[] = {
 		{"/ch/16/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/16/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/16/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/16/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/16/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/16/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/16/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -2488,6 +2599,7 @@ X32command Xchannel16[] = {
 		{"/ch/16/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/16/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/16/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/16/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/16/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/16/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/16/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -2496,6 +2608,7 @@ X32command Xchannel16[] = {
 		{"/ch/16/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/16/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/16/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/16/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/16/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/16/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/16/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -2507,11 +2620,10 @@ int 	Xchannel16_max = sizeof(Xchannel16) / sizeof(X32command);
 
 
 X32command Xchannel17[] = {
-		{"/ch/17",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/17/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/17/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/17/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/17/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/17/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/17/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/17/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/17/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -2527,7 +2639,7 @@ X32command Xchannel17[] = {
 		{"/ch/17/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/17/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/17/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/17/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/17/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/17/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/17/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/17/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -2540,11 +2652,11 @@ X32command Xchannel17[] = {
 		{"/ch/17/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/17/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/17/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/17/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/17/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/17/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/17/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/17/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/17/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/17/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/17/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/17/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/17/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -2554,13 +2666,13 @@ X32command Xchannel17[] = {
 		{"/ch/17/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/17/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/17/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/17/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/17/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/17/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/17/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/17/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/17/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/17/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/17/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/17/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/17/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/17/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/17/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -2596,6 +2708,7 @@ X32command Xchannel17[] = {
 		{"/ch/17/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/17/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/17/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/17/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/17/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/17/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/17/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -2604,6 +2717,7 @@ X32command Xchannel17[] = {
 		{"/ch/17/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/17/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/17/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/17/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/17/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/17/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/17/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -2612,6 +2726,7 @@ X32command Xchannel17[] = {
 		{"/ch/17/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/17/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/17/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/17/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/17/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/17/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/17/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -2620,6 +2735,7 @@ X32command Xchannel17[] = {
 		{"/ch/17/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/17/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/17/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/17/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/17/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/17/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/17/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -2628,6 +2744,7 @@ X32command Xchannel17[] = {
 		{"/ch/17/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/17/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/17/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/17/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/17/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/17/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/17/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -2636,6 +2753,7 @@ X32command Xchannel17[] = {
 		{"/ch/17/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/17/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/17/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/17/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/17/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/17/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/17/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -2644,6 +2762,7 @@ X32command Xchannel17[] = {
 		{"/ch/17/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/17/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/17/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/17/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/17/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/17/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/17/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -2652,6 +2771,7 @@ X32command Xchannel17[] = {
 		{"/ch/17/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/17/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/17/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/17/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/17/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/17/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/17/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -2663,11 +2783,10 @@ int 	Xchannel17_max = sizeof(Xchannel17) / sizeof(X32command);
 
 
 X32command Xchannel18[] = {
-		{"/ch/18",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/18/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/18/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/18/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/18/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/18/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/18/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/18/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/18/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -2683,7 +2802,7 @@ X32command Xchannel18[] = {
 		{"/ch/18/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/18/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/18/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/18/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/18/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/18/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/18/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/18/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -2696,11 +2815,11 @@ X32command Xchannel18[] = {
 		{"/ch/18/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/18/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/18/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/18/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/18/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/18/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/18/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/18/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/18/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/18/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/18/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/18/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/18/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -2710,13 +2829,13 @@ X32command Xchannel18[] = {
 		{"/ch/18/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/18/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/18/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/18/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/18/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/18/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/18/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/18/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/18/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/18/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/18/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/18/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/18/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/18/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/18/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -2752,6 +2871,7 @@ X32command Xchannel18[] = {
 		{"/ch/18/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/18/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/18/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/18/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/18/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/18/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/18/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -2760,6 +2880,7 @@ X32command Xchannel18[] = {
 		{"/ch/18/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/18/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/18/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/18/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/18/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/18/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/18/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -2768,6 +2889,7 @@ X32command Xchannel18[] = {
 		{"/ch/18/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/18/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/18/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/18/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/18/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/18/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/18/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -2776,6 +2898,7 @@ X32command Xchannel18[] = {
 		{"/ch/18/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/18/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/18/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/18/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/18/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/18/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/18/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -2784,6 +2907,7 @@ X32command Xchannel18[] = {
 		{"/ch/18/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/18/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/18/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/18/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/18/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/18/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/18/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -2792,6 +2916,7 @@ X32command Xchannel18[] = {
 		{"/ch/18/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/18/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/18/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/18/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/18/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/18/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/18/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -2800,6 +2925,7 @@ X32command Xchannel18[] = {
 		{"/ch/18/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/18/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/18/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/18/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/18/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/18/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/18/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -2808,6 +2934,7 @@ X32command Xchannel18[] = {
 		{"/ch/18/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/18/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/18/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/18/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/18/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/18/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/18/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -2819,11 +2946,10 @@ int 	Xchannel18_max = sizeof(Xchannel18) / sizeof(X32command);
 
 
 X32command Xchannel19[] = {
-		{"/ch/19",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/19/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/19/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/19/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/19/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/19/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/19/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/19/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/19/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -2839,7 +2965,7 @@ X32command Xchannel19[] = {
 		{"/ch/19/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/19/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/19/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/19/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/19/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/19/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/19/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/19/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -2852,11 +2978,11 @@ X32command Xchannel19[] = {
 		{"/ch/19/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/19/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/19/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/19/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/19/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/19/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/19/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/19/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/19/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/19/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/19/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/19/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/19/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -2866,13 +2992,13 @@ X32command Xchannel19[] = {
 		{"/ch/19/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/19/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/19/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/19/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/19/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/19/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/19/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/19/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/19/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/19/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/19/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/19/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/19/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/19/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/19/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -2908,6 +3034,7 @@ X32command Xchannel19[] = {
 		{"/ch/19/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/19/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/19/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/19/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/19/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/19/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/19/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -2916,6 +3043,7 @@ X32command Xchannel19[] = {
 		{"/ch/19/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/19/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/19/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/19/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/19/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/19/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/19/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -2924,6 +3052,7 @@ X32command Xchannel19[] = {
 		{"/ch/19/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/19/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/19/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/19/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/19/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/19/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/19/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -2932,6 +3061,7 @@ X32command Xchannel19[] = {
 		{"/ch/19/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/19/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/19/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/19/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/19/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/19/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/19/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -2940,6 +3070,7 @@ X32command Xchannel19[] = {
 		{"/ch/19/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/19/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/19/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/19/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/19/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/19/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/19/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -2948,6 +3079,7 @@ X32command Xchannel19[] = {
 		{"/ch/19/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/19/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/19/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/19/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/19/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/19/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/19/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -2956,6 +3088,7 @@ X32command Xchannel19[] = {
 		{"/ch/19/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/19/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/19/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/19/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/19/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/19/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/19/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -2964,6 +3097,7 @@ X32command Xchannel19[] = {
 		{"/ch/19/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/19/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/19/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/19/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/19/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/19/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/19/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -2975,11 +3109,10 @@ int 	Xchannel19_max = sizeof(Xchannel19) / sizeof(X32command);
 
 
 X32command Xchannel20[] = {
-		{"/ch/20",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/20/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/20/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/20/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/20/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/20/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/20/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/20/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/20/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -2995,7 +3128,7 @@ X32command Xchannel20[] = {
 		{"/ch/20/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/20/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/20/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/20/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/20/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/20/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/20/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/20/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -3008,11 +3141,11 @@ X32command Xchannel20[] = {
 		{"/ch/20/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/20/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/20/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/20/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/20/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/20/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/20/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/20/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/20/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/20/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/20/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/20/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/20/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -3022,13 +3155,13 @@ X32command Xchannel20[] = {
 		{"/ch/20/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/20/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/20/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/20/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/20/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/20/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/20/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/20/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/20/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/20/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/20/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/20/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/20/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/20/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/20/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -3064,6 +3197,7 @@ X32command Xchannel20[] = {
 		{"/ch/20/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/20/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/20/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/20/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/20/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/20/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/20/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -3072,6 +3206,7 @@ X32command Xchannel20[] = {
 		{"/ch/20/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/20/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/20/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/20/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/20/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/20/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/20/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -3080,6 +3215,7 @@ X32command Xchannel20[] = {
 		{"/ch/20/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/20/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/20/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/20/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/20/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/20/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/20/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -3088,6 +3224,7 @@ X32command Xchannel20[] = {
 		{"/ch/20/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/20/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/20/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/20/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/20/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/20/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/20/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -3096,6 +3233,7 @@ X32command Xchannel20[] = {
 		{"/ch/20/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/20/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/20/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/20/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/20/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/20/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/20/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -3104,6 +3242,7 @@ X32command Xchannel20[] = {
 		{"/ch/20/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/20/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/20/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/20/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/20/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/20/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/20/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -3112,6 +3251,7 @@ X32command Xchannel20[] = {
 		{"/ch/20/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/20/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/20/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/20/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/20/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/20/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/20/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -3120,6 +3260,7 @@ X32command Xchannel20[] = {
 		{"/ch/20/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/20/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/20/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/20/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/20/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/20/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/20/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -3131,11 +3272,10 @@ int 	Xchannel20_max = sizeof(Xchannel20) / sizeof(X32command);
 
 
 X32command Xchannel21[] = {
-		{"/ch/21",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/21/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/21/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/21/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/21/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/21/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/21/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/21/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/21/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -3151,7 +3291,7 @@ X32command Xchannel21[] = {
 		{"/ch/21/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/21/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/21/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/21/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/21/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/21/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/21/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/21/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -3164,11 +3304,11 @@ X32command Xchannel21[] = {
 		{"/ch/21/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/21/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/21/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/21/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/21/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/21/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/21/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/21/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/21/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/21/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/21/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/21/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/21/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -3178,13 +3318,13 @@ X32command Xchannel21[] = {
 		{"/ch/21/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/21/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/21/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/21/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/21/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/21/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/21/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/21/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/21/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/21/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/21/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/21/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/21/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/21/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/21/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -3220,6 +3360,7 @@ X32command Xchannel21[] = {
 		{"/ch/21/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/21/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/21/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/21/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/21/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/21/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/21/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -3228,6 +3369,7 @@ X32command Xchannel21[] = {
 		{"/ch/21/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/21/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/21/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/21/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/21/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/21/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/21/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -3236,6 +3378,7 @@ X32command Xchannel21[] = {
 		{"/ch/21/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/21/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/21/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/21/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/21/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/21/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/21/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -3244,6 +3387,7 @@ X32command Xchannel21[] = {
 		{"/ch/21/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/21/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/21/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/21/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/21/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/21/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/21/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -3252,6 +3396,7 @@ X32command Xchannel21[] = {
 		{"/ch/21/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/21/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/21/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/21/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/21/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/21/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/21/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -3260,6 +3405,7 @@ X32command Xchannel21[] = {
 		{"/ch/21/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/21/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/21/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/21/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/21/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/21/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/21/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -3268,6 +3414,7 @@ X32command Xchannel21[] = {
 		{"/ch/21/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/21/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/21/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/21/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/21/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/21/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/21/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -3276,6 +3423,7 @@ X32command Xchannel21[] = {
 		{"/ch/21/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/21/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/21/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/21/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/21/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/21/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/21/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -3287,11 +3435,10 @@ int 	Xchannel21_max = sizeof(Xchannel21) / sizeof(X32command);
 
 
 X32command Xchannel22[] = {
-		{"/ch/22",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/22/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/22/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/22/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/22/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/22/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/22/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/22/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/22/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -3307,7 +3454,7 @@ X32command Xchannel22[] = {
 		{"/ch/22/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/22/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/22/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/22/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/22/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/22/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/22/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/22/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -3320,11 +3467,11 @@ X32command Xchannel22[] = {
 		{"/ch/22/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/22/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/22/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/22/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/22/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/22/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/22/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/22/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/22/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/22/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/22/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/22/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/22/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -3334,13 +3481,13 @@ X32command Xchannel22[] = {
 		{"/ch/22/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/22/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/22/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/22/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/22/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/22/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/22/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/22/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/22/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/22/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/22/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/22/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/22/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/22/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/22/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -3376,6 +3523,7 @@ X32command Xchannel22[] = {
 		{"/ch/22/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/22/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/22/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/22/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/22/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/22/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/22/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -3384,6 +3532,7 @@ X32command Xchannel22[] = {
 		{"/ch/22/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/22/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/22/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/22/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/22/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/22/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/22/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -3392,6 +3541,7 @@ X32command Xchannel22[] = {
 		{"/ch/22/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/22/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/22/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/22/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/22/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/22/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/22/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -3400,6 +3550,7 @@ X32command Xchannel22[] = {
 		{"/ch/22/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/22/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/22/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/22/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/22/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/22/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/22/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -3408,6 +3559,7 @@ X32command Xchannel22[] = {
 		{"/ch/22/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/22/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/22/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/22/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/22/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/22/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/22/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -3416,6 +3568,7 @@ X32command Xchannel22[] = {
 		{"/ch/22/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/22/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/22/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/22/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/22/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/22/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/22/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -3424,6 +3577,7 @@ X32command Xchannel22[] = {
 		{"/ch/22/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/22/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/22/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/22/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/22/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/22/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/22/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -3432,6 +3586,7 @@ X32command Xchannel22[] = {
 		{"/ch/22/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/22/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/22/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/22/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/22/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/22/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/22/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -3443,11 +3598,10 @@ int 	Xchannel22_max = sizeof(Xchannel22) / sizeof(X32command);
 
 
 X32command Xchannel23[] = {
-		{"/ch/23",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/23/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/23/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/23/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/23/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/23/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/23/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/23/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/23/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -3463,7 +3617,7 @@ X32command Xchannel23[] = {
 		{"/ch/23/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/23/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/23/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/23/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/23/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/23/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/23/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/23/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -3476,11 +3630,11 @@ X32command Xchannel23[] = {
 		{"/ch/23/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/23/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/23/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/23/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/23/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/23/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/23/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/23/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/23/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/23/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/23/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/23/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/23/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -3490,13 +3644,13 @@ X32command Xchannel23[] = {
 		{"/ch/23/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/23/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/23/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/23/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/23/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/23/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/23/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/23/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/23/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/23/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/23/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/23/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/23/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/23/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/23/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -3532,6 +3686,7 @@ X32command Xchannel23[] = {
 		{"/ch/23/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/23/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/23/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/23/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/23/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/23/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/23/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -3540,6 +3695,7 @@ X32command Xchannel23[] = {
 		{"/ch/23/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/23/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/23/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/23/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/23/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/23/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/23/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -3548,6 +3704,7 @@ X32command Xchannel23[] = {
 		{"/ch/23/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/23/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/23/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/23/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/23/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/23/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/23/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -3556,6 +3713,7 @@ X32command Xchannel23[] = {
 		{"/ch/23/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/23/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/23/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/23/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/23/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/23/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/23/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -3564,6 +3722,7 @@ X32command Xchannel23[] = {
 		{"/ch/23/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/23/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/23/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/23/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/23/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/23/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/23/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -3572,6 +3731,7 @@ X32command Xchannel23[] = {
 		{"/ch/23/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/23/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/23/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/23/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/23/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/23/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/23/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -3580,6 +3740,7 @@ X32command Xchannel23[] = {
 		{"/ch/23/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/23/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/23/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/23/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/23/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/23/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/23/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -3588,6 +3749,7 @@ X32command Xchannel23[] = {
 		{"/ch/23/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/23/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/23/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/23/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/23/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/23/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/23/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -3599,11 +3761,10 @@ int 	Xchannel23_max = sizeof(Xchannel23) / sizeof(X32command);
 
 
 X32command Xchannel24[] = {
-		{"/ch/24",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/24/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/24/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/24/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/24/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/24/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/24/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/24/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/24/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -3619,7 +3780,7 @@ X32command Xchannel24[] = {
 		{"/ch/24/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/24/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/24/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/24/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/24/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/24/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/24/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/24/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -3632,11 +3793,11 @@ X32command Xchannel24[] = {
 		{"/ch/24/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/24/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/24/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/24/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/24/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/24/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/24/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/24/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/24/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/24/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/24/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/24/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/24/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -3646,13 +3807,13 @@ X32command Xchannel24[] = {
 		{"/ch/24/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/24/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/24/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/24/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/24/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/24/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/24/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/24/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/24/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/24/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/24/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/24/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/24/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/24/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/24/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -3688,6 +3849,7 @@ X32command Xchannel24[] = {
 		{"/ch/24/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/24/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/24/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/24/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/24/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/24/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/24/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -3696,6 +3858,7 @@ X32command Xchannel24[] = {
 		{"/ch/24/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/24/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/24/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/24/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/24/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/24/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/24/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -3704,6 +3867,7 @@ X32command Xchannel24[] = {
 		{"/ch/24/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/24/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/24/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/24/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/24/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/24/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/24/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -3712,6 +3876,7 @@ X32command Xchannel24[] = {
 		{"/ch/24/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/24/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/24/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/24/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/24/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/24/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/24/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -3720,6 +3885,7 @@ X32command Xchannel24[] = {
 		{"/ch/24/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/24/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/24/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/24/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/24/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/24/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/24/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -3728,6 +3894,7 @@ X32command Xchannel24[] = {
 		{"/ch/24/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/24/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/24/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/24/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/24/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/24/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/24/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -3736,6 +3903,7 @@ X32command Xchannel24[] = {
 		{"/ch/24/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/24/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/24/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/24/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/24/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/24/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/24/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -3744,6 +3912,7 @@ X32command Xchannel24[] = {
 		{"/ch/24/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/24/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/24/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/24/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/24/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/24/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/24/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -3755,11 +3924,10 @@ int 	Xchannel24_max = sizeof(Xchannel24) / sizeof(X32command);
 
 
 X32command Xchannel25[] = {
-		{"/ch/25",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/25/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/25/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/25/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/25/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/25/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/25/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/25/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/25/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -3775,7 +3943,7 @@ X32command Xchannel25[] = {
 		{"/ch/25/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/25/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/25/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/25/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/25/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/25/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/25/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/25/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -3788,11 +3956,11 @@ X32command Xchannel25[] = {
 		{"/ch/25/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/25/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/25/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/25/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/25/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/25/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/25/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/25/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/25/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/25/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/25/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/25/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/25/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -3802,13 +3970,13 @@ X32command Xchannel25[] = {
 		{"/ch/25/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/25/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/25/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/25/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/25/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/25/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/25/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/25/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/25/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/25/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/25/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/25/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/25/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/25/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/25/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -3844,6 +4012,7 @@ X32command Xchannel25[] = {
 		{"/ch/25/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/25/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/25/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/25/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/25/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/25/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/25/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -3852,6 +4021,7 @@ X32command Xchannel25[] = {
 		{"/ch/25/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/25/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/25/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/25/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/25/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/25/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/25/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -3860,6 +4030,7 @@ X32command Xchannel25[] = {
 		{"/ch/25/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/25/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/25/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/25/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/25/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/25/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/25/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -3868,6 +4039,7 @@ X32command Xchannel25[] = {
 		{"/ch/25/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/25/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/25/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/25/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/25/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/25/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/25/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -3876,6 +4048,7 @@ X32command Xchannel25[] = {
 		{"/ch/25/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/25/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/25/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/25/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/25/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/25/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/25/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -3884,6 +4057,7 @@ X32command Xchannel25[] = {
 		{"/ch/25/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/25/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/25/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/25/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/25/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/25/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/25/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -3892,6 +4066,7 @@ X32command Xchannel25[] = {
 		{"/ch/25/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/25/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/25/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/25/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/25/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/25/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/25/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -3900,6 +4075,7 @@ X32command Xchannel25[] = {
 		{"/ch/25/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/25/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/25/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/25/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/25/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/25/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/25/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -3911,11 +4087,10 @@ int 	Xchannel25_max = sizeof(Xchannel25) / sizeof(X32command);
 
 
 X32command Xchannel26[] = {
-		{"/ch/26",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/26/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/26/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/26/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/26/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/26/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/26/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/26/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/26/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -3931,7 +4106,7 @@ X32command Xchannel26[] = {
 		{"/ch/26/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/26/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/26/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/26/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/26/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/26/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/26/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/26/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -3944,11 +4119,11 @@ X32command Xchannel26[] = {
 		{"/ch/26/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/26/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/26/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/26/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/26/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/26/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/26/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/26/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/26/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/26/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/26/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/26/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/26/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -3958,13 +4133,13 @@ X32command Xchannel26[] = {
 		{"/ch/26/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/26/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/26/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/26/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/26/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/26/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/26/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/26/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/26/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/26/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/26/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/26/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/26/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/26/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/26/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -4000,6 +4175,7 @@ X32command Xchannel26[] = {
 		{"/ch/26/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/26/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/26/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/26/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/26/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/26/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/26/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -4008,6 +4184,7 @@ X32command Xchannel26[] = {
 		{"/ch/26/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/26/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/26/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/26/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/26/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/26/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/26/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -4016,6 +4193,7 @@ X32command Xchannel26[] = {
 		{"/ch/26/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/26/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/26/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/26/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/26/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/26/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/26/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -4024,6 +4202,7 @@ X32command Xchannel26[] = {
 		{"/ch/26/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/26/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/26/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/26/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/26/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/26/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/26/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -4032,6 +4211,7 @@ X32command Xchannel26[] = {
 		{"/ch/26/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/26/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/26/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/26/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/26/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/26/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/26/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -4040,6 +4220,7 @@ X32command Xchannel26[] = {
 		{"/ch/26/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/26/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/26/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/26/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/26/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/26/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/26/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -4048,6 +4229,7 @@ X32command Xchannel26[] = {
 		{"/ch/26/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/26/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/26/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/26/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/26/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/26/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/26/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -4056,6 +4238,7 @@ X32command Xchannel26[] = {
 		{"/ch/26/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/26/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/26/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/26/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/26/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/26/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/26/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -4067,11 +4250,10 @@ int 	Xchannel26_max = sizeof(Xchannel26) / sizeof(X32command);
 
 
 X32command Xchannel27[] = {
-		{"/ch/27",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/27/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/27/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/27/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/27/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/27/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/27/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/27/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/27/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -4087,7 +4269,7 @@ X32command Xchannel27[] = {
 		{"/ch/27/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/27/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/27/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/27/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/27/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/27/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/27/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/27/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -4100,11 +4282,11 @@ X32command Xchannel27[] = {
 		{"/ch/27/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/27/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/27/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/27/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/27/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/27/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/27/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/27/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/27/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/27/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/27/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/27/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/27/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -4114,13 +4296,13 @@ X32command Xchannel27[] = {
 		{"/ch/27/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/27/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/27/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/27/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/27/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/27/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/27/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/27/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/27/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/27/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/27/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/27/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/27/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/27/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/27/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -4156,6 +4338,7 @@ X32command Xchannel27[] = {
 		{"/ch/27/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/27/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/27/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/27/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/27/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/27/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/27/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -4164,6 +4347,7 @@ X32command Xchannel27[] = {
 		{"/ch/27/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/27/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/27/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/27/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/27/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/27/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/27/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -4172,6 +4356,7 @@ X32command Xchannel27[] = {
 		{"/ch/27/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/27/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/27/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/27/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/27/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/27/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/27/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -4180,6 +4365,7 @@ X32command Xchannel27[] = {
 		{"/ch/27/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/27/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/27/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/27/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/27/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/27/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/27/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -4188,6 +4374,7 @@ X32command Xchannel27[] = {
 		{"/ch/27/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/27/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/27/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/27/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/27/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/27/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/27/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -4196,6 +4383,7 @@ X32command Xchannel27[] = {
 		{"/ch/27/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/27/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/27/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/27/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/27/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/27/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/27/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -4204,6 +4392,7 @@ X32command Xchannel27[] = {
 		{"/ch/27/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/27/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/27/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/27/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/27/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/27/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/27/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -4212,6 +4401,7 @@ X32command Xchannel27[] = {
 		{"/ch/27/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/27/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/27/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/27/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/27/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/27/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/27/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -4223,11 +4413,10 @@ int 	Xchannel27_max = sizeof(Xchannel27) / sizeof(X32command);
 
 
 X32command Xchannel28[] = {
-		{"/ch/28",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/28/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/28/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/28/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/28/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/28/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/28/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/28/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/28/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -4243,7 +4432,7 @@ X32command Xchannel28[] = {
 		{"/ch/28/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/28/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/28/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/28/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/28/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/28/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/28/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/28/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -4256,11 +4445,11 @@ X32command Xchannel28[] = {
 		{"/ch/28/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/28/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/28/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/28/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/28/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/28/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/28/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/28/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/28/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/28/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/28/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/28/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/28/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -4270,13 +4459,13 @@ X32command Xchannel28[] = {
 		{"/ch/28/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/28/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/28/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/28/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/28/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/28/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/28/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/28/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/28/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/28/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/28/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/28/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/28/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/28/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/28/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -4312,6 +4501,7 @@ X32command Xchannel28[] = {
 		{"/ch/28/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/28/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/28/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/28/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/28/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/28/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/28/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -4320,6 +4510,7 @@ X32command Xchannel28[] = {
 		{"/ch/28/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/28/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/28/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/28/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/28/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/28/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/28/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -4328,6 +4519,7 @@ X32command Xchannel28[] = {
 		{"/ch/28/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/28/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/28/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/28/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/28/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/28/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/28/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -4336,6 +4528,7 @@ X32command Xchannel28[] = {
 		{"/ch/28/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/28/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/28/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/28/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/28/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/28/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/28/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -4344,6 +4537,7 @@ X32command Xchannel28[] = {
 		{"/ch/28/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/28/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/28/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/28/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/28/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/28/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/28/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -4352,6 +4546,7 @@ X32command Xchannel28[] = {
 		{"/ch/28/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/28/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/28/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/28/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/28/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/28/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/28/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -4360,6 +4555,7 @@ X32command Xchannel28[] = {
 		{"/ch/28/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/28/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/28/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/28/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/28/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/28/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/28/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -4368,6 +4564,7 @@ X32command Xchannel28[] = {
 		{"/ch/28/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/28/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/28/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/28/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/28/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/28/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/28/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -4379,11 +4576,10 @@ int 	Xchannel28_max = sizeof(Xchannel28) / sizeof(X32command);
 
 
 X32command Xchannel29[] = {
-		{"/ch/29",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/29/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/29/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/29/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/29/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/29/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/29/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/29/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/29/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -4399,7 +4595,7 @@ X32command Xchannel29[] = {
 		{"/ch/29/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/29/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/29/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/29/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/29/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/29/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/29/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/29/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -4412,11 +4608,11 @@ X32command Xchannel29[] = {
 		{"/ch/29/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/29/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/29/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/29/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/29/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/29/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/29/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/29/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/29/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/29/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/29/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/29/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/29/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -4426,13 +4622,13 @@ X32command Xchannel29[] = {
 		{"/ch/29/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/29/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/29/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/29/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/29/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/29/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/29/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/29/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/29/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/29/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/29/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/29/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/29/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/29/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/29/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -4468,6 +4664,7 @@ X32command Xchannel29[] = {
 		{"/ch/29/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/29/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/29/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/29/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/29/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/29/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/29/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -4476,6 +4673,7 @@ X32command Xchannel29[] = {
 		{"/ch/29/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/29/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/29/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/29/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/29/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/29/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/29/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -4484,6 +4682,7 @@ X32command Xchannel29[] = {
 		{"/ch/29/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/29/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/29/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/29/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/29/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/29/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/29/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -4492,6 +4691,7 @@ X32command Xchannel29[] = {
 		{"/ch/29/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/29/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/29/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/29/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/29/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/29/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/29/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -4500,6 +4700,7 @@ X32command Xchannel29[] = {
 		{"/ch/29/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/29/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/29/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/29/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/29/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/29/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/29/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -4508,6 +4709,7 @@ X32command Xchannel29[] = {
 		{"/ch/29/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/29/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/29/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/29/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/29/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/29/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/29/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -4516,6 +4718,7 @@ X32command Xchannel29[] = {
 		{"/ch/29/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/29/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/29/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/29/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/29/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/29/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/29/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -4524,6 +4727,7 @@ X32command Xchannel29[] = {
 		{"/ch/29/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/29/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/29/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/29/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/29/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/29/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/29/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -4535,11 +4739,10 @@ int 	Xchannel29_max = sizeof(Xchannel29) / sizeof(X32command);
 
 
 X32command Xchannel30[] = {
-		{"/ch/30",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/30/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/30/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/30/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/30/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/30/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/30/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/30/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/30/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -4555,7 +4758,7 @@ X32command Xchannel30[] = {
 		{"/ch/30/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/30/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/30/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/30/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/30/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/30/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/30/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/30/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -4568,11 +4771,11 @@ X32command Xchannel30[] = {
 		{"/ch/30/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/30/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/30/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/30/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/30/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/30/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/30/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/30/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/30/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/30/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/30/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/30/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/30/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -4582,13 +4785,13 @@ X32command Xchannel30[] = {
 		{"/ch/30/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/30/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/30/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/30/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/30/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/30/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/30/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/30/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/30/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/30/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/30/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/30/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/30/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/30/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/30/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -4624,6 +4827,7 @@ X32command Xchannel30[] = {
 		{"/ch/30/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/30/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/30/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/30/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/30/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/30/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/30/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -4632,6 +4836,7 @@ X32command Xchannel30[] = {
 		{"/ch/30/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/30/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/30/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/30/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/30/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/30/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/30/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -4640,6 +4845,7 @@ X32command Xchannel30[] = {
 		{"/ch/30/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/30/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/30/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/30/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/30/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/30/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/30/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -4648,6 +4854,7 @@ X32command Xchannel30[] = {
 		{"/ch/30/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/30/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/30/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/30/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/30/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/30/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/30/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -4656,6 +4863,7 @@ X32command Xchannel30[] = {
 		{"/ch/30/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/30/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/30/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/30/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/30/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/30/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/30/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -4664,6 +4872,7 @@ X32command Xchannel30[] = {
 		{"/ch/30/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/30/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/30/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/30/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/30/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/30/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/30/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -4672,6 +4881,7 @@ X32command Xchannel30[] = {
 		{"/ch/30/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/30/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/30/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/30/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/30/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/30/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/30/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -4680,6 +4890,7 @@ X32command Xchannel30[] = {
 		{"/ch/30/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/30/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/30/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/30/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/30/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/30/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/30/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -4691,11 +4902,10 @@ int 	Xchannel30_max = sizeof(Xchannel30) / sizeof(X32command);
 
 
 X32command Xchannel31[] = {
-		{"/ch/31",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/31/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/31/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/31/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/31/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/31/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/31/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/31/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/31/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -4711,7 +4921,7 @@ X32command Xchannel31[] = {
 		{"/ch/31/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/31/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/31/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/31/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/31/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/31/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/31/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/31/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -4724,11 +4934,11 @@ X32command Xchannel31[] = {
 		{"/ch/31/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/31/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/31/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/31/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/31/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/31/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/31/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/31/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/31/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/31/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/31/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/31/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/31/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -4738,13 +4948,13 @@ X32command Xchannel31[] = {
 		{"/ch/31/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/31/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/31/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/31/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/31/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/31/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/31/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/31/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/31/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/31/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/31/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/31/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/31/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/31/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/31/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -4780,6 +4990,7 @@ X32command Xchannel31[] = {
 		{"/ch/31/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/31/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/31/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/31/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/31/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/31/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/31/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -4788,6 +4999,7 @@ X32command Xchannel31[] = {
 		{"/ch/31/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/31/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/31/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/31/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/31/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/31/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/31/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -4796,6 +5008,7 @@ X32command Xchannel31[] = {
 		{"/ch/31/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/31/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/31/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/31/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/31/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/31/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/31/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -4804,6 +5017,7 @@ X32command Xchannel31[] = {
 		{"/ch/31/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/31/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/31/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/31/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/31/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/31/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/31/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -4812,6 +5026,7 @@ X32command Xchannel31[] = {
 		{"/ch/31/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/31/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/31/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/31/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/31/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/31/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/31/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -4820,6 +5035,7 @@ X32command Xchannel31[] = {
 		{"/ch/31/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/31/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/31/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/31/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/31/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/31/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/31/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -4828,6 +5044,7 @@ X32command Xchannel31[] = {
 		{"/ch/31/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/31/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/31/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/31/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/31/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/31/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/31/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -4836,6 +5053,7 @@ X32command Xchannel31[] = {
 		{"/ch/31/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/31/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/31/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/31/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/31/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/31/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/31/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
@@ -4847,11 +5065,10 @@ int 	Xchannel31_max = sizeof(Xchannel31) / sizeof(X32command);
 
 
 X32command Xchannel32[] = {
-		{"/ch/32",						{CHCO}, F_FND, {0}, NULL},
 		{"/ch/32/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/ch/32/config/name",		{S32}, F_XET, {0}, NULL},			// 1
 		{"/ch/32/config/icon",		{I32}, F_XET, {0}, NULL},			// 2
-		{"/ch/32/config/color",		{E32}, F_XET, {0}, Xcolors},			// 3
+		{"/ch/32/config/color",		{E32}, F_XET, {0}, Xcolors},		// 3
 		{"/ch/32/config/source",	{I32}, F_XET, {0}, NULL},			// 4
 		{"/ch/32/grp",					{CHGRP}, F_FND, {0}, NULL},
 		{"/ch/32/grp/dca",			{P32}, F_XET, {0}, NULL},			// 6
@@ -4867,7 +5084,7 @@ X32command Xchannel32[] = {
 		{"/ch/32/delay/time",		{F32}, F_XET, {0}, NULL},			// 16
 		{"/ch/32/insert",				{CHIN}, F_FND, {0}, NULL},
 		{"/ch/32/insert/on",		{E32}, F_XET, {0}, OffOn},			// 17
-		{"/ch/32/insert/pos",		{E32}, F_XET, {0}, Xdyppos},			// 18
+		{"/ch/32/insert/pos",		{E32}, F_XET, {0}, Xdyppos},		// 18
 		{"/ch/32/insert/sel",		{E32}, F_XET, {0}, Xisel},			// 19
 		{"/ch/32/gate",					{CHGA}, F_FND, {0}, NULL},
 		{"/ch/32/gate/on",			{E32}, F_XET, {0}, OffOn},			// 21
@@ -4880,11 +5097,11 @@ X32command Xchannel32[] = {
 		{"/ch/32/gate/keysrc",		{I32}, F_XET, {0}, NULL},			// 28
 		{"/ch/32/gate/filter",			{CHGF}, F_FND, {0}, NULL},
 		{"/ch/32/gate/filter/on",	{E32}, F_XET, {0}, OffOn},			// 30
-		{"/ch/32/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 31
+		{"/ch/32/gate/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 31
 		{"/ch/32/gate/filter/f",	{F32}, F_XET, {0}, NULL},			// 32
 		{"/ch/32/dyn",					{CHDY}, F_FND, {0}, NULL},
 		{"/ch/32/dyn/on",			{E32}, F_XET, {0}, OffOn},			// 34
-		{"/ch/32/dyn/mode",			{E32}, F_XET, {0}, Xdymode},			// 35
+		{"/ch/32/dyn/mode",			{E32}, F_XET, {0}, Xdymode},		// 35
 		{"/ch/32/dyn/det",			{E32}, F_XET, {0}, Xdydet},			// 36
 		{"/ch/32/dyn/env",			{E32}, F_XET, {0}, Xdyenv},			// 37
 		{"/ch/32/dyn/thr",			{F32}, F_XET, {0}, NULL},			// 38
@@ -4894,13 +5111,13 @@ X32command Xchannel32[] = {
 		{"/ch/32/dyn/attack",		{F32}, F_XET, {0}, NULL},			// 42
 		{"/ch/32/dyn/hold",			{F32}, F_XET, {0}, NULL},			// 43
 		{"/ch/32/dyn/release",		{F32}, F_XET, {0}, NULL},			// 44
-		{"/ch/32/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},			// 45
+		{"/ch/32/dyn/pos",			{E32}, F_XET, {0}, Xdyppos},		// 45
 		{"/ch/32/dyn/keysrc",		{I32}, F_XET, {0}, NULL},			// 46
 		{"/ch/32/dyn/mix",			{F32}, F_XET, {0}, NULL},			// 47
 		{"/ch/32/dyn/auto",			{E32}, F_XET, {0}, OffOn},			// 48
 		{"/ch/32/dyn/filter",			{CHDF}, F_FND, {0}, NULL},
 		{"/ch/32/dyn/filter/on",	{E32}, F_XET, {0}, OffOn},			// 50
-		{"/ch/32/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},			// 51
+		{"/ch/32/dyn/filter/type",	{E32}, F_XET, {0}, Xdyftyp},		// 51
 		{"/ch/32/dyn/filter/f",		{F32}, F_XET, {0}, NULL},			// 52
 		{"/ch/32/eq",					{OFFON}, F_FND, {1}, NULL},
 		{"/ch/32/eq/on",			{E32}, F_XET, {0}, OffOn},			// 54
@@ -4936,6 +5153,7 @@ X32command Xchannel32[] = {
 		{"/ch/32/mix/01/level",		{F32}, F_XET, {0}, NULL},			// 84
 		{"/ch/32/mix/01/pan",		{F32}, F_XET, {0}, NULL},			// 85
 		{"/ch/32/mix/01/type",		{E32}, F_XET, {0}, Xmtype},			// 86
+		{"/ch/32/mix/01/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/32/mix/02",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/32/mix/02/on",		{E32}, F_XET, {0}, OffOn},			// 88
 		{"/ch/32/mix/02/level",		{F32}, F_XET, {0}, NULL},			// 89
@@ -4944,6 +5162,7 @@ X32command Xchannel32[] = {
 		{"/ch/32/mix/03/level",		{F32}, F_XET, {0}, NULL},			// 92
 		{"/ch/32/mix/03/pan",		{F32}, F_XET, {0}, NULL},			// 93
 		{"/ch/32/mix/03/type",		{E32}, F_XET, {0}, Xmtype},			// 94
+		{"/ch/32/mix/03/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/32/mix/04",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/32/mix/04/on",		{E32}, F_XET, {0}, OffOn},			// 96
 		{"/ch/32/mix/04/level",		{F32}, F_XET, {0}, NULL},			// 97
@@ -4952,6 +5171,7 @@ X32command Xchannel32[] = {
 		{"/ch/32/mix/05/level",		{F32}, F_XET, {0}, NULL},			// 100
 		{"/ch/32/mix/05/pan",		{F32}, F_XET, {0}, NULL},			// 101
 		{"/ch/32/mix/05/type",		{E32}, F_XET, {0}, Xmtype},			// 102
+		{"/ch/32/mix/05/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/32/mix/06",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/32/mix/06/on",		{E32}, F_XET, {0}, OffOn},			// 104
 		{"/ch/32/mix/06/level",		{F32}, F_XET, {0}, NULL},			// 105
@@ -4960,6 +5180,7 @@ X32command Xchannel32[] = {
 		{"/ch/32/mix/07/level",		{F32}, F_XET, {0}, NULL},			// 108
 		{"/ch/32/mix/07/pan",		{F32}, F_XET, {0}, NULL},			// 109
 		{"/ch/32/mix/07/type",		{E32}, F_XET, {0}, Xmtype},			// 110
+		{"/ch/32/mix/07/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/32/mix/08",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/32/mix/08/on",		{E32}, F_XET, {0}, OffOn},			// 112
 		{"/ch/32/mix/08/level",		{F32}, F_XET, {0}, NULL},			// 113
@@ -4968,6 +5189,7 @@ X32command Xchannel32[] = {
 		{"/ch/32/mix/09/level",		{F32}, F_XET, {0}, NULL},			// 116
 		{"/ch/32/mix/09/pan",		{F32}, F_XET, {0}, NULL},			// 117
 		{"/ch/32/mix/09/type",		{E32}, F_XET, {0}, Xmtype},			// 118
+		{"/ch/32/mix/09/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/32/mix/10",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/32/mix/10/on",		{E32}, F_XET, {0}, OffOn},			// 120
 		{"/ch/32/mix/10/level",		{F32}, F_XET, {0}, NULL},			// 121
@@ -4976,6 +5198,7 @@ X32command Xchannel32[] = {
 		{"/ch/32/mix/11/level",		{F32}, F_XET, {0}, NULL},			// 124
 		{"/ch/32/mix/11/pan",		{F32}, F_XET, {0}, NULL},			// 125
 		{"/ch/32/mix/11/type",		{E32}, F_XET, {0}, Xmtype},			// 126
+		{"/ch/32/mix/11/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/32/mix/12",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/32/mix/12/on",		{E32}, F_XET, {0}, OffOn},			// 128
 		{"/ch/32/mix/12/level",		{F32}, F_XET, {0}, NULL},			// 129
@@ -4984,6 +5207,7 @@ X32command Xchannel32[] = {
 		{"/ch/32/mix/13/level",		{F32}, F_XET, {0}, NULL},			// 132
 		{"/ch/32/mix/13/pan",		{F32}, F_XET, {0}, NULL},			// 133
 		{"/ch/32/mix/13/type",		{E32}, F_XET, {0}, Xmtype},			// 134
+		{"/ch/32/mix/13/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/32/mix/14",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/32/mix/14/on",		{E32}, F_XET, {0}, OffOn},			// 136
 		{"/ch/32/mix/14/level",		{F32}, F_XET, {0}, NULL},			// 137
@@ -4992,6 +5216,7 @@ X32command Xchannel32[] = {
 		{"/ch/32/mix/15/level",		{F32}, F_XET, {0}, NULL},			// 140
 		{"/ch/32/mix/15/pan",		{F32}, F_XET, {0}, NULL},			// 141
 		{"/ch/32/mix/15/type",		{E32}, F_XET, {0}, Xmtype},			// 142
+		{"/ch/32/mix/15/panFollow",	{E32}, F_XET, {0}, NULL},			//
 		{"/ch/32/mix/16",				{CHME}, F_FND, {0}, NULL},
 		{"/ch/32/mix/16/on",		{E32}, F_XET, {0}, OffOn},			// 144
 		{"/ch/32/mix/16/level",		{F32}, F_XET, {0}, NULL},			// 145
