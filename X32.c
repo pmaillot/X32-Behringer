@@ -25,6 +25,8 @@
 // 0.74: new functions /-libs, bug fixes
 // 0.75: new f-i flag to select IP address and changes in the way the bind() is done
 // 0.76: /-prefs/name correctly updates the name of the console (in /info and /status)
+// 0.77: fixed incorrect index computation in the case of mutliple tags, ex: /config/mute ,iiiiii would not set last value
+// 0.78: includes FW4.0 capabilities, and includes /-stat/lock ,i 2 as a shutdown command
 //
 #ifdef __WIN32__
 #include <windows.h>
@@ -55,7 +57,7 @@
 #include <time.h>
 
 #define EPSILON 0.0001	// epsilon for float comparisons
-#define XVERSION "3.09"	// FW version
+#define XVERSION "4.0"	// FW version
 #define BSIZE 512		// Buffer sizes
 #define X32DEBUG 0		// default debug mode
 #define X32VERBOSE 1	// default verbose mode
@@ -174,7 +176,13 @@ enum types {
 	HA,			// 86
 	ACTION,		// 87
 	UREC,		// 88
-	SLIBS		// 89
+	SLIBS,		// 89
+	D48,		// 90
+	D48A,		// 91
+	D48G,		// 92
+	UROUO,		// 93
+	UROUI,		// 94
+	PKEY,		// 95
 };
 
 typedef struct X32header {	// The Header structure is used to quickly scan through
@@ -921,7 +929,7 @@ int main(int argc, char **argv) {
 #endif
 //
 	r_len = 0;
-	printf("X32 - v0.76 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.78 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
 	//
 	// Get or use IP address
 	if (noIP) {
@@ -1151,6 +1159,11 @@ void Xsend(int who_to) {
 						perror("Error while sending data");
 						return;
 					}
+//					if (strncmp(s_buf, "/-stat/solosw/", 14) == 0) {
+//						// a solosw command was issued, follow with a /-stat/solo command
+//						// TODO: 1 if any solosw is still on, 0 otherwise
+//						sendto(Xfd, "/-stat/solo\0,i\0\0\0\0\0\1", 20, 0, &(X32Client[i].sock), Client_ip_len);
+//					}
 				}
 			}
 		}
@@ -2832,7 +2845,7 @@ int funct_params(X32command *command, int i) {
 			c_len = f_len; // now pointing at first format char after ','
 			f_num = 0;
 			while (r_buf[c_len++]) ++f_num; // count number of type tag characters
-			c_len = (c_len + 4) & ~3; // now pointing at first argument value
+			c_len = (c_len + 3) & ~3; // now pointing at first argument value
 			while (f_num--) {
 				switch (r_buf[f_len++]) {
 				case 'i':
@@ -3419,6 +3432,7 @@ int function_slash() {
 							if ((str_pt_in = XslashSetLevl(&command[i+2], str_pt_in, 1023)) == NULL) return S_SND;
 							if ((str_pt_in = XslashSetLinf(&command[i+3], str_pt_in, -100., 200., 2.)) == NULL) return S_SND;
 							if ((str_pt_in = XslashSetList(&command[i+4], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetList(&command[i+5], str_pt_in)) == NULL) return S_SND;
 							break;
 						case CHME:
 							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
@@ -3568,6 +3582,9 @@ int function_slash() {
 							break;
 						case PIP:
 							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
+							break;
+						case PKEY:
+							if ((str_pt_in = XslashSetInt(&command[i+1], str_pt_in)) == NULL) return 0;
 							break;
 						case PADDR:
 						case PMASK:
@@ -3889,6 +3906,7 @@ int function_node() {
 					strcat(s_buf + s_len, Slevel(command[i + 2].value.ff));
 					strcat(s_buf + s_len, Slinfs(command[i + 3].value.ff, -100., +100., 0));
 					strcat(s_buf + s_len, Sctype[command[i + 4].value.ii]);
+					strcat(s_buf + s_len, Sint(command[i + 5].value.ii));
 					break;
 				case CHME:
 					strcat(s_buf + s_len, command[i + 1].value.ii ? " ON" : " OFF");
@@ -4050,6 +4068,18 @@ int function_node() {
 					break;
 				case PIP:
 					strcat(s_buf + s_len, command[i + 1].value.ii ? " ON" : " OFF");
+					break;
+				case PKEY:
+					strcat(s_buf + s_len, Sint(command[i + 1].value.ii));
+					for (j = 0; j < 1; j++) {
+						if (command[i + 2 + j].value.str) {
+							strcat(s_buf + s_len, " \"");
+							strcat(s_buf + s_len, command[i + 2 + j].value.str);
+							strcat(s_buf + s_len, "\"");
+						} else {
+							strcat(s_buf + s_len, " \" \"");
+						}
+					}
 					break;
 				case PADDR:
 				case PMASK:
@@ -4277,20 +4307,46 @@ int function_node() {
 						strcat(s_buf + s_len, " \"\"");
 
 					strcat(s_buf + s_len, Sint(command[i + 16].value.ii));
-
 					break;
 				case SLIBS:
-				strcat(s_buf + s_len, Sint(command[i + 1].value.ii));
-				if (command[i + 2].value.str) {
-					strcat(s_buf + s_len, " \"");
-					strcat(s_buf + s_len, command[i + 2].value.str);
-					strcat(s_buf + s_len, "\"");
-				} else
-					strcat(s_buf + s_len, " \"\"");
-				strcat(s_buf + s_len, Sint(command[i + 3].value.ii));
-				strcat(s_buf + s_len, Sbitmp(command[i + 4].value.ii, 16));
-				strcat(s_buf + s_len, Sint(command[i + 5].value.ii));
-
+					strcat(s_buf + s_len, Sint(command[i + 1].value.ii));
+					if (command[i + 2].value.str) {
+						strcat(s_buf + s_len, " \"");
+						strcat(s_buf + s_len, command[i + 2].value.str);
+						strcat(s_buf + s_len, "\"");
+					} else
+						strcat(s_buf + s_len, " \"\"");
+					strcat(s_buf + s_len, Sint(command[i + 3].value.ii));
+					strcat(s_buf + s_len, Sbitmp(command[i + 4].value.ii, 16));
+					strcat(s_buf + s_len, Sint(command[i + 5].value.ii));
+					break;
+				case D48:
+					strcat(s_buf + s_len, Sbitmp(command[i + 1].value.ii, 4));
+					strcat(s_buf + s_len, Sint(command[i + 2].value.ii));
+					break;
+				case D48A:
+					for (j = 1; j < 49; j++) {
+						strcat(s_buf + s_len, Sint(command[i + j].value.ii));
+					}
+					break;
+				case D48G:
+					for (j = 1; j < 13; j++) {
+						if (command[i + j].value.str) {
+							strcat(s_buf + s_len, " \"");
+							strcat(s_buf + s_len, command[i + j].value.str);
+							strcat(s_buf + s_len, "\"");
+						} else
+							strcat(s_buf + s_len, " \"\"");					}
+					break;
+				case UROUO:
+					for (j = 1; j < 49; j++) {
+						strcat(s_buf + s_len, Sint(command[i + j].value.ii));
+					}
+					break;
+				case UROUI:
+					for (j = 1; j < 33; j++) {
+						strcat(s_buf + s_len, Sint(command[i + j].value.ii));
+					}
 					break;
 				default:
 					return 0;
@@ -4450,7 +4506,12 @@ int function_prefs() {
 int function_stat() {
 	int i;
 //
-// check for actual command
+// check for lock command
+	if (strstr(r_buf, "/lock")) {
+		// shutdown is /-stat/lock ,i 2, that's int 0x0002 at index 19
+		if (r_buf[19] == 2) return X32Shutdown();
+	}
+// check for other -stat commands
 	i = 0;
 	while (i < Xstat_max) {
 		if (strcmp(r_buf, Xstat[i].command) == 0) {
@@ -5042,8 +5103,7 @@ int function_save() {
 		s_len = Xsprint(s_buf, s_len, 's', "scene");
 		s_len = Xsprint(s_buf, s_len, 'i', &zero);
 		return S_SND;
-	}
-	if (strcmp(r_buf + 16, "snippet") == 0) {
+	} else if (strcmp(r_buf + 16, "snippet") == 0) {
 		i = 24;
 		//get snippet index
 		j = 4;
@@ -5088,8 +5148,7 @@ int function_save() {
 		s_len = Xsprint(s_buf, s_len, 's', "snippet");
 		s_len = Xsprint(s_buf, s_len, 'i', &zero);
 		return S_SND;
-	}
-	if (strcmp(r_buf + 16, "libchan") == 0) {
+	} else if (strcmp(r_buf + 16, "libchan") == 0) {
 		printf("Nothing actually saved\n");
 		fflush(stdout);
 		i = 20;
