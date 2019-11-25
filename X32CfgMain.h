@@ -104,6 +104,7 @@ X32command Xconfig[] = {
 		{"/config/osc/f2",				{F32}, F_XET, {0}, NULL},
 		{"/config/osc/fsel",			{E32}, F_XET, {0}, XOscsel},
 		{"/config/osc/type",			{E32}, F_XET, {0}, XOsctyp},
+		{"/config/osc/dest",			{E32}, F_XET, {0}, NULL},
 
 		{"/config/userrout",				{UROUO}, F_FND, {0}, NULL},
 		{"/config/userrout/out",			{UROUO}, F_FND, {0}, NULL},
