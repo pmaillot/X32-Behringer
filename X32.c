@@ -28,6 +28,7 @@
 // 0.77: fixed incorrect index computation in the case of mutliple tags, ex: /config/mute ,iiiiii would not set last value
 // 0.78: includes FW4.0 capabilities, and includes /-stat/lock ,i 2 as a shutdown command
 // 0.79: /config/osc/dest was missing as a command
+// 0.80: fix bug in /fx/...
 //
 #ifdef __WIN32__
 #include <windows.h>
@@ -930,7 +931,7 @@ int main(int argc, char **argv) {
 #endif
 //
 	r_len = 0;
-	printf("X32 - v0.79 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.80 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
 	//
 	// Get or use IP address
 	if (noIP) {
@@ -2837,6 +2838,7 @@ int funct_params(X32command *command, int i) {
 	node_single_index = i;
 	//
 	f_len = f_num = c_type = update =0;
+
 	c_len = strlen(command[i].command);
 	f_len = (((c_len + 4) & ~3) + 1); // pointing at first format char after ',' if there's a ','
 	if ((r_len - 4 > c_len) && (r_buf[f_len] != 0)) { // there's a ',' and at least one type tag
