@@ -27,6 +27,7 @@
 // 0.76: /-prefs/name correctly updates the name of the console (in /info and /status)
 // 0.77: fixed incorrect index computation in the case of mutliple tags, ex: /config/mute ,iiiiii would not set last value
 // 0.78: includes FW4.0 capabilities, and includes /-stat/lock ,i 2 as a shutdown command
+// 0.79: /config/osc/dest was missing as a command
 //
 #ifdef __WIN32__
 #include <windows.h>
@@ -420,7 +421,7 @@ char*	Sscrn[] = {" CHAN", " METERS", " ROUTE", " SETUP", " LIB", " FX",
 				   " MON", " USB", " SCENE", " ASSIGN", " LOCK", ""};
 char*	Schal[] = {" HOME", " CONFIG", " GATE", " DYN", " EQ", "MIX", " MAIN", ""};
 char*	Smetl[] = {" CHANNEL", " MIXBUS", " AUX/FX", " IN/OUT", " RTA", ""};
-char*	Sroul[] = {" HOME", " ANAOUT", " AUXOUT", " P16OUT", " CARDOUT", "AES50A", " AES50B", "XLROUT", ""};
+char*	Sroul[] = {" HOME", " AES50A", " AES50B", " CARDOUT", "XLROUT", " ANAOUT", "AUXOUT", "P16OUT", "USER"};
 char*	Ssetl[] = {" GLOB", " CONF", " REMOTE", " NETW", "NAMES", "PREAMPS", " CARD", ""};
 char*	Slibl[] = {" CHAN", " EFFECT", " ROUTE", ""};
 char*	 Sfxl[] = {" HOME", " FX1", " FX2", " FX3", "FX4", "FX5", " FX6", " FX7", " FX8", ""};
@@ -929,7 +930,7 @@ int main(int argc, char **argv) {
 #endif
 //
 	r_len = 0;
-	printf("X32 - v0.78 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.79 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
 	//
 	// Get or use IP address
 	if (noIP) {
