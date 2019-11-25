@@ -1183,11 +1183,12 @@ int FXc_lookup(X32command* Xfx, int index) {
 // we get the FX type at index -<pp> - 5
 	ipar = (Xfx[index].command[10] - 48) * 10 + Xfx[index].command[11] - 48 - 1;
 	if ((ipar < 0) || (ipar > 63)) return NIL;
-	ityp = Xfx[index - ipar - 5].value.ii;
 // 2 cases to consider depending on <n>
 	if (Xfx[index].command[4] < 53) {
+		ityp = Xfx[index - ipar - 5].value.ii;
 		ctyp = *(Sflookup[ityp] + ipar); // /fx/1/... to /fx/4/
 	} else {
+		ityp = Xfx[index - ipar - 2].value.ii;
 		ctyp = *(Sflookup2[ityp] + ipar); // /fx/5/... to /fx/8/
 	}
 	switch (ctyp) {
