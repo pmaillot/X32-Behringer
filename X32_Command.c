@@ -22,6 +22,8 @@
 // v 1.38: finally got rid of call to kbhit() which was causing issues with ",`, %, even
 //         for non-international US keyboard
 // v 1.39: corrected handling of non-printable characters, and ctrl-V
+// v 1.40: enable autoconnect if no IP data is provided
+// v 1.41: correct handling of file names with space (option -f and -s)
 //
 
 #include <stdlib.h>
@@ -39,6 +41,8 @@ HANDLE clip;
 #include <sys/socket.h>
 #include <sys/select.h>
 #include <netinet/in.h>
+#include <ifaddrs.h>
+#include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/fcntl.h>
 #define closesocket(s) 	close((s))
@@ -78,16 +82,25 @@ extern int Xcparse(char *buf, char *line);
 #define BSIZE				512		// send/receive buffer sizes
 #define XREMOTE_TIMEOUT		9		// timeout set to 9 seconds
 //
-int X32debug = 0;
-int X32verbose = 1;
+int 				X32debug = 0;
+int 				X32verbose = 1;
+struct sockaddr_in	Xip;
+struct sockaddr*	Xip_addr = (struct sockaddr *)&Xip;
+int 				Xfd;		// our socket
+char				Xip_str[20], Xport_str[8];
+int					r_len, s_len, p_status;
+char				r_buf[BSIZE];
+char				s_buf[BSIZE];
 //
 // Macros:
 //
 #ifdef __WIN32__
+char							broadcast = 1;
 #define KEYBOARDINPUT()			input_intch = getkey();
 #define MANAGEEOL()				printf("\n");
 #define MANAGEBSP()				printf(" \b");
 #else
+int								broadcast = 1;
 #define KEYBOARDINPUT()			input_intch = getc(stdin);
 #define MANAGEEOL()
 #define MANAGEBSP()
@@ -153,7 +166,9 @@ do {																			\
 //
 //
 #ifdef __WIN32__
-int getkey();
+//
+unsigned long	getmyIP();
+int 			getkey();
 //
 // int getkey(): returns the typed character at keyboard or NO_CHAR if no keyboard key was pressed.
 // This is done in non-blocking mode; i.e. NO_CHAR is returned if no keyboard event is read from the
@@ -181,21 +196,58 @@ int getkey() {
 	}
 	return ch;
 }
+//
+// getmyIP(): A function to gather the IP of the network to which we are attached
+unsigned long getmyIP() {
+	char **pp = NULL;
+	struct hostent *host = NULL;
+
+	if (!gethostname(r_buf, 256) && (host = gethostbyname(r_buf)) != NULL) {
+		for (pp = host->h_addr_list; *pp != NULL; pp++) {
+			return (*(struct in_addr *)*pp).S_un.S_addr;
+		}
+	}
+	return 0;
+}
+#else
+//
+unsigned long getmyIP();
+//
+unsigned long getmyIP() {
+	struct ifaddrs *ifaddr, *ifa;
+	int s;
+	unsigned long k = 0;
+	//
+	r_buf[0] = 0;
+	//
+	if (getifaddrs(&ifaddr) == -1) {
+		perror("getifaddrs");
+		return k;
+	}
+	for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+		if (ifa->ifa_addr != NULL) {
+			// use r_buf as we may need a large string
+			if ((s = getnameinfo(ifa->ifa_addr,sizeof(struct sockaddr_in), r_buf, NI_MAXHOST, NULL, 0, NI_NUMERICHOST)) == 0) {
+				// you typically have to replace "en0" by "wlan0", "eth0",... depending on your physical interface support
+				if ((strcmp(ifa->ifa_name,"en0") == 0) && (ifa->ifa_addr->sa_family == AF_INET)) {
+					//printf("\tInterface : <%s>\n",ifa->ifa_name );
+					//printf("\t Address : <%s>\n", r_buf);
+					//strcpy(Wip_str, r_buf); // update Xip_str
+					k = inet_addr(r_buf);
+					break;
+				}
+			}
+		}
+	}
+	freeifaddrs(ifaddr);
+	return k;
+}
 #endif
 //
 //
 //
 //
-int
-main(int argc, char **argv)
-{
-struct sockaddr_in	Xip;
-struct sockaddr*	Xip_addr = (struct sockaddr *)&Xip;
-int 				Xfd;		// our socket
-char				Xip_str[20], Xport_str[8];
-int					r_len, s_len, p_status;
-char				r_buf[BSIZE];
-char				s_buf[BSIZE];
+int main(int argc, char **argv) {
 //
 int					xremote_on;
 char				xremote[12] = "/xremote"; // automatic trailing zeroes
@@ -218,7 +270,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // Initialize communication with X32 server at IP ip and PORT port
 // Set default values to match your X32 desk
-	strcpy (Xip_str, "192.168.1.62");
+	strcpy (Xip_str, "");
 	strcpy (Xport_str, "10023");
 //
 // Manage arguments
@@ -228,21 +280,21 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 	while ((input_intch = getopt(argc, argv, "i:d:k:f:s:t:v:h")) != -1) {
 		switch ((char)input_intch) {
 		case 'i':
-			strcpy(Xip_str, optarg );
+			strcpy(Xip_str, optarg);
 			break;
 		case 'd':
 			sscanf(optarg, "%d", &X32debug);
 			break;
 		case 'f':
 			filein = 1;
-			sscanf(optarg, "%s", input_line);
+			strcpy(input_line, optarg);
 			break;
 		case 'k':
 			sscanf(optarg, "%d", &do_keyboard);
 			break;
 		case 's':
 			filein = 2;
-			sscanf(optarg, "%s", input_line);
+			strcpy(input_line, optarg);
 			break;
 		case 't':
 			sscanf(optarg, "%d", &s_delay);
@@ -301,10 +353,25 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 		exit (EXIT_FAILURE);
 	}
 	// Construct  server sockaddr_in structure
-	memset (&Xip, 0, sizeof(Xip));				// Clear struct
-	Xip.sin_family = AF_INET;					// Internet/IP
-	Xip.sin_addr.s_addr = inet_addr(Xip_str);	// IP address
-	Xip.sin_port = htons(atoi(Xport_str));		// server port/
+	memset (&Xip, 0, sizeof(Xip));					// Clear struct
+	Xip.sin_family = AF_INET;						// Internet/IP
+	if (Xip_str[0] == 0) {
+#ifdef __WIN32
+		if ((Xip.sin_addr.S_un.S_addr = getmyIP()) != 0) {
+			Xip.sin_addr.S_un.S_un_b.s_b4 = 0xff; 	// Local [/24] broadcast address
+#else
+		if ((Xip.sin_addr.s_addr =  getmyIP()) != 0) {
+			Xip.sin_addr.s_addr |= 0xff000000;
+#endif
+			if (setsockopt(Xfd, SOL_SOCKET, SO_BROADCAST, &broadcast, sizeof broadcast) == -1) {
+				printf("setsockopt (SO_BROADCAST) failed\n");
+				exit(EXIT_FAILURE);
+			}
+		}
+	} else {
+		Xip.sin_addr.s_addr = inet_addr(Xip_str);	// set IP address
+	}
+	Xip.sin_port = htons(atoi(Xport_str));			// server port/
 //
 // Set receiving from X32 to non blocking mode
 // The 500ms timeout is used for delaying the printing of '.' at startup.
@@ -319,13 +386,12 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with X32 server
-	printf(" X32_Command - v1.39 - (c)2014-19 Patrick-Gilles Maillot\n\nConnecting to X32.");
+	printf(" X32_Command - v1.41 - (c)2014-20 Patrick-Gilles Maillot\n\nConnecting to X32.");
 //
-	keep_on = 1;
 	xremote_on = X32verbose;	// Momentarily save X32verbose
 	X32verbose = 0;
-	s_len = Xsprint(s_buf, 0, 's', "/info");
-	while (keep_on) {
+	s_len = Xsprint(s_buf, 0, 's', "/xinfo");
+	for (keep_on = 0; keep_on < 5; keep_on++) {
 		SEND  				// command /info sent;
 		RPOLL 				// read data if available
 		if (p_status < 0) {
@@ -333,13 +399,20 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			return 1;		// exit on receive error
 		} else if (p_status > 0) {
 			RECV 			// We have received data - process it!
-			if (strcmp(r_buf, "/info") == 0)
+			if (strcmp(r_buf, "/xinfo") == 0) {
+				strcpy(Xip_str, r_buf+16);
 				break;		// Connected!
+			}
 		}					// ... else timeout
 		printf("."); fflush(stdout);
 	}
-	printf(" Done!\n");
-//
+	if (keep_on < 5) {
+		printf("X32 replied at %s!\n", Xip_str);
+	} else {
+		printf("Could not connect to X32!\n");
+		sleep(10);
+		exit(0);
+	}//
 // Set 1ms timeout to get faster response from X32 (when testing for /xremote data).
 	timeout.tv_usec = 1000; //Set timeout for non blocking recvfrom(): 1ms
 	X32verbose = xremote_on;	// Restore X32verbose
