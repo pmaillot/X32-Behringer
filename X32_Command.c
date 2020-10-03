@@ -24,6 +24,7 @@
 // v 1.39: corrected handling of non-printable characters, and ctrl-V
 // v 1.40: enable autoconnect if no IP data is provided
 // v 1.41: correct handling of file names with space (option -f and -s)
+// v 1.42: correctly re-init keep_on in the case of file1==1
 //
 
 #include <stdlib.h>
@@ -386,7 +387,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with X32 server
-	printf(" X32_Command - v1.41 - (c)2014-20 Patrick-Gilles Maillot\n\nConnecting to X32.");
+	printf(" X32_Command - v1.42 - (c)2014-20 Patrick-Gilles Maillot\n\nConnecting to X32.");
 //
 	xremote_on = X32verbose;	// Momentarily save X32verbose
 	X32verbose = 0;
@@ -425,6 +426,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			exit(EXIT_FAILURE);
 		}
 		if (filein == 1) {
+			keep_on = 1;
 			while (keep_on) {
 				XREMOTE()
 				if (fgets(input_line, LINEMAX, fdk)) {
