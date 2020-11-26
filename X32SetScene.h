@@ -19,7 +19,7 @@
 // !!!! double check or update the enum Xsc_typ following the array of strings
 //
 char*	Xsc[] = {
-//		"#2.7#",
+//		"#4.0#",
 		"/config/chlink",	//	0
 		"/config/auxlink",
 		"/config/fxlink",
@@ -33,7 +33,9 @@ char*	Xsc[] = {
 		"/config/talk/A",
 		"/config/talk/B",
 		"/config/osc",
-		"/config/routing/routswitch",
+		"/config/userrout/out",
+		"/config/userrout/in",
+		"/config/routing",
 		"/config/routing/IN",
 		"/config/routing/IN/1-8",
 		"/config/routing/IN/9-16",
@@ -81,6 +83,9 @@ char*	Xsc[] = {
 		"/config/userctrl/C/btn",
 		"/config/tape",
 		"/config/amixenable",
+		"/config/dp48",
+		"/config/dp48/assign",
+		"/config/dp48/grpname",
 		"/ch/01/config",
 		"/ch/01/delay",
 		"/ch/01/preamp",
@@ -2531,7 +2536,9 @@ enum Xsc_typ  {
 	config_talk_A,
 	config_talk_B,
 	config_osc,
-	config_routing_routswitch,
+	config_userrout_out,
+	config_userrout_in,
+	config_routing,
 	config_routing_IN,
 	config_routing_IN1,
 	config_routing_IN9,
@@ -2579,6 +2586,9 @@ enum Xsc_typ  {
 	config_userctrl_C_btn,
 	config_tape,
 	config_amixenable,
+	config_dp48,
+	config_dp48_assign,
+	config_dp48_grpname,
 	ch_01_config,
 	ch_01_delay,
 	ch_01_preamp,
@@ -5031,28 +5041,44 @@ char* Xoscdest[] = {"MixBus1", "MixBus2", "MixBus3", "MixBus4",
 		"Matrix3", "Matrix4", "Matrix5", "Matrix6"};
 #define Xoscdest_max	(sizeof (Xoscdest) / sizeof (char*))
 
-char* Xauxrtng[] = {"AUX1-4", "AN1-4", "A1-4", "B1-4", "CARD1-4"};
+char* Xauxrtng[] = {"AUX1-4", "AN1-2", "AN1-4", "AN1-6", "A1-2", "A1-4",
+		"A1-6", "B1-2", "B1-4", ":B1-6", "CARD1-2", "CARD1-4", "CARD1-6",
+		"UIN1-2", "UIN1-4", "UIN1-6"};
 #define Xauxrtng_max	(sizeof (Xauxrtng) / sizeof (char*))
 
 char* Xinaertng[] = {"AN1-8", "AN9-16", "AN17-24", "AN25-32",
 		"A1-8",	"A9-16", "A17-24", "A25-32", "A33-40", "A41-48",
 		"B1-8",	"B9-16", "B17-24", "B25-32", "B33-40", "B41-48",
 		"CARD1-8", "CARD9-16", "CARD17-24", "CARD25-32",
-		"OUT1-8", "OUT9-16", "P161-8",	"P169-16", "AUX1-6/Mon", "AuxIN1-6/TB"};
+		"UIN1-8", "UIN9-16", "UIN17-24", "UIN25-32"};
 #define Xinaertng_max	(sizeof (Xinaertng) / sizeof (char*))
 
-char* Xo14rtng[] = {"AN1-4", "AN9-12", "AN17-20", "AN25-28",
+char* Xiaesrtng[] = {"AN1-8", "AN9-16", "AN17-24", "AN25-32",
+		"A1-8", "A9-16", "A17-24", "A25-32", "A33-40", "A41-48",
+		"B1-8", "B9-16", "B17-24", "B25-32", "B33-40",
+		"B41-48", "CARD1-8", "CARD9-16", "CARD17-24",
+		"CARD25-32", "OUT1-8", "OUT9-16", "P161-8", "P169-16",
+		"AUX1-6/Mon", "AuxIN1-6/TB", "UOUT1-8",
+		"UOUT9-16", "UOUT17-24", "UOUT25-32", "UOUT33-40",
+		"UOUT41-48", "UIN1-8", "UIN9-16", "UIN17-24", "UIN25-32"};
+#define Xiaesrtng_max	(sizeof (Xiaesrtng) / sizeof (char*))
+
+		char* Xo14rtng[] = {"AN1-4", "AN9-12", "AN17-20", "AN25-28",
 		"A1-4",	"A9-12", "A17-20", "A25-28", "A33-36", "A41-44",
 		"B1-4",	"B9-12", "B17-20", "B25-28", "B33-36", "B41-44",
 		"CARD1-4", "CARD9-12", "CARD17-20", "CARD25-28",
-		"OUT1-4", "OUT9-12", "P161-4",	"P169-12", "AUX/CR", "AUX/TB"};
+		"OUT1-4", "OUT9-12", "P161-4",	"P169-12", "AUX/CR", "AUX/TB",
+		"UOUT1-4", "UOUT9-12","UOUT17-20", "UOUT25-28", "UOUT33-36",
+		"UOUT41-44", "UIN1-4", "UIN9-12", "UIN17-20", "UIN25-28"};
 #define Xo14rtng_max	(sizeof (Xo14rtng) / sizeof (char*))
 
 char* Xo58rtng[] = {"AN5-8", "AN13-16", "AN21-24", "AN29-32",
 		"A5-8",	"A13-16", "A21-24", "A29-32", "A37-40", "A45-48",
 		"B5-8",	"B13-16", "B21-24", "B29-32", "B37-40", "B45-48",
 		"CARD5-8", "CARD13-16", "CARD21-24", "CARD29-32",
-		"OUT5-8", "OUT13-16", "P165-8",	"P1613-16", "AUX/CR", "AUX/TB"};
+		"OUT5-8", "OUT13-16", "P165-8",	"P1613-16", "AUX/CR", "AUX/TB",
+		"UOUT5-8", "UOUT13-16", "UOUT21-24", "UOUT29-32", "UOUT37-40",
+		"UOUT45-48", "UIN5-8", "UIN13-16", "UIN21-24", "UIN29-32"};
 #define Xo58rtng_max	(sizeof (Xo58rtng) / sizeof (char*))
 
 char* Xcolor[] = {"OFF", "RD", "GN", "YE", "BL", "MG", "CY", "WH",
