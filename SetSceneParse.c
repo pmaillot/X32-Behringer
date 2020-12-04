@@ -303,7 +303,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				}
 				break;
 			case config_routing: // /config/routing
-				k = Xsprint(buf, 0, 's', "config/routing");
+				k = Xsprint(buf, 0, 's', "/config/routing");
 				k = Xp_list(buf, k, Xroutswitch, Xroutswitch_max);
 				SendDataToX32 // send to X32
 				break;
@@ -1587,7 +1587,7 @@ char				tmp[512];	//parameters i.e. 64 floats in FX (each is max 6 chars)
 				k = Xsprint(buf, 0, 's', tmp);
 				k = Xp_list(buf, k, Xmxtyp, Xmxtyp_max);
 				SendDataToX32 // send to X32
-				sprintf(tmp, "/fxrtn/%02d/mix/%02d/panFOllow", ch, mx);
+				sprintf(tmp, "/fxrtn/%02d/mix/%02d/panFollow", ch, mx);
 				k = Xsprint(buf, 0, 's', tmp);
 				k = Xp_int(buf, k);
 				SendDataToX32 // send to X32
