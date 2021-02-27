@@ -120,7 +120,7 @@ Examples:
 ```
 
 ### X32Wav_XLive ###
-![X32Wav_XLive.jpg](https://sites.google.com/site/patrickmaillot/x32/X32Wav_Xlive.jpg)
+![X32Wav_XLive.jpg](https://drive.google.com/file/d/17WzbVWvRZ3Hhxk5ZRA9xEZfWcDGLT8M9/view?usp=sharing)
 
 This X32 utility aims at creating X-Live! compatible files from standard wave files; The typical use would be to enable playback using the X-Live! expansion board SD card(s) of already available multi-channel wave files such as those recorded from the X-USB interface or exported from a DAW software.
 
@@ -143,7 +143,7 @@ Be patient! Merging large audio files takes time. The program will display the e
 
 
 ### X32Wav_XLive ###
-![X32XLive_Wav.jpg](https://sites.google.com/site/patrickmaillot/x32/X32Xlive_Wav4.jpg)
+![X32XLive_Wav.jpg](https://drive.google.com/file/d/14o0zRVNkS52Xm5emfhnvRE9Sgy1GsEDE/view?usp=sharing)
 
 Split / Explode X-Live! multi-channel WAV files from a recorded session into individual, single channel WAV files.
 
@@ -200,7 +200,7 @@ $
 ```
 
 ### X32cpXliveMarkers ###
-![X32cpXliveMarkers.jpg](https://sites.google.com/site/patrickmaillot/x32/X32cpXliveMarkers.jpg)
+![X32cpXliveMarkers.jpg](https://drive.google.com/file/d/1iVXqKbuocYhHYJc8H8lrvURuGGUUc4Yf/view?usp=sharing)
 
 Reads markers from an XLive! session/SE_LOG.BIN file and send data to the clipboard.
 
@@ -215,7 +215,7 @@ menu which is part of the REAPER SWS extensions.
 
 
 ### X32Jog4Xlive ###
-![X32Jog4XLive.jpg](https://sites.google.com/site/patrickmaillot/x32/X32Jog4XLive.jpg)
+![X32Jog4XLive.jpg](https://drive.google.com/file/d/1ZPkQtdGPQLSnMMubn_b-fTxJ2jIFWwJd/view?usp=sharing)
 
 Enabling audio Jog and Shuttle for X-Live! while using SD card audio.
 
@@ -241,7 +241,7 @@ usage: X32Tap [-i X32 console ipv4 address]
 
 
 ### X32Tap (Windows) ###
-![X32Tap.jpg](https://sites.google.com/site/patrickmaillot/x32/X324TAP.jpg)
+![X32Tap.jpg](https://drive.google.com/file/d/1qOcV9kOtA8hHspQe5zfNB7TnspgZcd3D/view?usp=sharing)
 
 A utility similar to the non-GUI version above, but for Windows and capable of setting Tap Tempo for any delay capable X32 effect and either from tapping tempo on the GUI button, or getting the tap tempo from consecutive audio signals on a chose X32 Channel. It checks for a delay capable effect to be on FX slots 1 to 4. If an effect is found, tempo can be set by clicking on the TAP button, or (can be simultaneous) from an audio channel; In all cases, tempo tap can be set between 0 and 3000ms.
 Please go to my website and download the documentation on how to best use the "auto" mode enabling audio tempo setting.
@@ -315,7 +315,7 @@ usage: X32TCP [-b [10] server max connections backlog]
 ```
 
 ### X32Ssaver ###
-![X32Ssave.jpg](https://bitbucket.org/repo/K9Ae7b/images/793849478-X32Ssave.jpg)
+![X32Ssave.jpg](https://drive.google.com/file/d/1qOcV9kOtA8hHspQe5zfNB7TnspgZcd3D/view?usp=sharing)
 
 X32SsaverGW.c - This is the Windows GUI version; the Linux and windows command line versions are in the "Unofficial OSC Protocol" document [http://www.academia.edu/9709659/UNOFFICIAL_X32_OSC_REMOTE_PROTOCOL].
 
@@ -324,7 +324,7 @@ Set the utility to "ON"; After the number of seconds set in the "Delay before lo
 
 
 ### X32Fade ###
-![X32Fade.jpg](https://bitbucket.org/repo/K9Ae7b/images/1406574191-X32Fade.jpg)
+![X32Fade.jpg](https://drive.google.com/file/d/1bQVHO1uKjSokMZhqtT-fdO70DsmFJYyw/view?usp=sharing)
 
 X32Fade.c - A Windows GUI version of a time and #steps controlled Fade_in/Fade_out for all 80 X32 faders (all banks, Levels, Aux, FX, Bus, DCA, Mtx, L/R).
 
@@ -457,7 +457,7 @@ icon 1 selected (i.e. blank), and channel 1 will have "IN 1" as source.
 
 ### X32SetPreset ###
 
-![X32setpresetw.jpg](https://bitbucket.org/repo/K9Ae7b/images/1259302833-X32setpresetw.jpg)
+![X32setpresetw.jpg](https://drive.google.com/file/d/1naRA1jOLTXTNwFX8TtYijfb2Cx12S_cs/view?usp=sharing)
 
 X32SetPreset: Manage your Presets (Channel, Effect, Routing) on your PC and set them to X32 from there! No more limits and a lot of flexibility to change settings and values for your preset files.
 Connect to X32, select the channel or effect slot the preset will apply to if needed.
@@ -496,7 +496,7 @@ Launch shell to accept the following commands applied to the X32 USB drive:
 
 ### X32CustomLayer ###
 
-![X32USB.jpg](https://bitbucket.org/repo/K9Ae7b/images/3241437789-X32CustomLayer.jpg)
+![X32USB.jpg](https://drive.google.com/file/d/13zvMTqXIvZg8I4gGvS4sB8dy3J2r8rIb/view?usp=sharing)
 
 X32CustomLayer: A simple utility to create and manage custom channel layers easily. Starting from a standard or current X32 setup (that is Input channels 01 to 32 and Aux inputs 01 to 08), X32CustomLayer enables you to reorganize the way “channels” are set (or layered).
 
@@ -548,7 +548,7 @@ X32 <-> REAPER controls.
 The main idea is to use the X32 as a playback unit and a control surface to REAPER. Digital audio is stored and managed on a computer via REAPER. REAPER controls translate to the X32 and vice-verse, changes made at the X32 deck are reflected in REAPER.
 An OSC config file and a daemon program enable Reaper actions to be reflected on the X32. Simultaneously, the daemon program listens to the X32 and translates X32 actions and changes to REAPER changes on the computer. 
 
-The source code proposed here is for the Linux or command-line version, which takes the same resource file as its Windows GUI version equivalent to setup the different options used by the program. My website conains executables for different versions including GUI based ones. Do read the documentation that comes with program, read REAPER documentation on setting up a control surface, this can / will be useful. Cut&paste the OSC config file provided in the X32Reaper documentation to install your config file. Be careful in selecting and matching ports and IP addresses, and you'll be just fine.
+The source code proposed here is for the Linux or command-line version, which takes the same resource file as its Windows GUI version equivalent to setup the different options used by the program. My website (https://sites.google.com/site/patrickmaillot/x32) conains executables for different versions including GUI based ones. Do read the documentation that comes with program, read REAPER documentation on setting up a control surface, this can / will be useful. Cut&paste the OSC config file provided in the X32Reaper documentation to install your config file. Be careful in selecting and matching ports and IP addresses, and you'll be just fine.
 
 
 
@@ -564,7 +564,7 @@ That's what the "DeskSave" option of the tool will offer... but wait! there's mo
 
 Saving a full X32 Scene takes about 3 seconds (over WiFi), saving Routing or State/Preferences takes about 1.5 seconds.
 
-![X32DeskRestore.jpg](http://sites.google.com/site/patrickmaillot/x32/X32DeskRestore.jpg)
+![X32DeskRestore.jpg](https://drive.google.com/file/d/1ZPgHrHANPeJAMDqdU8dFzlGbw7UgqENt/view?usp=sharing)
 
 The restore utility is rather similar and enables you to select a file as a source of commands and values to be restored to your X32. It can be any of the files you saved using X32DeskSave, but it can also be an actual X32 Scene or an X32 Snippet file you saved directly on your system and imported into your PC.
 
@@ -579,7 +579,7 @@ This will not save/restore all X32 current libraries types; for this you will ne
 
 ### X32PunchControl ###
 
-![X32PunchControl.jpg](http://sites.google.com/site/patrickmaillot/x32/X32PunchControl3.jpg)
+![X32PunchControl.jpg](https://drive.google.com/file/d/1BCXQCmg3nl8TTmtEUgD3ZfDuxExIKXtX/view?usp=sharing)
 
 Many DAW software offer “automation”; a way to record and play DAW changes (volume, pan, effect settings, etc.) as audio is recorded to or played from the DAW. Nevertheless, this is limited to the DAW capabilities, and does not offer the physical comfort of a control surface for managing mix changes.
 
@@ -601,7 +601,7 @@ Most transport options and commands needed during normal workflow are under the 
 
 X32Commander scans for a user selected subset of X32 Commands. If a matching command is found, the tool can fire a MIDI or OSC command to another device, optionally using parameters sent with the matching command.
 
-![X32Commander.jpg](http://sites.google.com/site/patrickmaillot/x32/X32Commander.jpg)
+![X32Commander.jpg](https://drive.google.com/file/d/1_Px3SrJAkj7EoL4Fn5kOdAWGAfWJgfHz/view?usp=sharing)
 
 When using the X32 Command parameters, a formula can be applied:
 ```
@@ -892,7 +892,7 @@ No more limits and a lot of flexibility to change settings and values for your p
 Connect to X32, select a destination directory on your PC for Preset files. Select the preset library you want to retrieve (Channel, Effects or Routing). Hit the "Xfer Presets" button to start the transfer. A status will display as the transfer progresses and when transfer is complete.
 Starting with ver. 0.20, X32GetLib enables to save ALL presets (Channel, Effects, and Routing) in a single click.
 
-![X32GetLib.jpg](http://sites.google.com/site/patrickmaillot/x32/X32GetLib.jpg)
+![X32GetLib.jpg](https://drive.google.com/file/d/1Vrid-DY4W-OYzI8IjQYZsSKT9AflX7vJ/view?usp=sharing)
 
 ### X32SetLib ###
 Manage your Presets (Channel, Effect, Routing) on your PC and send them to X32.
@@ -903,7 +903,7 @@ Connect to X32, browse your PC for Preset files (Channel, Effect or Routing) and
 Set the position for the first preset in the library, positions will increment automatically, as presets are saved in the X32 library.
 Hit the "Xfer Presets" button to start the transfer. A status will display as the transfer progresses and when transfer is complete.
 Important note: All your preset files should be version 2.1; You can easily check this with a text editor (file begins with a #2.1# header) if not, you can actually set the header manually, as this does the trick in most situations.
-![X32SetLib.jpg](http://sites.google.com/site/patrickmaillot/x32/X32SetLib.jpg)
+![X32SetLib.jpg](https://drive.google.com/file/d/1sxlnMSTbGFZfBAxkH84DTDDGNGszs6vm/view?usp=sharing)
 
 
 ### X32Midi2OSC ###
@@ -913,7 +913,7 @@ Have X32 receive OSC commands from a MIDI device or program.
 X32Midi2OSC connects to your X32, and to a MIDI source. It intercepts MIDI specific data (user selected) messages, and can send a user selected OSC command to the X32 upon reception of the MIDI data. The program also provides MIDI thru capability to sort of act as "man in the middle" in a MIDI connection. The list of MIDI commands and their respective OSC messages are saved in a configuration file, the basic parameters for the program (such as IP address, etc.) are also kept in a separate file.
 
 
-![X32Midi2OSC.jpg](http://sites.google.com/site/patrickmaillot/x32/X32Midi2OSC.jpg)
+![X32Midi2OSC.jpg](https://drive.google.com/file/d/1fXGObMMFGsp7ipYIn8GbOl3H8nq5M6b5/view?usp=sharing)
 
 
 MIDI commands are typically 3 bytes (some are 2 and SYSEX data can be a lot more): Each command comes with the following data: <channel number>, <command type>, <data value>
