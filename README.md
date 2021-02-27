@@ -319,7 +319,7 @@ usage: X32TCP [-b [10] server max connections backlog]
 ```
 
 ### X32Ssaver ###
-<img src="https://drive.google.com/uc?export=view&id=1e5jA9dr87-fKCEw00_4CqpybYO57agaP/" width="500">
+<img src="https://drive.google.com/uc?export=view&id=1e5jA9dr87-fKCEw00_4CqpybYO57agaP" width="500">
 
 
 X32SsaverGW.c - This is the Windows GUI version; the Linux and windows command line versions are in the "Unofficial OSC Protocol" document [http://www.academia.edu/9709659/UNOFFICIAL_X32_OSC_REMOTE_PROTOCOL].
@@ -560,7 +560,7 @@ The source code proposed here is for the Linux or command-line version, which ta
 
 
 ### X32DeskSave  / X32DeskRestore ###
-<img src="https://drive.google.com/uc?export=view&id=17jEAtu8kyv_joLv7oefTqv7WDzr4ai1" width="500">
+<img src="https://drive.google.com/uc?export=view&id=17jEAtu8kyv_joLv7oefTqv7WDzr4ai1-" width="500">
 
 
 X32DeskSave  / X32DeskRestore: Save and Restore your X32 Preferences and State, Scene, Routing, Commands
@@ -609,7 +609,7 @@ Most transport options and commands needed during normal workflow are under the 
 
 X32Commander scans for a user selected subset of X32 Commands. If a matching command is found, the tool can fire a MIDI or OSC command to another device, optionally using parameters sent with the matching command.
 
-<img src="https://drive.google.com/uc?export=view&id=1_Px3SrJAkj7EoL4Fn5kOdAWGAfWJgfHz" width="500">
+<img src="https://drive.google.com/uc?export=view&id=1_Px3SrJAkj7EoL4Fn5kOdAWGAfWJgfHz" width="300">
 
 
 When using the X32 Command parameters, a formula can be applied:
