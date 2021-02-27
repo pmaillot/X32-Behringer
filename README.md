@@ -319,7 +319,7 @@ usage: X32TCP [-b [10] server max connections backlog]
 ```
 
 ### X32Ssaver ###
-<img src="https://drive.google.com/uc?export=view&id=1qOcV9kOtA8hHspQe5zfNB7TnspgZcd3D" width="500">
+<img src="https://drive.google.com/uc?export=view&id=1e5jA9dr87-fKCEw00_4CqpybYO57agaP/" width="500">
 
 
 X32SsaverGW.c - This is the Windows GUI version; the Linux and windows command line versions are in the "Unofficial OSC Protocol" document [http://www.academia.edu/9709659/UNOFFICIAL_X32_OSC_REMOTE_PROTOCOL].
