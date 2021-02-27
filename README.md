@@ -143,7 +143,7 @@ Be patient! Merging large audio files takes time. The program will display the e
 
 
 ### X32Wav_XLive ###
-![X32XLive_Wav.jpg](https://drive.google.com/file/d/14o0zRVNkS52Xm5emfhnvRE9Sgy1GsEDE/view?usp=sharing)
+!(https://drive.google.com/file/d/14o0zRVNkS52Xm5emfhnvRE9Sgy1GsEDE/view?usp=sharing)
 
 Split / Explode X-Live! multi-channel WAV files from a recorded session into individual, single channel WAV files.
 
