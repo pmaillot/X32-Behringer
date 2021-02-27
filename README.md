@@ -857,6 +857,7 @@ See it in action: https://youtu.be/W_UQt0YdnhU
 
 
 ### X32CopyFX ###
+<img src="https://drive.google.com/uc?export=view&id=176rs43WDAt4YjzpQxaaK0s5vu8GruQfo" width="300">
 
 X32CopyFX Reset or Copy sides or full parameters set from an effect to itself or another.
 
@@ -866,9 +867,6 @@ As one launches X32CopyFX, the tool displays 5 fields the user has to fill;
 
 The first one to fill is for the X32 IP address. As soon a the IP address is entered and the user clicks on "Connect", the tool request from the X32 its set of currently loaded in the X32. The list of available effects is loaded into the two combo-boxes left of the APPLY button. The user then selects a source (FROM) and destination (TO) effect slot. A third combo-box lists the possible operations: reset, copy side A to side B, or the opposite (applies to the FROM effect), or copy the FROM effect data to the TO effect.
 The "Copy Master" check box enables the user to select if the selected operation also applies to the Master parameter (#32 and #64 for EQ types).
-
-![X32CopyFX.jpg](http://sites.google.com/site/patrickmaillot/x32/X32CopyFX.jpg)
-
 
 Starting with version 1.20, The tool offers two RESET types of effects settings to their respective default values. Choices are to reset only the effect in the FROM: box, or all effects from the FROM: to the TO: boxes; each effect will receive their respective default values.
 
@@ -895,16 +893,19 @@ NOTE: Microsoft Defender seems to inappropriately report this program as potenti
 
 
 ### X32GetLib ###
+<img src="https://drive.google.com/uc?export=view&id=1Vrid-DY4W-OYzI8IjQYZsSKT9AflX7vJ" width="500">
+
 Manage your Presets (Channel, Effect, Routing) on your PC from your X32.
 No more limits and a lot of flexibility to change settings and values for your preset files.
 
 Connect to X32, select a destination directory on your PC for Preset files. Select the preset library you want to retrieve (Channel, Effects or Routing). Hit the "Xfer Presets" button to start the transfer. A status will display as the transfer progresses and when transfer is complete.
 Starting with ver. 0.20, X32GetLib enables to save ALL presets (Channel, Effects, and Routing) in a single click.
 
-<img src="https://drive.google.com/uc?export=view&id=1Vrid-DY4W-OYzI8IjQYZsSKT9AflX7vJ" width="500">
 
 
 ### X32SetLib ###
+<img src="https://drive.google.com/uc?export=view&id=1sxlnMSTbGFZfBAxkH84DTDDGNGszs6vm" width="500">
+
 Manage your Presets (Channel, Effect, Routing) on your PC and send them to X32.
 No more limits and a lot of flexibility to change settings and values for your preset files.
 
@@ -913,7 +914,7 @@ Connect to X32, browse your PC for Preset files (Channel, Effect or Routing) and
 Set the position for the first preset in the library, positions will increment automatically, as presets are saved in the X32 library.
 Hit the "Xfer Presets" button to start the transfer. A status will display as the transfer progresses and when transfer is complete.
 Important note: All your preset files should be version 2.1; You can easily check this with a text editor (file begins with a #2.1# header) if not, you can actually set the header manually, as this does the trick in most situations.
-<img src="https://drive.google.com/uc?export=view&id=1sxlnMSTbGFZfBAxkH84DTDDGNGszs6vm" width="500">
+
 
 
 
