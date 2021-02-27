@@ -25,6 +25,9 @@
 // v 1.40: enable autoconnect if no IP data is provided
 // v 1.41: correct handling of file names with space (option -f and -s)
 // v 1.42: correctly re-init keep_on in the case of file1==1
+// v 1.43: Better handling of ctrl-V
+// v 1.44: added a page-up command to restore last line sent
+// v 1.45: Using keyboard thread function to better manage user inputs
 //
 
 #include <stdlib.h>
@@ -35,9 +38,10 @@
 
 #ifdef __WIN32__
 #include <windows.h>
-#include <conio.h>
+char					broadcast = 1;
 #define millisleep(a)	Sleep(a)
-HANDLE clip;
+HANDLE 					clip;
+HANDLE					thread;
 #else
 #include <sys/socket.h>
 #include <sys/select.h>
@@ -46,6 +50,7 @@ HANDLE clip;
 #include <netdb.h>
 #include <arpa/inet.h>
 #include <sys/fcntl.h>
+int						broadcast = 1;
 #define closesocket(s) 	close((s))
 #define millisleep(a)	usleep((a)*1000)
 #define WSACleanup()
@@ -64,25 +69,12 @@ extern int Xsprint(char *bd, int index, char format, void *bs);
 extern int Xcparse(char *buf, char *line);
 
 
-#ifdef __WIN32__
-	#define BACKSPACE	8		// need to use <ctl>h
-	#define EOL			13		// enter key
-	#define CTRLC		3		// Ctrl-C
-	#define CTRLV		22		// Ctrl-V
-	#define BACKCHARS	2		// 2 chars to remove from line
-	#define NO_CHAR		-1		// not a real/printable char
-#else
-	#define BACKSPACE	8		// backspace key OK
-	#define EOL			'\n'	// enter key
-	#define BACKCHARS	1		// 1 char to remove from line
-	#define NO_CHAR		-1		// not a real/printable char
-#endif
-
 //
 #define LINEMAX				512		// input line buffer size
 #define BSIZE				512		// send/receive buffer sizes
 #define XREMOTE_TIMEOUT		9		// timeout set to 9 seconds
 //
+int 				InputReady = 0;
 int 				X32debug = 0;
 int 				X32verbose = 1;
 struct sockaddr_in	Xip;
@@ -92,20 +84,11 @@ char				Xip_str[20], Xport_str[8];
 int					r_len, s_len, p_status;
 char				r_buf[BSIZE];
 char				s_buf[BSIZE];
+char				InputLine[LINEMAX + 4];
+unsigned int 		s_InputLine = sizeof(InputLine);
+char*        		pt_InputLine = InputLine;
 //
 // Macros:
-//
-#ifdef __WIN32__
-char							broadcast = 1;
-#define KEYBOARDINPUT()			input_intch = getkey();
-#define MANAGEEOL()				printf("\n");
-#define MANAGEBSP()				printf(" \b");
-#else
-int								broadcast = 1;
-#define KEYBOARDINPUT()			input_intch = getc(stdin);
-#define MANAGEEOL()
-#define MANAGEBSP()
-#endif
 //
 #define RPOLL													\
 	do {														\
@@ -166,38 +149,23 @@ do {																			\
 //
 //
 //
-#ifdef __WIN32__
-//
-unsigned long	getmyIP();
-int 			getkey();
-//
-// int getkey(): returns the typed character at keyboard or NO_CHAR if no keyboard key was pressed.
-// This is done in non-blocking mode; i.e. NO_CHAR is returned if no keyboard event is read from the
-// console event queue.
-// This works a lot better for me than the standard call to kbhit() which is generally used as kbhit()
-// keeps some characters such as ", `, %, and tries to deal with them before returning them. Not easy
-// the to follow-up what's really been typed in.
-//
-int getkey() {
-	INPUT_RECORD 	buf;		// interested in bKeyDown event
-	DWORD  			len;		// seem necessary
-	int 			ch;
-
-	ch = NO_CHAR;				// default return value;
-	PeekConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &buf, 1, &len);
-	if (len > 0) {
-		if (buf.EventType == KEY_EVENT && buf.Event.KeyEvent.bKeyDown) {
-			ch = _getch();		// set ch to input char only under right conditions
-			if (ch > 31 || ch == 8) putc(ch, stdout);	// echoes char to console out if displayable
-		}
-		FlushConsoleInputBuffer(GetStdHandle(STD_INPUT_HANDLE)); // remove consumed events
-		// ReadConsoleInput(GetStdHandle(STD_INPUT_HANDLE), &buf, 1, &len); // could call this too
-	} else {
-		Sleep(2);				// avoids too High a CPU usage when no input
-	}
-	return ch;
+// Thread routine to read input line
+void *KeyboardInput() {
+	InputReady = getline(&pt_InputLine, &s_InputLine, stdin);
+	InputLine[--InputReady] = 0;
+	return 0;
 }
 //
+// manage error cases
+void Die(char* message) {
+	perror(message);
+	exit(-1);
+}
+//
+//
+unsigned long	getmyIP();
+
+#ifdef __WIN32__
 // getmyIP(): A function to gather the IP of the network to which we are attached
 unsigned long getmyIP() {
 	char **pp = NULL;
@@ -211,8 +179,6 @@ unsigned long getmyIP() {
 	return 0;
 }
 #else
-//
-unsigned long getmyIP();
 //
 unsigned long getmyIP() {
 	struct ifaddrs *ifaddr, *ifa;
@@ -252,7 +218,6 @@ int main(int argc, char **argv) {
 //
 int					xremote_on;
 char				xremote[12] = "/xremote"; // automatic trailing zeroes
-int					l_index;
 char				input_line[LINEMAX + 4];
 int					input_intch;						// addresses limitations in certain C compilers wit getopt()
 int					keep_on, do_keyboard, s_delay, filein;
@@ -387,7 +352,7 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 //
 // All done. Let's send and receive messages
 // Establish logical connection with X32 server
-	printf(" X32_Command - v1.42 - (c)2014-20 Patrick-Gilles Maillot\n\nConnecting to X32.");
+	printf(" X32_Command - v1.45 - (c)2014-20 Patrick-Gilles Maillot\n\nConnecting to X32.");
 //
 	xremote_on = X32verbose;	// Momentarily save X32verbose
 	X32verbose = 0;
@@ -413,12 +378,12 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 		printf("Could not connect to X32!\n");
 		sleep(10);
 		exit(0);
-	}//
+	}
+//
 // Set 1ms timeout to get faster response from X32 (when testing for /xremote data).
 	timeout.tv_usec = 1000; //Set timeout for non blocking recvfrom(): 1ms
 	X32verbose = xremote_on;	// Restore X32verbose
 	xremote_on = 0;
-	l_index = 0;
 	before = 0;
 	if (filein) {
 		if ((fdk = fopen(input_line, "r")) == NULL) {
@@ -475,51 +440,25 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 		while (keep_on) {
 			XREMOTE()	// process /xremote if needded
 		    // build command by reading keyboard characters (from stdin)
-			KEYBOARDINPUT()
 #ifdef __WIN32__
-			if (input_intch == CTRLC) exit(0);
-			if (input_intch == CTRLV) {
-				clip = NULL;
-				if (OpenClipboard(NULL)) {
-					clip = GetClipboardData(CF_TEXT);
-					strcpy(input_line + l_index, clip);
-					s_len = Xcparse(s_buf, input_line);
-					SEND // send parsed data
-					CloseClipboard();
-				}
-				l_index = 0;
-			} else
+			if (thread == 0) {
+				if ((thread = CreateThread(NULL, 0,
+					(LPTHREAD_START_ROUTINE) KeyboardInput, 0, 0, 0)) < 0) Die("Could not create thread\n");
+#else
+				if ((pthread_create(&thread, NULL, KeyboardInput, 0)) < 0) Die("Could not create thread\n");
 #endif
-			if (input_intch == EOL) {
-				if (l_index) {
-					MANAGEEOL()
-					// Check for program interactive mode commands
-					input_line[l_index] = 0;
-					if (input_line[0] == '#') printf("---comment: %s\n", input_line);
-					TESTINPUT()			// Test for input data checks
-					else { 				// new line/command
-						s_len = Xcparse(s_buf, input_line);
-						SEND // send parsed data
-					}
-					l_index = 0;
-				} else {
-					printf ("resending\n");
-					SEND // empty line: resend previous parsed data
-				}
-			} else {
-				// parse input_intch values, building new command
-				if (l_index < LINEMAX)  {
-					if (input_intch != NO_CHAR)
-						input_line[l_index++] = (char)input_intch;
-					if (input_intch == BACKSPACE) {
-						MANAGEBSP()
-						l_index -= BACKCHARS; // remove char if backspace entered
-						if (l_index < 0) l_index = 0;
-					}
-				} else {
-					printf("!!! line too long - ignored line\n");
-					l_index = 0;
-				}
+			}
+			if (InputReady) {
+				InputReady = 0;
+#ifdef __WIN32__
+				if (TerminateThread(thread, 0)) thread = 0;
+#else
+				if (pthread_cancel(thread) == 0) thread = 0;
+#endif
+				if (InputLine[0] == '#') printf("---comment: %s\n", InputLine);
+				TESTINPUT()			// Test for input data checks
+				s_len = Xcparse(s_buf, InputLine);
+				SEND
 			}
 			CHECKX32()			// Check if X32 sent something back
 		}
