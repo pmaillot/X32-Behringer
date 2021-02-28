@@ -329,6 +329,7 @@ Set the utility to "ON"; After the number of seconds set in the "Delay before lo
 
 
 ### X32Fade ###
+https://drive.google.com/file/d/1bQVHO1uKjSokMZhqtT-fdO70DsmFJYyw/view?usp=sharing
 <img src="https://drive.google.com/uc?export=view&id=1bQVHO1uKjSokMZhqtT-fdO70DsmFJYyw" width="800">
 
 X32Fade.c - A Windows GUI version of a time and #steps controlled Fade_in/Fade_out for all 80 X32 faders (all banks, Levels, Aux, FX, Bus, DCA, Mtx, L/R).
