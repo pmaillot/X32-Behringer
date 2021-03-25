@@ -49,6 +49,7 @@ HANDLE					thread;
 #include <ifaddrs.h>
 #include <netdb.h>
 #include <arpa/inet.h>
+#include <pthread.h>
 #include <sys/fcntl.h>
 int						broadcast = 1;
 #define closesocket(s) 	close((s))
@@ -59,6 +60,7 @@ typedef int SOCKET;
 typedef struct sockaddr_in SOCKADDR_IN;
 typedef struct sockaddr SOCKADDR;
 typedef struct in_addr IN_ADDR;
+pthread_t thread;
 #endif
 
 
@@ -85,7 +87,7 @@ int					r_len, s_len, p_status;
 char				r_buf[BSIZE];
 char				s_buf[BSIZE];
 char				InputLine[LINEMAX + 4];
-unsigned int 		s_InputLine = sizeof(InputLine);
+size_t		 		s_InputLine = sizeof(InputLine);
 char*        		pt_InputLine = InputLine;
 //
 // Macros:
@@ -129,12 +131,12 @@ do {																			\
 } while (0);
 //
 #define CHECKX32()				\
-	do {						\
-		RPOLL 					\
-		if (p_status > 0) {		\
-			RECV				\
-		}						\
-	} while (p_status > 0);
+do {							\
+	RPOLL 						\
+	if (p_status > 0) {			\
+		RECV					\
+	}							\
+} while (p_status > 0);
 //
 //
 #define TESTINPUT()																						\
@@ -440,8 +442,8 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 		while (keep_on) {
 			XREMOTE()	// process /xremote if needded
 		    // build command by reading keyboard characters (from stdin)
-#ifdef __WIN32__
 			if (thread == 0) {
+#ifdef __WIN32__
 				if ((thread = CreateThread(NULL, 0,
 					(LPTHREAD_START_ROUTINE) KeyboardInput, 0, 0, 0)) < 0) Die("Could not create thread\n");
 #else
