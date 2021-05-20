@@ -12,22 +12,23 @@
 // v 1.28: remove incorrect use of FD_ISSET() in buffer check.
 // v 1.29: Change to X32_cparse.c to accept strings with space chars.
 // v 1.30: Change line_size to 512 chars
-// v 1.31: added 's' flag to read/send scene/snippets/tidbits/X32node lines from file
-// v 1.32: longer timeout when read/send scene/snippets/tidbits/X32node lines from file
-// v 1.33: added netinet/in.h include (freeBSD support)
-// v 1.34: addresses limitations in certain C compilers with getopt()
+// v 1.31: Added 's' flag to read/send scene/snippets/tidbits/X32node lines from file
+// v 1.32: Longer timeout when read/send scene/snippets/tidbits/X32node lines from file
+// v 1.33: Added netinet/in.h include (freeBSD support)
+// v 1.34: Addresses limitations in certain C compilers with getopt()
 // v 1.35: kb input is now treated as int
-// v 1.36: following changes to X32_cparse.c
-// v 1.37: code cleaning
-// v 1.38: finally got rid of call to kbhit() which was causing issues with ",`, %, even
+// v 1.36: Following changes to X32_cparse.c
+// v 1.37: Code cleaning
+// v 1.38: Finally got rid of call to kbhit() which was causing issues with ",`, %, even
 //         for non-international US keyboard
-// v 1.39: corrected handling of non-printable characters, and ctrl-V
-// v 1.40: enable autoconnect if no IP data is provided
-// v 1.41: correct handling of file names with space (option -f and -s)
-// v 1.42: correctly re-init keep_on in the case of file1==1
+// v 1.39: Corrected handling of non-printable characters, and ctrl-V
+// v 1.40: Enable autoconnect if no IP data is provided
+// v 1.41: Correct handling of file names with space (option -f and -s)
+// v 1.42: Correctly re-init keep_on in the case of file1==1
 // v 1.43: Better handling of ctrl-V
-// v 1.44: added a page-up command to restore last line sent
+// v 1.44: Added a page-up command to restore last line sent
 // v 1.45: Using keyboard thread function to better manage user inputs
+// v 1.46: Errors in treating side commands such as "quit", "xremote", etc.
 //
 
 #include <stdlib.h>
@@ -40,7 +41,6 @@
 #include <windows.h>
 char					broadcast = 1;
 #define millisleep(a)	Sleep(a)
-HANDLE 					clip;
 HANDLE					thread;
 #else
 #include <sys/socket.h>
@@ -140,14 +140,14 @@ do {							\
 //
 //
 #define TESTINPUT()																						\
-	else if (strcmp(input_line, "exit") == 0) keep_on = 0;												\
-	else if (strcmp(input_line, "quit") == 0) keep_on = 0;												\
-	else if (strcmp(input_line, "xremote") == 0) printf(":: xremote is %s\n",((xremote_on)?"on":"off"));\
-	else if (strcmp(input_line, "xremote off") == 0) 	xremote_on = 0;									\
-	else if (strcmp(input_line, "xremote on") == 0) 	xremote_on = 1;									\
-	else if (strcmp(input_line, "verbose") == 0) printf(":: verbose is %s\n",((X32verbose)?"on":"off"));\
-	else if (strcmp(input_line, "verbose off") == 0) 	X32verbose = 0;									\
-	else if (strcmp(input_line, "verbose on") == 0) 	X32verbose = 1;									\
+	if (strcmp(InputLine, "exit") == 0) keep_on = 0;												\
+	else if (strcmp(InputLine, "quit") == 0) keep_on = 0;												\
+	else if (strcmp(InputLine, "xremote") == 0) printf(":: xremote is %s\n",((xremote_on)?"on":"off"));\
+	else if (strcmp(InputLine, "xremote off") == 0) 	xremote_on = 0;									\
+	else if (strcmp(InputLine, "xremote on") == 0) 	xremote_on = 1;									\
+	else if (strcmp(InputLine, "verbose") == 0) printf(":: verbose is %s\n",((X32verbose)?"on":"off"));\
+	else if (strcmp(InputLine, "verbose off") == 0) 	X32verbose = 0;									\
+	else if (strcmp(InputLine, "verbose on") == 0) 	X32verbose = 1;									\
 //
 //
 //
@@ -220,8 +220,7 @@ int main(int argc, char **argv) {
 //
 int					xremote_on;
 char				xremote[12] = "/xremote"; // automatic trailing zeroes
-char				input_line[LINEMAX + 4];
-int					input_intch;						// addresses limitations in certain C compilers wit getopt()
+int					input_intch;			// addresses limitations in certain C compilers wit getopt()
 int					keep_on, do_keyboard, s_delay, filein;
 FILE*				fdk = NULL;
 time_t				before, now;
@@ -255,14 +254,14 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 			break;
 		case 'f':
 			filein = 1;
-			strcpy(input_line, optarg);
+			strcpy(InputLine, optarg);
 			break;
 		case 'k':
 			sscanf(optarg, "%d", &do_keyboard);
 			break;
 		case 's':
 			filein = 2;
-			strcpy(input_line, optarg);
+			strcpy(InputLine, optarg);
 			break;
 		case 't':
 			sscanf(optarg, "%d", &s_delay);
@@ -347,14 +346,10 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 	timeout.tv_usec = 500000; //Set timeout for non blocking recvfrom(): 500ms
 	FD_ZERO(&ufds);
 	FD_SET(Xfd, &ufds);
-// make stdin (fd = 0) I/O nonblocking
-#ifndef __WIN32__
-	fcntl(0, F_SETFL, fcntl(0, F_GETFL, 0) | O_NONBLOCK);
-#endif
 //
 // All done. Let's send and receive messages
 // Establish logical connection with X32 server
-	printf(" X32_Command - v1.45 - (c)2014-20 Patrick-Gilles Maillot\n\nConnecting to X32.");
+	printf(" X32_Command - v1.46 - (c)2014-20 Patrick-Gilles Maillot\n\nConnecting to X32.");
 //
 	xremote_on = X32verbose;	// Momentarily save X32verbose
 	X32verbose = 0;
@@ -388,27 +383,29 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 	xremote_on = 0;
 	before = 0;
 	if (filein) {
-		if ((fdk = fopen(input_line, "r")) == NULL) {
-			printf ("Cannot read file: %s\n", input_line);
+		if ((fdk = fopen(InputLine, "r")) == NULL) {
+			printf ("Cannot read file: %s\n", InputLine);
 			exit(EXIT_FAILURE);
 		}
 		if (filein == 1) {
 			keep_on = 1;
 			while (keep_on) {
 				XREMOTE()
-				if (fgets(input_line, LINEMAX, fdk)) {
-					input_line[strlen(input_line) - 1] = 0;
+				if (fgets(InputLine, LINEMAX, fdk)) {
+					InputLine[strlen(InputLine) - 1] = 0;
 					// Check for program batch mode commands
-					if (input_line[0] == '#') printf("---comment: %s\n", input_line);
-					TESTINPUT()			// Test for input data checks
-					// Additional batch-mode input data checks
-					else if (strcmp(input_line, "kill") == 0) {keep_on = 0; do_keyboard = 0;}
-					else if (strncmp(input_line, "time", 4) == 0) {sscanf(input_line+5, "%d", &s_delay); printf(":: delay is: %d\n", s_delay);}
-					else if (strlen(input_line) > 1) { // X32 command line
-						s_len = Xcparse(s_buf, input_line);
-						SEND			// send batch command
+					if (InputLine[0] == '#') printf("---comment: %s\n", InputLine);
+					else {
+						TESTINPUT()			// Test for input data checks
+						// Additional batch-mode input data checks
+						else if (strcmp(InputLine, "kill") == 0) {keep_on = 0; do_keyboard = 0;}
+						else if (strncmp(InputLine, "time", 4) == 0) {sscanf(InputLine+5, "%d", &s_delay); printf(":: delay is: %d\n", s_delay);}
+						else if (strlen(InputLine) > 1) { // X32 command line
+							s_len = Xcparse(s_buf, InputLine);
+							SEND			// send batch command
+						}
+						CHECKX32()			// Check if X32 sent something back
 					}
-					CHECKX32()			// Check if X32 sent something back
 				} else {
 					keep_on = 0;
 				}
@@ -419,13 +416,13 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 		} else {	// filein = 2 ('s' option)
 			timeout.tv_usec = 10000; // Set timeout to 10ms
 			do_keyboard = 0;	// force exit after end-of-file
-			while (fgets(input_line, LINEMAX, fdk) != NULL) {
+			while (fgets(InputLine, LINEMAX, fdk) != NULL) {
 				// skip comment lines
-				if (input_line[0] != '#') {
-					input_line[strlen(input_line) - 1] = 0;	// avoid trailing '\n'
+				if (InputLine[0] != '#') {
+					InputLine[strlen(InputLine) - 1] = 0;	// avoid trailing '\n'
 					s_len = Xsprint(s_buf, 0, 's', "/");
 					s_len = Xsprint(s_buf, s_len, 's', ",s");
-					s_len = Xsprint(s_buf, s_len, 's', input_line);
+					s_len = Xsprint(s_buf, s_len, 's', InputLine);
 					SEND			// send data to X32
 					CHECKX32()		// X32 will echo back the line
 				}
@@ -458,9 +455,13 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 				if (pthread_cancel(thread) == 0) thread = 0;
 #endif
 				if (InputLine[0] == '#') printf("---comment: %s\n", InputLine);
-				TESTINPUT()			// Test for input data checks
-				s_len = Xcparse(s_buf, InputLine);
-				SEND
+				else {
+					TESTINPUT()			// Test for input data checks
+					else {
+						s_len = Xcparse(s_buf, InputLine);
+						SEND
+					}
+				}
 			}
 			CHECKX32()			// Check if X32 sent something back
 		}
