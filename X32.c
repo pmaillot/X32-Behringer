@@ -28,7 +28,9 @@
 // 0.77: fixed incorrect index computation in the case of mutliple tags, ex: /config/mute ,iiiiii would not set last value
 // 0.78: includes FW4.0 capabilities, and includes /-stat/lock ,i 2 as a shutdown command
 // 0.79: /config/osc/dest was missing as a command
-// 0.80: fix bug in /fx/...
+// 0.80: error in /fx/... command
+// 0.81: added some elements related to 4.06 (/mtx/../grp, /main/st|m/grp,..) tested with xedit 4.12
+// 0.82: added some elements related to 4.06 (/-stat/dcaspill)
 //
 #ifdef __WIN32__
 #include <windows.h>
@@ -59,7 +61,7 @@
 #include <time.h>
 
 #define EPSILON 0.0001	// epsilon for float comparisons
-#define XVERSION "4.0"	// FW version
+#define XVERSION "4.06"	// FW version
 #define BSIZE 512		// Buffer sizes
 #define X32DEBUG 0		// default debug mode
 #define X32VERBOSE 1	// default verbose mode
@@ -931,7 +933,7 @@ int main(int argc, char **argv) {
 #endif
 //
 	r_len = 0;
-	printf("X32 - v0.80 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.82 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
 	//
 	// Get or use IP address
 	if (noIP) {
@@ -2838,7 +2840,6 @@ int funct_params(X32command *command, int i) {
 	node_single_index = i;
 	//
 	f_len = f_num = c_type = update =0;
-
 	c_len = strlen(command[i].command);
 	f_len = (((c_len + 4) & ~3) + 1); // pointing at first format char after ',' if there's a ','
 	if ((r_len - 4 > c_len) && (r_buf[f_len] != 0)) { // there's a ',' and at least one type tag
@@ -3621,6 +3622,7 @@ int function_slash() {
 							if ((str_pt_in = XslashSetList(&command[i+20], str_pt_in)) == NULL) return S_SND;
 							if ((str_pt_in = XslashSetList(&command[i+21], str_pt_in)) == NULL) return S_SND;
 							if ((str_pt_in = XslashSetInt(&command[i+22], str_pt_in)) == NULL) return S_SND;
+							if ((str_pt_in = XslashSetInt(&command[i+23], str_pt_in)) == NULL) return S_SND;
 							break;
 						case SSCREEN:
 							if ((str_pt_in = XslashSetList(&command[i+1], str_pt_in)) == NULL) return 0;
@@ -4116,6 +4118,7 @@ int function_node() {
 					strcat(s_buf + s_len, command[i + 20].value.ii ? " ON" : " OFF");
 					strcat(s_buf + s_len, command[i + 21].value.ii ? " ON" : " OFF");
 					strcat(s_buf + s_len, Sint(command[i + 22].value.ii));
+					strcat(s_buf + s_len, Sint(command[i + 23].value.ii));
 					break;
 				case SSCREEN:
 					strcat(s_buf + s_len, Sscrn[command[i + 1].value.ii]);
