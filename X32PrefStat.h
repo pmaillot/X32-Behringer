@@ -313,6 +313,7 @@ X32command Xstat[] = {
 		{"/-stat/xcardsync",		{E32}, F_XET, {0}, OffOn},
 		{"/-stat/geqonfdr",			{E32}, F_XET, {0}, OffOn},
 		{"/-stat/geqpos",			{I32}, F_XET, {0}, NULL},
+		{"/-stat/dcaspill",			{I32}, F_XET, {0}, NULL},
 
 		{"/-stat/screen",					{SSCREEN}, F_FND, {0}, NULL},
 		{"/-stat/screen/screen",		{E32}, F_XET, {0}, Sscrn},
