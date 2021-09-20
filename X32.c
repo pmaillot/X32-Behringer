@@ -31,6 +31,7 @@
 // 0.80: error in /fx/... command
 // 0.81: added some elements related to 4.06 (/mtx/../grp, /main/st|m/grp,..) tested with xedit 4.12
 // 0.82: added some elements related to 4.06 (/-stat/dcaspill)
+// 0.83: fixed bugs in FX parameters lists and ranges
 //
 #ifdef __WIN32__
 #include <windows.h>
@@ -340,7 +341,7 @@ char*  XRtaea[] = {" AN1-8", " AN9-16", "AN17-24", " AN25-32", " A1-8",	" A9-16"
 char*  XRtina[] = {" AUX1-4", " AN1-2", " AN1-4", " AN1-6", " A1-2", " A1-4", " A1-6",
                    " B1-2", " B1-4", " B1-6", " CARD1-2", " CARD1-4", " CARD1-6", ""};
 char*  XRout1[] = {" AN1-4", " AN9-12", " AN17-20", " AN25-28", " A1-4", " A9-12", " A17-20", " A25-28", " A33-36",
-                   " A41-44" ," B1-4", " B9-12", " B17-20", " B25-28", " B33-46", " B41-44", " CARD1-4", " CARD9-12",
+                   " A41-44" ," B1-4", " B9-12", " B17-20", " B25-28", " B33-36", " B41-44", " CARD1-4", " CARD9-12",
                    " CARD17-20", " CARD25-28", " OUT1-4", " OUT9-12", " P161-4", " P169-12", " AUX/CR", " AUX/TB", ""};
 char*  XRout5[] = {" AN5-8", " AN13-16", " AN21-24", " AN29-32", " A5-8", " A13-16", " A21-24", " A29-32", " A37-40",
                    " A45-48" ," B5-8", " B13-16", " B21-24", " B29-32", " B37-40", " B45-48", " CARD5-8", " CARD13-16",
@@ -449,7 +450,7 @@ char* R11[] = {"200", "300", "500", "700", "1k", "1k5", "2k", "3k", "4k", "5k", 
 char* R12[] = {"200", "300", "500", "700", "1000", ""};
 char* R13[] = {"5k", "10k", "20k", ""};
 char* R14[] = {"3k", "4k", "5k", "8k", "10k", "12k", "16k", ""};
-char* R15[] = {"0", "30", "60", "100", ""};
+char* R15[] = {"20", "30", "60", "100", ""};
 char* R16[] = {"FEM", "MALE", ""};
 char* R17[] = {"AMB", "CLUB", "HALL", ""};
 char* R18[] = {"PAR", "SER", ""};
@@ -460,6 +461,10 @@ char* R22[] = {"TRI", "SIN", "SAW", "SAW-", "RMP", "SQU", "RND",""};
 char* R23[] = {"LP", "HP", "BP", "NO",""};
 char* R24[] = {"M", "ST",""};
 char* R25[] = {"1/4", "3/8", "1/2", "2/3", "1", "4/3", "3/2", "2", "3",""};
+char* R26[] = {"2POL", "4POL",""};
+char* R27[] = {"RUN", "STOP",""};
+char* R28[] = {"SLOW", "FAST",""};
+char* R29[] = {"ST", "MS",""};
 
 #include "X32Channel.h"		//
 #include "X32CfgMain.h"		//
@@ -933,7 +938,7 @@ int main(int argc, char **argv) {
 #endif
 //
 	r_len = 0;
-	printf("X32 - v0.82 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.83 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
 	//
 	// Get or use IP address
 	if (noIP) {
@@ -1392,7 +1397,7 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.3, 4.571268634)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 4., 35.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200., 4.605170186)) == NULL) return;
@@ -1408,9 +1413,9 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 	case _1_ROOM:
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 200.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.3, 4.571268634)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 4., 68.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 4., 72.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200., 4.605170186)) == NULL) return;
@@ -1428,7 +1433,7 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.3, 4.571268634)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 4., 68.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200., 4.605170186)) == NULL) return;
@@ -1443,7 +1448,7 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 		break;
 	case _1_PLAT:
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 200.)) == NULL) return;
-		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.2, 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 2.995732274)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 2., 98.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1000., 2.995732274)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
@@ -1452,41 +1457,41 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200., 4.605170186)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 1.386294361)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10.,3.912023005)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 49.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		break;
 	case _1_VREV:
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 120.)) == NULL) return;
-		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.3, 2.708050201)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 2., 10.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0.4, 4.1)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R01)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
-		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200., 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10000., 9.210340372)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 1.386294361)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.25, 1.386294361)) == NULL) return;
 		break;
 	case _1_VRM:
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 20.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 200.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.1, 5.298317367)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 2., 98.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 190.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.1, 4.605170186)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.1, 4.605170186)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200.,4.605170186)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 200.)) == NULL) return;
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
 		break;
 	case _1_GATE:
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 200.)) == NULL) return;
-		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 140., 1.966112856)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 140., 860.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 30.)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 49.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
@@ -1499,7 +1504,7 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 140., 1.966112856)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 29.)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 99.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200.,4.605170186)) == NULL) return;
@@ -1507,7 +1512,7 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 		break;
 	case _1_DLY:
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 3000.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 2999.)) == NULL) return;
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R24)) == NULL) return;
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R25)) == NULL) return;
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R25)) == NULL) return;
@@ -1520,7 +1525,7 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200.,4.605170186)) == NULL) return;
 		break;
 	case _1_3TAP:
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 3000.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 2999.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
@@ -1537,7 +1542,7 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
 		break;
 	case _1_4TAP:
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 3000.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 2999.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
@@ -1570,8 +1575,8 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.05, 4.605170186)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
-		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 3.688879454)) == NULL) return;
-		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 3.688879454)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 4.605170186)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.5, 4.605170186)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 200.,4.605170186)) == NULL) return;
@@ -1609,7 +1614,7 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.05, 5.991464547)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
-		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 7.313220387)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 20., 6.620073207)) == NULL) return;
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R23)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R22)) == NULL) return;
@@ -1618,7 +1623,7 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.218875825)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
-		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R26)) == NULL) return;
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
 		break;
 	case _1_ROTA:
@@ -1628,12 +1633,12 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
-		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
-		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R27)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R28)) == NULL) return;
 		break;
 	case _1_PAN:
 	case _2_PAN:
-		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.05, 4.382026635)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.05, 4.605170186)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 180.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -50., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
@@ -1769,7 +1774,7 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R16)) == NULL) return;
-		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R02)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R29)) == NULL) return;
 		break;
 	case _1_P1A2:
 	case _2_P1A2:
@@ -1777,6 +1782,7 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R15)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R14)) == NULL) return;
@@ -1789,6 +1795,7 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R15)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R14)) == NULL) return;
@@ -1831,7 +1838,7 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 	case _1_LIM:
 	case _2_LIM:
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 18.)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -18., 36.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -18., 18.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 0.05, 2.995732274)) == NULL) return;
@@ -1905,18 +1912,25 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 	case _2_FAC2:
 	case _2_FAC1M:
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -20., 40.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -20., 20.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 6.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 7.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -18., 24.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -20., 20.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 7.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -18., 24.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		break;
 	case _1_FAC:
 	case _2_FAC:
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -20., 40.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -20., 20.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 10.)) == NULL) return;
-		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 6.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 1., 7.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -18., 24.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
@@ -1957,6 +1971,13 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 	case _2_ENH2:
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
+		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
@@ -1964,6 +1985,7 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 50.)) == NULL) return;
 		if ((str_pt_in = REnum(&command[ipar++], str_pt_in, R00)) == NULL) return;
+		break;
 	case _1_ENH:
 	case _2_ENH:
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
@@ -2066,16 +2088,24 @@ void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type) {
 	case _1_PIT2:
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -50., 100.)) == NULL) return;
-		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1., 4.605170186)) == NULL) return;
-		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
-		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 2000., 2.302585093)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1., 6.214608098)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
-	case _1_PIT:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -50., 100.)) == NULL) return;
-		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1., 4.605170186)) == NULL) return;
-		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 10., 3.912023005)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1., 6.214608098)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 2000., 2.302585093)) == NULL) return;
+		break;
+		case _1_PIT:
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -12., 24.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -50., 100.)) == NULL) return;
+		if ((str_pt_in = RLogf(&command[ipar++], str_pt_in, 1., 6.214608098)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
+		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, -100., 200.)) == NULL) return;
 		if ((str_pt_in = RLinf(&command[ipar++], str_pt_in, 0., 100.)) == NULL) return;
 		break;
 	}
@@ -2117,7 +2147,7 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 		strcat(buf, Slogf(command[ipar++].value.ff, 0.3, 29., 1));
 		strcat(buf, Slinf(command[ipar++].value.ff, 4., 39., 0));
 		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 20000., 1));
-		strcat(buf, Slinf(command[ipar++].value.ff, 1., 30., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, -12., +12., 0));
 		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
 		strcat(buf, Slogf(command[ipar++].value.ff, 200., 20000., 1));
@@ -2133,9 +2163,9 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 	case _1_ROOM:
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
 		strcat(buf, Slogf(command[ipar++].value.ff, 0.3, 29., 1));
-		strcat(buf, Slinf(command[ipar++].value.ff, 4., 72., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 4., 76., 0));
 		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 20000., 1));
-		strcat(buf, Slinf(command[ipar++].value.ff, 1., 30., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, -12., +12., 0));
 		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
 		strcat(buf, Slogf(command[ipar++].value.ff, 200., 20000., 1));
@@ -2153,7 +2183,7 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 		strcat(buf, Slogf(command[ipar++].value.ff, 0.3, 29., 1));
 		strcat(buf, Slinf(command[ipar++].value.ff, 4., 72., 0));
 		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 20000., 1));
-		strcat(buf, Slinf(command[ipar++].value.ff, 1., 30., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, -12., +12., 0));
 		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
 		strcat(buf, Slogf(command[ipar++].value.ff, 200., 20000., 1));
@@ -2168,7 +2198,7 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 		break;
 	case _1_PLAT:
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
-		strcat(buf, Slogf(command[ipar++].value.ff, 0.2, 10., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 10., 1));
 		strcat(buf, Slinf(command[ipar++].value.ff, 2., 100., 0));
 		strcat(buf, Slogf(command[ipar++].value.ff, 1000., 20000., 1));
 		strcat(buf, Slinf(command[ipar++].value.ff, 1., 30., 0));
@@ -2177,40 +2207,40 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 		strcat(buf, Slogf(command[ipar++].value.ff, 200., 20000., 1));
 		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 2., 1));
 		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 50., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		break;
 	case _1_VREV:
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 120., 0));
-		strcat(buf, Slogf(command[ipar++].value.ff, 0.3, 4.5, 1));
-		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0.4, 4.5, 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
 		strcat(s_buf + s_len, command[ipar++].value.ii ? " REAR" : " FRONT");
 		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(command[ipar++].value.ff, 200., 20000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 10000., 20000., 1));
 		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 2., 1));
 		strcat(buf, Slogf(command[ipar++].value.ff, 0.25, 1., 0));
 		break;
 	case _1_VRM:
-		strcat(buf, Slinf(command[ipar++].value.ff, 0., 20., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
 		strcat(buf, Slogf(command[ipar++].value.ff, 0.1, 20., 1));
-		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 2., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 1., 30., 0));
-		strcat(buf, Slinf(command[ipar++].value.ff, 0., 190., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, -12., +12., 0));
 		strcat(buf, Slogf(command[ipar++].value.ff, 0.1, 10., 1));
 		strcat(buf, Slogf(command[ipar++].value.ff, 0.1, 10., 1));
 		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
 		strcat(buf, Slogf(command[ipar++].value.ff, 200, 20000., 1));
-		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 1));
-		strcat(buf, Slinf(command[ipar++].value.ff, 0., 00., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 1));
 		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
 		break;
 	case _1_GATE:
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
-		strcat(buf, Slogf(command[ipar++].value.ff, 140, 1000., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 140, 1000., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 30., 0));
-		strcat(buf, Slinf(command[ipar++].value.ff, 1., 30., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 50., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, -12., +12., 0));
 		strcat(buf, Slogf(command[ipar++].value.ff, 10, 500., 1));
@@ -2231,7 +2261,7 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 		break;
 	case _1_DLY:
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 200., 0));
-		strcat(buf, Slinf(command[ipar++].value.ff, 0., 3000., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 3000., 0));
 		strcat(buf, Smode[command[ipar++].value.ii]);
 		strcat(buf, Sfactor[command[ipar++].value.ii]);
 		strcat(buf, Sfactor[command[ipar++].value.ii]);
@@ -2244,7 +2274,7 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 		strcat(buf, Slogf(command[ipar++].value.ff, 200, 20000., 1));
 		break;
 	case _1_3TAP:
-		strcat(buf, Slinf(command[ipar++].value.ff, 0., 3000., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 3000., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
@@ -2261,7 +2291,7 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
 		break;
 	case _1_4TAP:
-		strcat(buf, Slinf(command[ipar++].value.ff, 0., 3000., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 3000., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slogf(command[ipar++].value.ff, 10, 500., 1));
@@ -2281,8 +2311,8 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 5., 1));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 20., 1));
-		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 20., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 50., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.5, 50., 1));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
 		strcat(buf, Slogf(command[ipar++].value.ff, 200., 20000., 1));
@@ -2333,7 +2363,7 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 20., 1));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
-		strcat(buf, Slogf(command[ipar++].value.ff, 10., 15000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 20., 15000., 1));
 		strcat(buf, Sfmode[command[ipar++].value.ii]);
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Sfwave[command[ipar++].value.ii]);
@@ -2341,7 +2371,7 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 		strcat(buf, Slogf(command[ipar++].value.ff, 10., 250., 1));
 		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
-		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " 2POL" : " 4POL");
 		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
 		break;
 	case _1_ROTA:
@@ -2351,12 +2381,12 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
-		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
-		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " RUN" : " STOP");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " SLOW" : " FAST");
 		break;
 	case _1_PAN:
 	case _2_PAN:
-		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 4., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 5., 1));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 180., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, -50., 50., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
@@ -2496,7 +2526,7 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 50., 0));
 		strcat(s_buf + s_len, command[ipar++].value.ii ? " MALE" : " FEM");
-		strcat(s_buf + s_len, command[ipar++].value.ii ? " M/S" : " ST");
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " MS" : " ST");
 		break;
 	case _1_P1A2:
 	case _2_P1A2:
@@ -2504,6 +2534,7 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
 		strcat(buf, Sfplfreq[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
 		strcat(buf, Sfpmfreq[command[ipar++].value.ii]);
@@ -2516,6 +2547,7 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
 		strcat(buf, Sfplfreq[command[ipar++].value.ii]);
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
 		strcat(buf, Sfpmfreq[command[ipar++].value.ii]);
@@ -2558,7 +2590,7 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 	case _1_LIM:
 	case _2_LIM:
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(command[ipar++].value.ff, -18., 18., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -18., 0., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
 		strcat(buf, Slogf(command[ipar++].value.ff, 0.05, 1., 1));
@@ -2632,18 +2664,25 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 	case _2_FAC2:
 	case _2_FAC1M:
 		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(command[ipar++].value.ff, -20., 20., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -20., 0., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(command[ipar++].value.ff, 0., 6., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 6., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, -18., 6., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -20., 0., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 6., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -18., 6., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		break;
 	case _1_FAC:
 	case _2_FAC:
 		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
-		strcat(buf, Slinf(command[ipar++].value.ff, -20., 20., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -20., 0., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 10., 0));
-		strcat(buf, Slinf(command[ipar++].value.ff, 0., 6., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 6., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, -18., 6., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
@@ -2684,6 +2723,13 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 	case _2_ENH2:
 		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 50., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 1., 50., 0));
+		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 1., 50., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
@@ -2691,6 +2737,7 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 1., 50., 0));
 		strcat(s_buf + s_len, command[ipar++].value.ii ? " ON" : " OFF");
+		break;
 	case _1_ENH:
 	case _2_ENH:
 		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
@@ -2805,16 +2852,24 @@ void GetFxPar1(X32command* command, char* buf, int ipar, int type) {
 	case _1_PIT2:
 		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, -50., 50., 0));
-		strcat(buf, Slogf(command[ipar++].value.ff, 1., 100., 1));
-		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(command[ipar++].value.ff, 2000., 20000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1., 500., 1));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -50., 50., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1., 500., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slogf(command[ipar++].value.ff, 2000., 20000., 1));
+		break;
 	case _1_PIT:
 		strcat(buf, Slinf(command[ipar++].value.ff, -12., 12., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, -50., 50., 0));
-		strcat(buf, Slogf(command[ipar++].value.ff, 1., 100., 1));
-		strcat(buf, Slogf(command[ipar++].value.ff, 10., 500., 1));
-		strcat(buf, Slogf(command[ipar++].value.ff, 2000., 20000., 1));
+		strcat(buf, Slogf(command[ipar++].value.ff, 1., 500., 1));
+		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
+		strcat(buf, Slinf(command[ipar++].value.ff, -100., 100., 0));
 		strcat(buf, Slinf(command[ipar++].value.ff, 0., 100., 0));
 		break;
 	default:
