@@ -84,7 +84,7 @@ char* Sfdtype[] = {" AMB", " CLUB", " HALL"};
 
 char* Sfddelay[] = {" 1", " 1/2", " 2/3", " 3/2"};
 
-char* Sfplfreq[] = {" 0", " 30", " 60", " 100"};
+char* Sfplfreq[] = {" 20", " 30", " 60", " 100"};
 
 char* Sfpmfreq[] = {" 3K", " 4K", " 5K", " 8K", " 10K", " 12K", " 16K"};
 
