@@ -7,7 +7,7 @@ The first one I committed is X32_Command, a simple yet very useful and powerful 
 
 
 ## COPYRIGHT ##
-All software, pictures & documentation Copyright (C) 2013-2018 Patrick-Gilles Maillot
+All software, pictures & documentation Copyright (C) 2013-2021 Patrick-Gilles Maillot
 
 All software in this repository is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
@@ -40,6 +40,24 @@ For example, the compile lines for X32Reaper in Debug mode are listed below (ent
 Info: Internal Builder is used for build
 gcc -O0 -g3 -Wall -c -fmessage-length=0 -o X32Reaper.o "..\\X32Reaper.c" 
 gcc "-LC:\\...\\eclipse\\X32_lib\\Debug" -o X32Reaper.exe X32Reaper.o -lX32_lib -lws2_32
+```
+Please also... Be aware I cannot support *all* environments here; Therefore there may be some cases where the utilities will not build *as is*; My environment in plain Windows 10, Eclipse IDE and MinGW. Different compilers or toolchains may require small adjustments to parameters or include files. As an example, the following things needed to do/add to the source to compile for Windows using Visual Studio install.
+```
+// ======================================================== 
+//#include <unistd.h>
+// ========================================================
+#ifdef __WIN32__
+#undef NULL
+#include "win32-getopt.c"
+#pragma comment(lib, "Ws2_32.lib")
+#define SPACE ' '
+#define COMMA ','
+#define QUOTE '"'
+#define SQUOTE '\''
+#include "X32lib\Xcparse.c"
+#include "X32lib\Xsprint.c"
+#endif
+// ========================================================
 ```
 
 ### Contribution guidelines ###
