@@ -3,7 +3,7 @@
  *
  *  Created on: Sep 13, 2017
  *
- * Â©2017 - Patrick-Gilles Maillot
+ * ©2017 - Patrick-Gilles Maillot
  *
  * X32Wav_Xlive - a Windows application for merging single WAV files into X-Live! compatible
  * 			   multi-channel WAV files
@@ -32,9 +32,15 @@
  *	ver 1.21: enabled no session name (so defaults to time stamp, as on X32)
  *	ver 1.22: Improved a few calls to write()
  *	ver 1.23: small logic bug in case of full 32 channels in
+ *	ver 1.24: change "%f" format in reading marker file to "%f,"; as a result, Marker data in
+ *	          the file MUST be separated by a ","
+ *	ver 1.25: now accepting a -g 0/1 option to run in command line mode under Windows too
+ *	ver 1.25: now accepting a -u 0/1 option to use upper case (.WAV) rather than lower case
+ *	ver 1.26: ?
+ *	ver 1.27: set session directory text Read Only
+ *	ver 1.28: changed mask on audio_bytes trimming to 32kB boundary
  *
  */
-#define GUI
 //
 #include <stdio.h>
 #include <string.h>
@@ -43,24 +49,31 @@
 #include <time.h>
 #include <sys/timeb.h>	// more precise timing functions
 #ifdef _WIN32
-#include <winsock2.h>	// Windows functions for std GUI & sockets
+#include <windows.h>	// Windows functions for std GUI & sockets
 #include <Shlobj.h>		// Windows shell functions
 #define MESSAGE(s1,s2)	\
-			MessageBox(NULL, s1, s2, MB_OK);
+			MessageBox(NULL, (s1), (s2), MB_OK);
+#define MESSAGE1(s1)	\
+			MessageBox(NULL, (s1), NULL, MB_OK);
+#define MESSAGE2(s2)	\
+			MessageBox(NULL, NULL, (s2), MB_OK);
 #define zeromem(a1, a2) \
-		ZeroMemory(a1, a2);
+		ZeroMemory((a1), (a2));
 #else
 #include <sys/stat.h>
 #include <sys/types.h>
 #define MAX_PATH 256	// file name/path size
 #define MESSAGE(s1,s2)	\
-			printf("%s - %s\n",s2, s1);
+			printf("%s - %s\n",(char*)(s2), (char*)(s1));
+#define MESSAGE1(s1)	\
+			printf("%s\n",(char*)(s1));
+#define MESSAGE2(s1)	\
+			printf("%s\n",(char*)(s1));
 #define zeromem(a1, a2) \
-		memset((void *)a1, 0, a2);
+		memset((void *)(a1), 0, (a2));
 #define min(a,b) 		\
 			(((a)<(b))?(a):(b))
 #endif
-#define NULLSTR ""
 //
 #define riff	0x66666972	// "riff"
 #define RIFF	0x46464952	// "RIFF"
@@ -91,7 +104,7 @@ typedef union {
 // Private functions
 int	MergeWavFiles(int num_markers, float* markers);
 //
-#if defined(_WIN32) && defined(GUI)
+#if defined(_WIN32)
 // Windows Declarations
 WINBASEAPI HWND WINAPI GetConsoleWindow(VOID);
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
@@ -117,12 +130,14 @@ FILE			*Xin[32];				// input files
 FILE			*Xout;					// output file
 //
 i4chr			sample;					// wav sample from 24 bits to 32 bits
+int				Ucase = 0;				// 1 is upper case (.WAV)
 int				slen;					// string length used with directory Xspath[]
 int				keep_running = 1;		// main loop control
 int				wWidth = 550;			// Default window size
 int				wHeight = 158;			//
-char			str1[64];				// used for Windows strings conversions
-char			str2[1024];				// used for Windows strings conversions
+int				MergeOnGoing = 0;		//
+char			str1[1024];				// used for Windows strings conversions
+char			str2[2048];				// used for Windows strings conversions
 //
 float			marker_vec[101];		// array for markers (set from user)
 unsigned int	take_size[256];			// max 256 takes; this is their individual size
@@ -175,7 +190,7 @@ unsigned int	Blnk = BLNK;			// "    " on one unsigned int
 //
 long long		audio_bytes;			// size of audio data (multi channels)
 unsigned int	r_audio_bytes;			// audio data remainder on 32bits for file writing
-#if defined(_WIN32) && defined(GUI)
+#if defined(_WIN32)
 //
 // Windows main function and main loop
 //
@@ -223,7 +238,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		hwndInDir = CreateWindow("button", "Session Directory",
 				WS_VISIBLE | WS_CHILD, 128, 25, 130, 20, hwnd, (HMENU )2, NULL, NULL);
 		hwndSource = CreateWindow("Edit", NULL,
-				WS_CHILD | WS_VISIBLE | WS_BORDER, 265, 25, 277, 20, hwnd, (HMENU )0, NULL, NULL);
+				WS_CHILD | WS_VISIBLE | WS_BORDER | ES_READONLY, 265, 25, 277, 20, hwnd, (HMENU )0, NULL, NULL);
 
 		hwndPathList = CreateWindow("button", "List of Markers",
 				WS_VISIBLE | WS_CHILD, 218, 80, 110, 20, hwnd, (HMENU )3, NULL, NULL);
@@ -261,7 +276,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 1.23 - Â©2017-19 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 1.28 - ©2017-22 - Patrick-Gilles Maillot"));
 		TextOut(hdc, 128, 57, str1, wsprintf(str1, "Session Name:"));
 		TextOut(hdc, 128, 90, str1, wsprintf(str1, "Markers:"));
 		DeleteObject(htmp);
@@ -276,42 +291,46 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			switch (LOWORD(wParam)) {
 			case 1:
 				// MERGE button clicked!
-				if (Xspath[0]) {
-					// read Session name
-					GetWindowText(hwndSession, str1, GetWindowTextLength(hwndSession) + 1);
-					// limit session name to 16 chars
-					str1[min(16, strlen(str1))] = '\0';
-					// manage markers
-					GetWindowText(hwndMarkers, str2, GetWindowTextLength(hwndMarkers) + 1);
-					if (MList_File) {
-						// Markers are given as a list of floats
-						j = 0;
-						for (no_markers = 0; no_markers < 100; no_markers++) {
-							if ((i = (sscanf(str2 + j,"%f", &(marker_vec[no_markers])))) != EOF) {
-								while ((str2[j] == ' ') || (str2[j] == '.') || ((str2[j] > '/') && (str2[j] < ':'))) j++;
-								j++;
-							} else break;
-						}
-					} else {
-						// Markers to be read from file containing floats
-						if ((Xout = fopen(str2, "r")) != NULL) {
-							while ((i = (fscanf(Xout,"%f", &(marker_vec[no_markers])))) != EOF) {
-								no_markers += 1;
+				if (!MergeOnGoing) {
+					if (Xspath[0]) {
+						MergeOnGoing = 1;
+						// read Session name
+						GetWindowText(hwndSession, str1, GetWindowTextLength(hwndSession) + 1);
+						// limit session name to 16 chars
+						str1[min(16, strlen(str1))] = '\0';
+						// manage markers
+						GetWindowText(hwndMarkers, str2, GetWindowTextLength(hwndMarkers) + 1);
+						if (MList_File) {
+							// Markers are given as a list of floats
+							j = 0;
+							for (no_markers = 0; no_markers < 100; no_markers++) {
+								if ((i = (sscanf(str2 + j,"%f", &(marker_vec[no_markers])))) != EOF) {
+									while ((str2[j] == ' ') || (str2[j] == '.') || ((str2[j] > '/') && (str2[j] < ':'))) j++;
+									j++;
+								} else break;
 							}
-							fclose(Xout);
 						} else {
-							no_markers = 0;
-							MESSAGE("Can't find Markers File", NULLSTR);
+							// Markers to be read from file containing floats
+							if ((Xout = fopen(Mpath, "r")) != NULL) {
+								while ((i = (fscanf(Xout,"%f,", &(marker_vec[no_markers])))) != EOF) {
+									no_markers += 1;
+								}
+								fclose(Xout);
+							} else {
+								no_markers = 0;
+								MESSAGE1("Can't find Markers File");
+							}
 						}
-					}
-					marker_vec[no_markers] = 0.0;	// the last marker must be 0.0
-					//
-					// launch Merge!
-					if ((i = MergeWavFiles(no_markers, marker_vec)) > 0) {
-						sprintf(str1, "Elapsed time: %dms", i);
-						MESSAGE(str1, "Done!");
-					} else {
-						MESSAGE("Something went wrong!", NULLSTR);
+						marker_vec[no_markers] = 0.0;	// the last marker must be 0.0
+						//
+						// launch Merge!
+						if ((i = MergeWavFiles(no_markers, marker_vec)) > 0) {
+							sprintf(str1, "Elapsed time: %dms", i);
+							MESSAGE(str1, "Done!");
+						} else {
+							MESSAGE1("Something went wrong!");
+						}
+						MergeOnGoing = 0;
 					}
 				}
 				break;
@@ -326,7 +345,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 				bi.lpszTitle = "Select source/session directory";
 				bi.ulFlags = BIF_RETURNONLYFSDIRS | BIF_USENEWUI;
 				bi.lpfn = 0;
-				bi.lParam = 0;
+				bi.lParam = BIF_RETURNFSANCESTORS | BIF_BROWSEINCLUDEFILES |0;
 				bi.iImage = 0;
 				pidl = SHBrowseForFolder(&bi);
 				if (SHGetPathFromIDList(pidl, Xspath) == TRUE) {
@@ -397,13 +416,13 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 //
 //
 int main(int argc, char **argv) {
-#if defined(_WIN32) && defined(GUI)
+	int GUI = 1;
+#if defined(_WIN32)
 	HINSTANCE hPrevInstance = 0;
 	PWSTR pCmdLine = 0;
 	int nCmdFile = 0;
-#else
-	int input_intch, i;
 #endif
+	int input_intch, i;
 	zeromem(take_size, sizeof(take_size));
 	zeromem(imarker_vec, sizeof(imarker_vec));
 	zeromem(str1, sizeof(str1));
@@ -426,25 +445,23 @@ int main(int argc, char **argv) {
 	wheader.Junk = JUNK;
 	wheader.Junk_bytes= 32716;
 	//
-#if defined(_WIN32) && defined(GUI)
-	ShowWindow(GetConsoleWindow(), SW_HIDE); // Hide console window
-	wWinMain(hInstance, hPrevInstance, pCmdLine, nCmdFile);
-	//
-#else
 	// manage command-line parameters
-	while ((input_intch = getopt(argc, argv, "f:m:h")) != -1) {
+	while ((input_intch = getopt(argc, argv, "g:f:m:h")) != -1) {
 		switch ((char)input_intch) {
+			case 'g':
+				sscanf(optarg, "%i", &GUI);
+				break;
 			case 'f':
-				strcpy(str2, optarg);
+				strcpy(Mpath, optarg);
 				// Markers to be read from file containing floats
-				if ((Xout = fopen(str2, "r")) != NULL) {
+				if ((Xout = fopen(Mpath, "r")) != NULL) {
 					while ((i = (fscanf(Xout,"%f", &(marker_vec[no_markers])))) != EOF) {
 						no_markers += 1;
 					}
 					fclose(Xout);
 				} else {
 					no_markers = 0;
-					MESSAGE(NULLSTR, "Can't find Markers File");
+					MESSAGE2("Can't find Markers File");
 				}
 				break;
 			case 'm':
@@ -452,9 +469,11 @@ int main(int argc, char **argv) {
 				break;
 			default:
 			case 'h':
-				printf("X32Wav_Xlive - ver 1.23 - Â©2018-19 - Patrick-Gilles Maillot\n\n");
-				printf("usage: X32Wav_Xlive [-f Marker file []: file containing markers]\n");
+				printf("X32Wav_Xlive - ver 1.28 - ©2018-22 - Patrick-Gilles Maillot\n\n");
+				printf("usage: X32Wav_Xlive [-g 0/1: 0 means command-line mode, 1 is Windows GUI]\n");
+				printf("                    [-f Marker file []: file containing markers]\n");
 				printf("                    [-m marker, [,]: marker time in increasing order values]\n");
+				printf("                    [-u 0/1: use uppercase (.WAV) rather than lowercase (.wav) in file names]\n");
 				printf("                    <Session dir> [<Session name>]\n\n");
 				printf("       X32Wav_Xlive will take into account all command-line parameters and run its\n");
 				printf("       'magic', generating XLive! session files from the wav data given as input.\n\n");
@@ -464,13 +483,13 @@ int main(int argc, char **argv) {
 				printf("         - 24bit sample size\n");
 				printf("         - wav files have to be named ch_1.wav to ch_32.wav\n\n");
 				printf("       Examples:\n");
-				printf("       X32Wav_Xlive -m 1.2 -m 15 ./ \"new session\"\n");
+				printf("       X32Wav_Xlive -g 0 -m 1.2 -m 15 ./ \"new session\"\n");
 				printf("         creates as XLive! session directory in ./ based on the date and time,\n");
 				printf("         and creates a session displayed as \"new session\" when loaded into XLive! card\n");
 				printf("         containing a number of multi-channel wav files respective of the number of \n");
 				printf("         channels found in the source directory. Markers, if present, will be added to\n");
 				printf("         the created session\n\n");
-				printf("       X32Wav_Xlive .\n");
+				printf("       X32Wav_Xlive -g 0 .\n");
 				printf("         creates an XLive! session directory in . based on the date and time;\n");
 				printf("         the session is named after as its creation time stamp when loaded into XLive! card\n");
 				printf("         and contains a number of multi-channel wav files respective of the number of \n");
@@ -478,6 +497,16 @@ int main(int argc, char **argv) {
 				return(0);
 			break;
 		}
+	}
+	if (GUI) {
+#if defined(_WIN32)
+		pidl = 0;
+		ShowWindow(GetConsoleWindow(), SW_HIDE); // Hide console window
+		wWinMain(hInstance, hPrevInstance, pCmdLine, nCmdFile);
+#else
+		prinft("GUI mode not supported outside of WIndows\n");
+#endif
+		return 0;
 	}
 	// run the program
 		// no confirmation, no warning, just go ahead... the magic of CLI :)
@@ -490,13 +519,12 @@ int main(int argc, char **argv) {
 			sprintf(str1, "Elapsed time: %dms", i);
 			MESSAGE(str1, "Done!");
 		} else {
-			MESSAGE("Something went wrong!", NULLSTR);
+			MESSAGE1("Something went wrong!");
 		}
 		return (i);
 	} else {
 		printf("no-op\n");
 	}
-#endif
 return 0;
 }
 //
@@ -511,7 +539,8 @@ int	MergeWavFiles(int num_markers, float* markers) {
 	ftime (&start);
 	numb_chls = last_chl = 0;
 	for (i = 0; i < 32; i++) {
-		sprintf(Xspath + slen, "./ch_%d.wav", i + 1);
+		if (Ucase) sprintf(Xspath + slen, "./CH_%d.WAV", i + 1);
+		else       sprintf(Xspath + slen, "./ch_%d.wav", i + 1);
 		if ((Xin[i] = fopen(Xspath, "rb")) == NULL) {
 			last_chl = i;
 			break;
@@ -520,7 +549,7 @@ int	MergeWavFiles(int num_markers, float* markers) {
 		}
 	}
 	if (numb_chls == 0) {
-		MESSAGE("No wave files found!", NULLSTR);
+		MESSAGE1("No wave files found!");
 		return -1;
 	}
 	if (last_chl != 0) {
@@ -568,8 +597,9 @@ int	MergeWavFiles(int num_markers, float* markers) {
 		// 4 	File size (data) 	Size of the data section.
 		fread(&Chunk, FOUR, 1, Xin[i]);					// Chunk: RIFF/riff?
 		if ((Chunk != RIFF) && (Chunk != riff)) {
-			sprintf(str1, "ch_%d.wav is not a Riff file!\n", i + 1);
-			MESSAGE(str1, NULLSTR);
+			if (Ucase) sprintf(str1, "CH_%d.WAV is not a Riff file!\n", i + 1);
+			else       sprintf(str1, "ch_%d.wav is not a Riff file!\n", i + 1);
+			MESSAGE1(str1);
 			return -1;
 		}
 		fread(&file_size[i], FOUR, 1, Xin[i]);		// size
@@ -584,20 +614,23 @@ int	MergeWavFiles(int num_markers, float* markers) {
 				fread(&fmt_size, FOUR, 1, Xin[i]);		// fmt chunk size
 				fread(&wav_format, TWO, 1, Xin[i]);		// wave format: PCM
 				if (wav_format != 1) {
-					sprintf(str1, "ch_%d.wav WAV format not supported!\n", i + 1);
-					MESSAGE(str1, NULLSTR);
+					if (Ucase) sprintf(str1, "CH_%d.WAV WAV format not supported!\n", i + 1);
+					else       sprintf(str1, "ch_%d.wav WAV format not supported!\n", i + 1);
+					MESSAGE1(str1);
 					return -1;
 				}
 				fread(&wav_chs, TWO, 1, Xin[i]);		// # of channels
 				if (wav_chs != 1) {
-					sprintf(str1, "multichannels ch_%d.wav not supported\n", i + 1);
-					MESSAGE(str1, NULLSTR);
+					if (Ucase) sprintf(str1, "multichannels CH_%d.WAV not supported\n", i + 1);
+					else       sprintf(str1, "multichannels ch_%d.wav not supported\n", i + 1);
+					MESSAGE1(str1);
 					return -1;
 				}
 				fread(&samp_rate, FOUR, 1, Xin[i]);		// sample rate
 				if ((samp_rate != 44100) && (samp_rate != 48000)) {
-					sprintf(str1, "ch_%d.wav WAV sample rate not supported!\n", i + 1);
-					MESSAGE(str1, NULLSTR);
+					if (Ucase) sprintf(str1, "CH_%d.WAV WAV sample rate not supported!\n", i + 1);
+					else       sprintf(str1, "ch_%d.wav WAV sample rate not supported!\n", i + 1);
+					MESSAGE1(str1);
 					return -1;
 				}
 				wav_samp_rate[i] = samp_rate;
@@ -605,8 +638,9 @@ int	MergeWavFiles(int num_markers, float* markers) {
 				fread(&wBlockAlign, TWO, 1, Xin[i]);		// alignment
 				fread(&bits_per_samp, TWO, 1, Xin[i]);		// bits per sample
 				if (bits_per_samp != 24) {
-					sprintf(str1, "ch_%d.wav WAV bit resolution not supported!\n", i + 1);
-					MESSAGE(str1, NULLSTR);
+					if (Ucase) sprintf(str1, "CH_%d.WAV WAV bit resolution not supported!\n", i + 1);
+					else       sprintf(str1, "ch_%d.wav WAV bit resolution not supported!\n", i + 1);
+					MESSAGE1(str1);
 					return -1;
 				}
 				k += (fmt_size + 8);						// evaluate data to skip
@@ -623,8 +657,9 @@ int	MergeWavFiles(int num_markers, float* markers) {
 				k = 0;										// stop parsing
 				break;
 			default:
-				sprintf(str1, "ch_%d.wav is not a WAVE file!\n", i + 1);
-				MESSAGE(str1, NULLSTR);
+				if (Ucase) sprintf(str1, "CH_%d.WAV is not a WAVE file!\n", i + 1);
+				else       sprintf(str1, "ch_%d.wav is not a WAVE file!\n", i + 1);
+				MESSAGE1(str1);
 				return -1;
 				break;
 			}
@@ -636,11 +671,11 @@ int	MergeWavFiles(int num_markers, float* markers) {
 	wheader.audio_samprate = wav_samp_rate[0];
 	for (i = 0; i < numb_chls; i++) {
 		if (data_size[i] != audio_len) {
-			MESSAGE("files are not the same length!\n", NULLSTR);
+			MESSAGE1("files are not the same length!\n");
 			return -1;
 		}
 		if (wav_samp_rate[i] != wheader.audio_samprate) {
-			MESSAGE("files are not the same sample rate!\n", NULLSTR);
+			MESSAGE1("files are not the same sample rate!\n");
 			return -1;
 		}
 	}
@@ -658,7 +693,7 @@ int	MergeWavFiles(int num_markers, float* markers) {
 	audio_bytes = (long long)total_length * FOUR * (long long)wheader.num_channels;	// total number of bytes to process
 	//
 	// trim to 32kB boundary
-	audio_bytes &= 0xfffffffffff8000;
+	audio_bytes &= 0xffffffffffff8000;
 	//
 	// How many files of 4GB (max) for our session?
 	nb_takes = 0;
@@ -722,7 +757,8 @@ int	MergeWavFiles(int num_markers, float* markers) {
 			//
 			// create take waves
 			for (i = 0; i < nb_takes; i++) {
-				sprintf(Xspath + slen + 8, "/%08X.wav", i + 1);
+				if (Ucase) sprintf(Xspath + slen + 8, "/%08X.WAV", i + 1);
+				else       sprintf(Xspath + slen + 8, "/%08X.wav", i + 1);
 				if ((Xout = fopen(Xspath, "wb")) != NULL) {
 					wheader.wavsize = take_size[i] * 4 + 44 + wheader.Junk_bytes;
 					wheader.wBlockAlign = wheader.num_channels * 4;
@@ -763,18 +799,18 @@ int	MergeWavFiles(int num_markers, float* markers) {
 					}
 					fclose(Xout);
 				} else {
-					MESSAGE("Cannot create session wav file!\n", NULLSTR);
+					MESSAGE1("Cannot create session wav file!\n");
 				}
 			}
 			// All done hopefully without errors
 			ftime (&end);
 			k = (int)(1000.0 * (end.time - start.time) + (end.millitm - start.millitm));
 		} else {
-			MESSAGE("Cannot create session log file!\n", NULLSTR);
+			MESSAGE1("Cannot create session log file!\n");
 			k = -1;
 		}
 	} else {
-		MESSAGE("Cannot create session directory!\n", NULLSTR);
+		MESSAGE1("Cannot create session directory!\n");
 		k = -1;
 	}
 	//
