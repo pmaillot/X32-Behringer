@@ -3,7 +3,7 @@
  *
  *  Created on: Jan 24, 2018
  *
- * Â©2018 - Patrick-Gilles Maillot
+ * ©2018 - Patrick-Gilles Maillot
  *
  *
  * X32Xlive_Wav - Command-line / Windows application for exploding X-Live! multi-channel
@@ -59,6 +59,10 @@
  *	ver. 0.38: Scene empty names are set to Xlive_Wav_xx.wav vs. "".wav
  *	ver. 0.39: Take source # into account when filling names from scene, reorganized control pannel
  *	ver. 0.40: Take source # as index vs. ch number when filling names from scene file
+ *	ver. 0.41: bug in management of -p option in command line version
+ *	ver. 0.42: now accepting a -g 0/1 option to run in command line mode under Windows too
+ *	ver. 0.43: now accepting a -u 0/1 option to use upper case (.WAV), rather than lower case (.wav)
+ *
  */
 
 #include <stdio.h>
@@ -71,15 +75,23 @@
 #include <winsock2.h>	// Windows functions for std GUI & sockets
 #include <Shlobj.h>		// Windows shell functions
 #define MESSAGE(s1,s2)	\
-			MessageBox(NULL, s1, s2, MB_OK);
+			MessageBox(NULL, (s1), (s2), MB_OK);
+#define MESSAGE1(s1)	\
+			MessageBox(NULL, (s1), NULL, MB_OK);
+#define MESSAGE2(s2)	\
+			MessageBox(NULL, NULL, (s2), MB_OK);
 #define zeromem(a1, a2) \
-		ZeroMemory(a1, a2);
+		ZeroMemory((a1), (a2));
 #else
 #define MAX_PATH 256	// file name/path size
 #define MESSAGE(s1,s2)	\
-			printf("%s - %s\n",s2, s1);
+			printf("%s - %s\n",(char*)(s2), (char*)(s1));
+#define MESSAGE1(s1)	\
+			printf("%s\n",(char*)(s1));
+#define MESSAGE2(s1)	\
+			printf("%s\n",(char*)(s1));
 #define zeromem(a1, a2) \
-		memset((void*)a1, 0, a2);
+		memset((void*)(a1), 0, (a2));
 #define min(a,b) 		\
 			(((a)<(b))?(a):(b))
 #endif
@@ -123,6 +135,8 @@ OPENFILENAME	ofn;       			// common dialog box structure
 BROWSEINFO 		bi;					// Windows Shell structure
 ITEMIDLIST 		*pidl;				// dir item list
 unsigned int	smplstep;			// progress bar update
+int 			GUI = 1;
+
 #endif
 //
 #define NLINES	6					// number of active lines of the window
@@ -135,6 +149,7 @@ char			Spath[MAX_PATH];		// file path, used for scene file name
 struct timeb	start,end;				// precise timers (well... to the ms)
 //
 int				keep_running;			// Mainloop flag
+int				Ucase = 0;				// default is lower case for .wav
 int				wWidth = 550;			// Default window size
 int				wHeight = 53 + LINEHI * NLINES;
 int				nbchans;				// number of channels [1 to 32]
@@ -298,7 +313,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.40 - Â©2018 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.43 - ©2018 - Patrick-Gilles Maillot"));
 
 		DeleteObject(htmp);
 		DeleteObject(hfont);
@@ -581,7 +596,6 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	}
 	return DefWindowProcW(hwnd, msg, wParam, lParam);
 }
-#else
 #endif
 //
 //
@@ -592,9 +606,8 @@ int main(int argc, char **argv) {
 	HINSTANCE hPrevInstance = 0;
 	PWSTR pCmdLine = 0;
 	int nCmWfile = 0;
-#else
-	int input_intch, nchange;
 #endif
+	int input_intch, nchange;
 	int i;
 	//
 	// Init structures
@@ -607,6 +620,7 @@ int main(int argc, char **argv) {
 	strncpy(udata.s, "data",4);
 	strncpy(uDATA.s, "DATA",4);
 	//
+	GUI = 1;				// aim for GUI mode
 	keep_running = 1;		// mainloop flag
 	sampsel = 3;			// 1: 8 bits, 2: 16 bits, 3: 24 bits (default), 4: 32 bits
 	ChNamTable = 0;			// table of names
@@ -642,15 +656,14 @@ int main(int argc, char **argv) {
 	//
 	for (i = 0; i < 32; i ++) Wfile[i] = 0;
 	//
-#ifdef _WIN32
-	ShowWindow(GetConsoleWindow(), SW_HIDE); // Hide console window
-	wWinMain(hInstance, hPrevInstance, pCmdLine, nCmWfile);
-#else
 	// manage command-line parameters
 	nchange = -1;
 	strcpy(Xdpath, "./");
-	while ((input_intch = getopt(argc, argv, "d:m:n:c:s:w:h")) != -1) {
+	while ((input_intch = getopt(argc, argv, "g:d:m:n:p:c:s:w:h")) != -1) {
 		switch ((char)input_intch) {
+			case 'g':
+				sscanf(optarg, "%d", &GUI);
+				break;
 			case 'd':
 				strcpy(Xdpath, optarg);
 				dlen = strlen(Xdpath);
@@ -670,7 +683,7 @@ int main(int argc, char **argv) {
 				sscanf(optarg, "%d", &nbchans);
 				if (ChNamTable) free(ChNamTable);
 				if ((ChNamTable = malloc(nbchans * NAMSIZ * sizeof(char))) == 0) {
-					MESSAGE("Memory allocation error!", NULL);
+					MESSAGE1("Memory allocation error!");
 					nbchans = 0;
 				} else {
 					// create and assign default channel names
@@ -681,7 +694,7 @@ int main(int argc, char **argv) {
 				}
 				if (ChSrcTable) free(ChSrcTable);
 				if ((ChSrcTable = malloc(nbchans * sizeof(int))) == 0) {
-					MESSAGE("Memory allocation error!", NULL);
+					MESSAGE1("Memory allocation error!");
 					nbchans = 0;
 				} else {
 					// create and assign default channel names
@@ -701,8 +714,11 @@ int main(int argc, char **argv) {
 			case 's':
 				strcpy(Spath, optarg );
 				break;
+			case 'u':
+				sscanf(optarg, "%d", &Ucase);
+				break;
 			case 'w':
-				sscanf(optarg, "%d,%s", &i, str1);
+				sscanf(optarg, "%d,%4s", &i, str1);
 				if ((i < 1) || (i > 32)) {
 					printf ("Invalid channel number\n");
 					return -1;
@@ -713,15 +729,17 @@ int main(int argc, char **argv) {
 				break;
 			default:
 			case 'h':
-				printf("X32Xlive_Wav - ver 0.40 - Â©2018 - Patrick-Gilles Maillot\n\n");
-				printf("usage: X32Xlive_wav [-d dir [./]: Mono wave files path]\n");
+				printf("X32Xlive_Wav - ver 0.43 - ©2018 - Patrick-Gilles Maillot\n\n");
+				printf("usage: X32Xlive_wav [-g 0/1: 0 means command-line mode, 1 is Windows GUI]\n");
+				printf("                    [-d dir [./]: Mono wave files path]\n");
 				printf("                    [-m name []: Sets or Replaces Session name read from source]\n");
 				printf("                    [-n 1..32 [0]: number of channels to explode to mono wave files]\n");
 				printf("                    [-c 8/16/24/32 [24]: sample size]\n");
 				printf("                    [-s file []: optional scene file]\n");
 				printf("                    [-w #,name, [,]: ch. number ',' followed by respective wave file name]\n");
-				printf("                    Xlive! Session\n");
+				printf("                    [-u 0/1: use uppercase (.WAV) rather than lowercase (.wav) in file names]\n");
 				printf("                    [-p 0/1 [0]: prepends number in front of the channel name]\n\n");
+				printf("                    Xlive! Session\n");
 				printf("       X32Xlive_wav will take into account all command-line parameter and run its\n");
 				printf("       'magic', generating mono-wave files from the XLive! session given as input.\n");
 				printf("       Sample size conversion may take place depending on the -c option.\n");
@@ -729,13 +747,13 @@ int main(int argc, char **argv) {
 				printf("       using the -f parameter, or set one at a time or edited if parameters -1...-32\n");
 				printf("       are used with appropriate names.");
 				printf("       Note: option -n must appear before any -w or -s options.\n\n");
-				printf("       Example:\n");
-				printf("       X32Xlive_wav -n 3 -d ~ -c 16 -s ~/myscene -w 3,new_name ~/ABCD12345678\n");
+				printf("       Examples:\n");
+				printf("       X32Xlive_wav -g 0 -n 3 -d ~ -c 16 -s ~/myscene -w 3,new_name ~/ABCD12345678\n");
 				printf("         will extract as 16bit samples the first 3 channels contained in XLive! session\n");
 				printf("         ABCD12345678 in the home directory, into 3 separate wave files placed in the home\n");
 				printf("         directory with names taken from the X32 scene file 'myscene', and setting or overriding\n");
 				printf("         the 3rd wave file name with 'new_name'\n\n");
-				printf("       X32Xlive_wav -n 8 -d ~ ~/ABCD12345678\n");
+				printf("       X32Xlive_wav -g 0 -n 8 -d ~ ~/ABCD12345678\n");
 				printf("         will extract as 24bit samples the first 8 channels contained in XLive! session\n");
 				printf("         ABCD12345678 in the home directory, into 8 separate wave files placed in the home\n");
 				printf("         directory with names Xlive_Wav_1.wav to Xlive_Wav_8.wav\n\n");
@@ -743,7 +761,16 @@ int main(int argc, char **argv) {
 			break;
 		}
 	}
-	// run the program
+	if (GUI) {
+#ifdef _WIN32
+		ShowWindow(GetConsoleWindow(), SW_HIDE); // Hide console window
+		wWinMain(hInstance, hPrevInstance, pCmdLine, nCmWfile);
+#else
+		printf(" No GUI mode outside of Windows\n");
+#endif
+		return 0;
+	}
+	// run the program in command-line mode
 	if (nbchans) {
 		if (Spath[0]) {
 			if (SetNamesFromScene()) return -1;
@@ -758,7 +785,7 @@ int main(int argc, char **argv) {
 			// Get and display session name
 			strcat(Xspath + slen, "SE_LOG.BIN");
 			if ((SBIN = fopen(Xspath, "r+")) == NULL) {
-				MESSAGE(NULL, "Error opening session or session log file");
+				MESSAGE2("Error opening session or session log file");
 				return 1;
 			}
 			fseek(SBIN, 1552, SEEK_SET);
@@ -792,7 +819,6 @@ int main(int argc, char **argv) {
 	} else {
 		printf("no-op\n");
 	}
-#endif
 	//
 	return 0;
 }
@@ -832,7 +858,7 @@ FILE			*Sfile;
 		// if the characters at index 14 and 15 are '"', this means the name is empty
 		if((line[14] == '"') && (line[15] == '"')) {
 			sprintf(ChNamTable + i * NAMSIZ, "Xlive_Wav_%d", i + 1);
-			sscanf(line + 16, "%d %s %d", &j, str1, &ChSrcTable[i]);
+			sscanf(line + 16, "%d %16s %d", &j, str1, &ChSrcTable[i]);
 		} else {
 			// limit string length to 12 chars (per X32 limits)
 			k = 14;
@@ -843,7 +869,7 @@ FILE			*Sfile;
 			line[l] = 0;
 			strcpy(ChNamTable + i * NAMSIZ, line + k);
 			// get source value (j (icon) and k (color) are not used)
-			sscanf(line + l + 1, "%d %s %d", &j, str1, &ChSrcTable[i]);
+			sscanf(line + l + 1, "%d %16s %d", &j, str1, &ChSrcTable[i]);
 		}
 	}
 	fclose (Sfile);
@@ -871,7 +897,8 @@ FILE			*Sfile;
 	// prepare data elements for output files; preserve lengths from one
 	// call to the next
 	fnum = 1;
-	strcpy(Xspath + slen, "00000001.wav");
+	if (Ucase) strcpy(Xspath + slen, "00000001.WAV");
+	else       strcpy(Xspath + slen, "00000001.wav");
 	if ((Sfile = fopen(Xspath, "rb")) == NULL) {
 		MESSAGE(Xspath, "Error opening session File");
 		return 1;
@@ -907,7 +934,8 @@ FILE			*Sfile;
 			} else {
 				strcpy(Xdpath + dlen, ChNamTable + NAMSIZ * j);
 			}
-			strcpy(Xdpath + strlen(Xdpath), ".wav");
+			if (Ucase) strcpy(Xdpath + strlen(Xdpath), ".WAV");
+			else       strcpy(Xdpath + strlen(Xdpath), ".wav");
 			if ((Wfile[i] = fopen(Xdpath, "wb")) == NULL) {
 				MESSAGE(Xdpath, "Error creating File");
 				return 1;
@@ -922,7 +950,8 @@ FILE			*Sfile;
 			} else {
 				strcpy(Xdpath + dlen, ChNamTable + NAMSIZ * i);
 			}
-			strcpy(Xdpath + strlen(Xdpath), ".wav");
+			if (Ucase) strcpy(Xdpath + strlen(Xdpath), ".WAV");
+			else       strcpy(Xdpath + strlen(Xdpath), ".wav");
 			if ((Wfile[i] = fopen(Xdpath, "wb")) == NULL) {
 				MESSAGE(Xdpath, "Error creating File");
 				return 1;
@@ -949,7 +978,7 @@ FILE			*Sfile;
 		// next chunk should be "data" == 0x61746164
 		fread(sdata, 4, 1, Sfile);
 		if (sdata[0].i != 0x61746164) {
-			MESSAGE("Error reading source file!", NULL);
+			MESSAGE1("Error reading source file!");
 			return 1;
 		}
 		// read data length
@@ -970,8 +999,7 @@ FILE			*Sfile;
 		while ((src_samples & (op - 1)) != 0) op /= 2;
 		// manage multiple (OP2) 32bit samples at a time depending on the sample size
 		// check for progress bar or not first
-#ifdef _WIN32
-		if (cprog) {
+		if (GUI && cprog) {
 			// display / use progress bar
 			smplstep = (src_samples / 70 / op * 5) * op;
 			switch (sampsel) {
@@ -1058,7 +1086,6 @@ FILE			*Sfile;
 				break;
 			}
 		} else {
-#endif
 			// do not use/display progress bar
 			switch (sampsel) {
 			case 4:									// generate 32bit samples
@@ -1119,9 +1146,7 @@ FILE			*Sfile;
 				}
 				break;
 			}
-#ifdef _WIN32
 		}
-#endif
 //
 // all case code - no optimization
 //			for (k = 0; k < src_samples; k++) {
@@ -1137,7 +1162,8 @@ FILE			*Sfile;
 		fclose (Sfile);
 		// another to read?
 		fnum += 1;
-		sprintf(Xspath + slen, "%08x.wav", fnum);
+		if (Ucase) sprintf(Xspath + slen, "%08x.WAV", fnum);
+		else       sprintf(Xspath + slen, "%08x.wav", fnum);
 		if ((Sfile = fopen(Xspath, "rb")) != NULL){
 			fread(&theader, sizeof(theader), 1, Sfile);
 			// Pass the JUNK section of the input file and set data length to be read
@@ -1152,13 +1178,13 @@ FILE			*Sfile;
 		// update destination files' headers
 		fflush(Wfile[i]);
 		if (fseek(Wfile[i], 4, SEEK_SET) != 0) {
-			MESSAGE("Error Seek 4!", NULL);
+			MESSAGE1("Error Seek 4!");
 			return 1;
 		}
 		fwrite(&totalSize, 4, 1, Wfile[i]);
 		fflush(Wfile[i]);
 		if (fseek(Wfile[i], 40, SEEK_SET) != 0) {
-			MESSAGE("Error Seek 40!", NULL);
+			MESSAGE1("Error Seek 40!");
 			return 1;
 		}
 		fwrite(&totalBytes, 4, 1, Wfile[i]);
