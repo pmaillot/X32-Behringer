@@ -32,6 +32,7 @@
 // 0.81: added some elements related to 4.06 (/mtx/../grp, /main/st|m/grp,..) tested with xedit 4.12
 // 0.82: added some elements related to 4.06 (/-stat/dcaspill)
 // 0.83: fixed bugs in FX parameters lists and ranges
+// 0.84: additional controls on strip parameter ranges to avoid seg faults.
 //
 #ifdef __WIN32__
 #include <windows.h>
@@ -938,7 +939,7 @@ int main(int argc, char **argv) {
 #endif
 //
 	r_len = 0;
-	printf("X32 - v0.83 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.84 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
 	//
 	// Get or use IP address
 	if (noIP) {
@@ -4610,7 +4611,9 @@ int function_channel() {
 //
 // check for actual command
 // manage 32 channels 01 to 32 - /ch/xx/yyy
-	Xchannel = Xchannelset[(r_buf[4] - 48) * 10 + r_buf[5] - 48 - 1];
+	i = (r_buf[4] - 48) * 10 + r_buf[5] - 48 - 1;
+	if ((i < 0) || (i > 31)) return 0;
+	Xchannel = Xchannelset[i];
 	i = 0;
 	while (i < Xchannel01_max) {
 		if (strcmp(r_buf, Xchannel[i].command) == 0) {
@@ -4630,7 +4633,9 @@ int function_auxin() {
 //
 // check for actual command
 // manage 8 auxin 01 to 08 - /auxin/xx/yyy
-	Xauxin = Xauxinset[(r_buf[7] - 48) * 10 + r_buf[8] - 48 - 1];
+	i = (r_buf[7] - 48) * 10 + r_buf[8] - 48 - 1;
+	if ((i < 0) || (i > 7)) return 0;
+	Xauxin = Xauxinset[i];
 	i = 0;
 	while (i < Xauxin01_max) {
 		if (strcmp(r_buf, Xauxin[i].command) == 0) {
@@ -4650,7 +4655,9 @@ int function_fxrtn() {
 //
 // check for actual command
 // manage 8 fxrtn 01 to 08 - /fxrtn/xx/yyy
-	Xfxrtn = Xfxrtnset[(r_buf[7] - 48) * 10 + r_buf[8] - 48 - 1];
+	i = (r_buf[7] - 48) * 10 + r_buf[8] - 48 - 1;
+	if ((i < 0) || (i > 7)) return 0;
+	Xfxrtn = Xfxrtnset[i];
 	i = 0;
 	while (i < Xfxrtn01_max) {
 		if (strcmp(r_buf, Xfxrtn[i].command) == 0) {
@@ -4670,7 +4677,9 @@ int function_bus() {
 //
 // check for actual command
 // manage 16 bus 01 to 16 - /bus/xx/yyy
-	Xbus = Xbusset[(r_buf[5] - 48) * 10 + r_buf[6] - 48 - 1];
+	i = (r_buf[5] - 48) * 10 + r_buf[6] - 48 - 1;
+	if ((i < 0) || (i > 15)) return 0;
+	Xbus = Xbusset[i];
 	i = 0;
 	while (i < Xbus01_max) {
 		if (strcmp(r_buf, Xbus[i].command) == 0) {
@@ -4690,7 +4699,9 @@ int function_mtx() {
 //
 // check for actual command
 // manage 6 mtx 01 to 06 - /mtx/xx/yyy
-	Xmtx = Xmtxset[(r_buf[5] - 48) * 10 + r_buf[6] - 48 - 1];
+	i = (r_buf[5] - 48) * 10 + r_buf[6] - 48 - 1;
+	if ((i < 0) || (i > 5)) return 0;
+	Xmtx = Xmtxset[i];
 	i = 0;
 	while (i < Xmtx01_max) {
 		if (strcmp(r_buf, Xmtx[i].command) == 0) {
@@ -4728,6 +4739,7 @@ int function_fx() {
 // check for actual command
 // manage 8 fx 1 to 8 - /fx/x/yyy
 	fx = r_buf[4] - 48 - 1;
+	if ((fx < 0) || (fx > 7)) return 0;
 	Xfx = Xfxset[fx];
 	i = 0;
 	if (fx < 4) {
@@ -4738,7 +4750,7 @@ int function_fx() {
 			}
 			i += 1;
 		}
-	} else if (fx < 8) {
+	} else {
 		while (i < Xfx5_max) {
 			if (strcmp(r_buf, Xfx[i].command) == 0) {
 				// found command at index i
@@ -4776,7 +4788,9 @@ int function_headamp() {
 //
 	// check for actual command
 	// manage 8 headamp 000 to 127 - /headamp/yyy/...
-	Xheadmp = Xheadmpset[(r_buf[9] - 48) * 100 + (r_buf[10] - 48) * 10 + r_buf[11] - 48];
+	i = (r_buf[9] - 48) * 100 + (r_buf[10] - 48) * 10 + r_buf[11] - 48;
+	if ((i < 0) || (i > 127)) return 0;
+	Xheadmp = Xheadmpset[i];
 	i = 0;
 	while (i < Xheadamp_max) {
 		if (strcmp(r_buf, Xheadmp[i].command) == 0) {
