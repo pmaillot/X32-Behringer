@@ -128,6 +128,7 @@ int Xauxin01_max = sizeof(Xauxin01) / sizeof(X32command);
 
 
 X32command Xauxin02[] = {
+		{"/auxin",							{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/02",						{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/02/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/02/config/name",		{S32}, F_XET, {0}, NULL},
@@ -246,6 +247,7 @@ int Xauxin02_max = sizeof(Xauxin02) / sizeof(X32command);
 
 
 X32command Xauxin03[] = {
+		{"/auxin",							{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/03",						{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/03/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/03/config/name",		{S32}, F_XET, {0}, NULL},
@@ -364,6 +366,7 @@ int Xauxin03_max = sizeof(Xauxin03) / sizeof(X32command);
 
 
 X32command Xauxin04[] = {
+		{"/auxin",							{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/04",						{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/04/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/04/config/name",		{S32}, F_XET, {0}, NULL},
@@ -482,6 +485,7 @@ int Xauxin04_max = sizeof(Xauxin04) / sizeof(X32command);
 
 
 X32command Xauxin05[] = {
+		{"/auxin",							{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/05",						{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/05/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/05/config/name",		{S32}, F_XET, {0}, NULL},
@@ -600,6 +604,7 @@ int Xauxin05_max = sizeof(Xauxin05) / sizeof(X32command);
 
 
 X32command Xauxin06[] = {
+		{"/auxin",							{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/06",						{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/06/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/06/config/name",		{S32}, F_XET, {0}, NULL},
@@ -718,6 +723,7 @@ int Xauxin06_max = sizeof(Xauxin06) / sizeof(X32command);
 
 
 X32command Xauxin07[] = {
+		{"/auxin",							{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/07",						{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/07/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/07/config/name",		{S32}, F_XET, {0}, NULL},
@@ -836,6 +842,7 @@ int Xauxin07_max = sizeof(Xauxin07) / sizeof(X32command);
 
 
 X32command Xauxin08[] = {
+		{"/auxin",							{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/08",						{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/08/config",				{CHCO}, F_FND, {0}, NULL},
 		{"/auxin/08/config/name",		{S32}, F_XET, {0}, NULL},
