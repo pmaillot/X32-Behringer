@@ -75,11 +75,15 @@ X32command Xmtx01[] = {
 		{"/mtx/01/mix",							{CHME}, F_FND, {0}, NULL},
 		{"/mtx/01/mix/on",					{E32}, F_XET, {0}, OffOn},
 		{"/mtx/01/mix/fader",				{F32}, F_XET, {0}, NULL},
+		{"/mtx/01/grp",							{CHGRP}, F_FND, {0}, NULL},
+		{"/mtx/01/grp/dca",					{P32}, F_XET, {0}, NULL},
+		{"/mtx/01/grp/mute",				{P32}, F_XET, {0}, NULL},
 };
 int Xmtx01_max = sizeof(Xmtx01) / sizeof(X32command);
 
 
 X32command Xmtx02[] = {
+		{"/mtx",								{BSCO}, F_FND, {0}, NULL},
 		{"/mtx/02",								{BSCO}, F_FND, {0}, NULL},
 		{"/mtx/02/config",						{BSCO}, F_FND, {0}, NULL},
 		{"/mtx/02/config/name",				{S32}, F_XET, {0}, NULL},
@@ -145,11 +149,15 @@ X32command Xmtx02[] = {
 		{"/mtx/02/mix",							{CHME}, F_FND, {0}, NULL},
 		{"/mtx/02/mix/on",					{E32}, F_XET, {0}, OffOn},
 		{"/mtx/02/mix/fader",				{F32}, F_XET, {0}, NULL},
+		{"/mtx/02/grp",							{CHGRP}, F_FND, {0}, NULL},
+		{"/mtx/02/grp/dca",					{P32}, F_XET, {0}, NULL},
+		{"/mtx/02/grp/mute",				{P32}, F_XET, {0}, NULL},
 };
 int Xmtx02_max = sizeof(Xmtx02) / sizeof(X32command);
 
 
 X32command Xmtx03[] = {
+		{"/mtx",								{BSCO}, F_FND, {0}, NULL},
 		{"/mtx/03",								{BSCO}, F_FND, {0}, NULL},
 		{"/mtx/03/config",						{BSCO}, F_FND, {0}, NULL},
 		{"/mtx/03/config/name",				{S32}, F_XET, {0}, NULL},
@@ -215,11 +223,15 @@ X32command Xmtx03[] = {
 		{"/mtx/03/mix",							{CHME}, F_FND, {0}, NULL},
 		{"/mtx/03/mix/on",					{E32}, F_XET, {0}, OffOn},
 		{"/mtx/03/mix/fader",				{F32}, F_XET, {0}, NULL},
+		{"/mtx/03/grp",							{CHGRP}, F_FND, {0}, NULL},
+		{"/mtx/03/grp/dca",					{P32}, F_XET, {0}, NULL},
+		{"/mtx/03/grp/mute",				{P32}, F_XET, {0}, NULL},
 };
 int Xmtx03_max = sizeof(Xmtx03) / sizeof(X32command);
 
 
 X32command Xmtx04[] = {
+		{"/mtx",								{BSCO}, F_FND, {0}, NULL},
 		{"/mtx/04",								{BSCO}, F_FND, {0}, NULL},
 		{"/mtx/04/config",						{BSCO}, F_FND, {0}, NULL},
 		{"/mtx/04/config/name",				{S32}, F_XET, {0}, NULL},
@@ -285,11 +297,15 @@ X32command Xmtx04[] = {
 		{"/mtx/04/mix",							{CHME}, F_FND, {0}, NULL},
 		{"/mtx/04/mix/on",					{E32}, F_XET, {0}, OffOn},
 		{"/mtx/04/mix/fader",				{F32}, F_XET, {0}, NULL},
+		{"/mtx/04/grp",							{CHGRP}, F_FND, {0}, NULL},
+		{"/mtx/04/grp/dca",					{P32}, F_XET, {0}, NULL},
+		{"/mtx/04/grp/mute",				{P32}, F_XET, {0}, NULL},
 };
 int Xmtx04_max = sizeof(Xmtx04) / sizeof(X32command);
 
 
 X32command Xmtx05[] = {
+		{"/mtx",								{BSCO}, F_FND, {0}, NULL},
 		{"/mtx/05",								{BSCO}, F_FND, {0}, NULL},
 		{"/mtx/05/config",						{BSCO}, F_FND, {0}, NULL},
 		{"/mtx/05/config/name",				{S32}, F_XET, {0}, NULL},
@@ -355,11 +371,15 @@ X32command Xmtx05[] = {
 		{"/mtx/05/mix",							{CHME}, F_FND, {0}, NULL},
 		{"/mtx/05/mix/on",					{E32}, F_XET, {0}, OffOn},
 		{"/mtx/05/mix/fader",				{F32}, F_XET, {0}, NULL},
+		{"/mtx/05/grp",							{CHGRP}, F_FND, {0}, NULL},
+		{"/mtx/05/grp/dca",					{P32}, F_XET, {0}, NULL},
+		{"/mtx/05/grp/mute",				{P32}, F_XET, {0}, NULL},
 };
 int Xmtx05_max = sizeof(Xmtx05) / sizeof(X32command);
 
 
 X32command Xmtx06[] = {
+		{"/mtx",								{BSCO}, F_FND, {0}, NULL},
 		{"/mtx/06",								{BSCO}, F_FND, {0}, NULL},
 		{"/mtx/06/config",						{BSCO}, F_FND, {0}, NULL},
 		{"/mtx/06/config/name",				{S32}, F_XET, {0}, NULL},
@@ -425,6 +445,9 @@ X32command Xmtx06[] = {
 		{"/mtx/06/mix",							{CHME}, F_FND, {0}, NULL},
 		{"/mtx/06/mix/on",					{E32}, F_XET, {0}, OffOn},
 		{"/mtx/06/mix/fader",				{F32}, F_XET, {0}, NULL},
+		{"/mtx/06/grp",							{CHGRP}, F_FND, {0}, NULL},
+		{"/mtx/06/grp/dca",					{P32}, F_XET, {0}, NULL},
+		{"/mtx/06/grp/mute",				{P32}, F_XET, {0}, NULL},
 };
 int Xmtx06_max = sizeof(Xmtx06) / sizeof(X32command);
 
