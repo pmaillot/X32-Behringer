@@ -333,6 +333,7 @@ int Xfx1_max = sizeof(Xfx1) / sizeof(X32command);
 
 
 X32command Xfx2[] = {
+		{"/fx",						{FXTYP1}, F_FND, {0}, NULL},
 		{"/fx/2",					{FXTYP1}, F_FND, {0}, NULL},
 		{"/fx/2/type",			{E32}, F_XET, {0}, Sfxtyp1},
 		{"/fx/2/source",			{FXSRC}, F_FND, {0}, NULL},
@@ -408,6 +409,7 @@ int Xfx2_max = sizeof(Xfx2) / sizeof(X32command);
 
 
 X32command Xfx3[] = {
+		{"/fx",						{FXTYP1}, F_FND, {0}, NULL},
 		{"/fx/3",					{FXTYP1}, F_FND, {0}, NULL},
 		{"/fx/3/type",			{E32}, F_XET, {0}, Sfxtyp1},
 		{"/fx/3/source",			{FXSRC}, F_FND, {0}, NULL},
@@ -483,6 +485,7 @@ int Xfx3_max = sizeof(Xfx3) / sizeof(X32command);
 
 
 X32command Xfx4[] = {
+		{"/fx",						{FXTYP1}, F_FND, {0}, NULL},
 		{"/fx/4",					{FXTYP1}, F_FND, {0}, NULL},
 		{"/fx/4/type",			{E32}, F_XET, {0}, Sfxtyp1},
 		{"/fx/4/source",			{FXSRC}, F_FND, {0}, NULL},
@@ -558,6 +561,7 @@ int Xfx4_max = sizeof(Xfx4) / sizeof(X32command);
 
 
 X32command Xfx5[] = {
+		{"/fx",						{FXTYP1}, F_FND, {0}, NULL},
 		{"/fx/5",					{FXTYP2}, F_FND, {0}, NULL},
 		{"/fx/5/type",			{E32}, F_XET, {0}, Sfxtyp2},
 		{"/fx/5/par",				{FXPAR2}, F_FND, {0}, NULL},
@@ -630,6 +634,7 @@ int Xfx5_max = sizeof(Xfx5) / sizeof(X32command);
 
 
 X32command Xfx6[] = {
+		{"/fx",						{FXTYP1}, F_FND, {0}, NULL},
 		{"/fx/6",					{FXTYP2}, F_FND, {0}, NULL},
 		{"/fx/6/type",			{E32}, F_XET, {0}, Sfxtyp2},
 		{"/fx/6/par",				{FXPAR2}, F_FND, {0}, NULL},
@@ -702,6 +707,7 @@ int Xfx6_max = sizeof(Xfx6) / sizeof(X32command);
 
 
 X32command Xfx7[] = {
+		{"/fx",						{FXTYP1}, F_FND, {0}, NULL},
 		{"/fx/7",					{FXTYP2}, F_FND, {0}, NULL},
 		{"/fx/7/type",			{E32}, F_XET, {0}, Sfxtyp2},
 		{"/fx/7/par",				{FXPAR2}, F_FND, {0}, NULL},
@@ -774,6 +780,7 @@ int Xfx7_max = sizeof(Xfx7) / sizeof(X32command);
 
 
 X32command Xfx8[] = {
+		{"/fx",						{FXTYP1}, F_FND, {0}, NULL},
 		{"/fx/8",					{FXTYP2}, F_FND, {0}, NULL},
 		{"/fx/8/type",			{E32}, F_XET, {0}, Sfxtyp2},
 		{"/fx/8/par",				{FXPAR2}, F_FND, {0}, NULL},
