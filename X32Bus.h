@@ -114,6 +114,7 @@ int Xbus01_max = sizeof(Xbus01) / sizeof(X32command);
 
 
 X32command Xbus02[] = {
+		{"/bus",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/02",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/02/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/bus/02/config/name",		{S32}, F_XET, {0}, NULL},
@@ -218,6 +219,7 @@ int Xbus02_max = sizeof(Xbus02) / sizeof(X32command);
 
 
 X32command Xbus03[] = {
+		{"/bus",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/03",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/03/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/bus/03/config/name",		{S32}, F_XET, {0}, NULL},
@@ -322,6 +324,7 @@ int Xbus03_max = sizeof(Xbus03) / sizeof(X32command);
 
 
 X32command Xbus04[] = {
+		{"/bus",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/04",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/04/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/bus/04/config/name",		{S32}, F_XET, {0}, NULL},
@@ -426,6 +429,7 @@ int Xbus04_max = sizeof(Xbus04) / sizeof(X32command);
 
 
 X32command Xbus05[] = {
+		{"/bus",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/05",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/05/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/bus/05/config/name",		{S32}, F_XET, {0}, NULL},
@@ -530,6 +534,7 @@ int Xbus05_max = sizeof(Xbus05) / sizeof(X32command);
 
 
 X32command Xbus06[] = {
+		{"/bus",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/06",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/06/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/bus/06/config/name",		{S32}, F_XET, {0}, NULL},
@@ -634,6 +639,7 @@ int Xbus06_max = sizeof(Xbus06) / sizeof(X32command);
 
 
 X32command Xbus07[] = {
+		{"/bus",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/07",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/07/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/bus/07/config/name",		{S32}, F_XET, {0}, NULL},
@@ -738,6 +744,7 @@ int Xbus07_max = sizeof(Xbus07) / sizeof(X32command);
 
 
 X32command Xbus08[] = {
+		{"/bus",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/08",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/08/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/bus/08/config/name",		{S32}, F_XET, {0}, NULL},
@@ -842,6 +849,7 @@ int Xbus08_max = sizeof(Xbus08) / sizeof(X32command);
 
 
 X32command Xbus09[] = {
+		{"/bus",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/09",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/09/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/bus/09/config/name",		{S32}, F_XET, {0}, NULL},
@@ -946,6 +954,7 @@ int Xbus09_max = sizeof(Xbus09) / sizeof(X32command);
 
 
 X32command Xbus10[] = {
+		{"/bus",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/10",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/10/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/bus/10/config/name",		{S32}, F_XET, {0}, NULL},
@@ -1050,6 +1059,7 @@ int Xbus10_max = sizeof(Xbus10) / sizeof(X32command);
 
 
 X32command Xbus11[] = {
+		{"/bus",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/11",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/11/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/bus/11/config/name",		{S32}, F_XET, {0}, NULL},
@@ -1154,6 +1164,7 @@ int Xbus11_max = sizeof(Xbus11) / sizeof(X32command);
 
 
 X32command Xbus12[] = {
+		{"/bus",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/12",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/12/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/bus/12/config/name",		{S32}, F_XET, {0}, NULL},
@@ -1258,6 +1269,7 @@ int Xbus12_max = sizeof(Xbus12) / sizeof(X32command);
 
 
 X32command Xbus13[] = {
+		{"/bus",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/13",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/13/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/bus/13/config/name",		{S32}, F_XET, {0}, NULL},
@@ -1362,6 +1374,7 @@ int Xbus13_max = sizeof(Xbus13) / sizeof(X32command);
 
 
 X32command Xbus14[] = {
+		{"/bus",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/14",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/14/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/bus/14/config/name",		{S32}, F_XET, {0}, NULL},
@@ -1466,6 +1479,7 @@ int Xbus14_max = sizeof(Xbus14) / sizeof(X32command);
 
 
 X32command Xbus15[] = {
+		{"/bus",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/15",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/15/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/bus/15/config/name",		{S32}, F_XET, {0}, NULL},
@@ -1570,6 +1584,7 @@ int Xbus15_max = sizeof(Xbus15) / sizeof(X32command);
 
 
 X32command Xbus16[] = {
+		{"/bus",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/16",						{BSCO}, F_FND, {0}, NULL},
 		{"/bus/16/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/bus/16/config/name",		{S32}, F_XET, {0}, NULL},
