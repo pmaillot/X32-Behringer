@@ -125,6 +125,7 @@ int Xfxrtn01_max = sizeof(Xfxrtn01) / sizeof(X32command);
 
 
 X32command Xfxrtn02[] = {
+		{"/fxrtn",							{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/02",						{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/02/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/02/config/name",		{S32}, F_XET, {0}, NULL},
@@ -240,6 +241,7 @@ int Xfxrtn02_max = sizeof(Xfxrtn02) / sizeof(X32command);
 
 
 X32command Xfxrtn03[] = {
+		{"/fxrtn",							{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/03",						{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/03/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/03/config/name",		{S32}, F_XET, {0}, NULL},
@@ -355,6 +357,7 @@ int Xfxrtn03_max = sizeof(Xfxrtn03) / sizeof(X32command);
 
 
 X32command Xfxrtn04[] = {
+		{"/fxrtn",							{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/04",						{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/04/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/04/config/name",		{S32}, F_XET, {0}, NULL},
@@ -470,6 +473,7 @@ int Xfxrtn04_max = sizeof(Xfxrtn04) / sizeof(X32command);
 
 
 X32command Xfxrtn05[] = {
+		{"/fxrtn",							{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/05",						{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/05/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/05/config/name",		{S32}, F_XET, {0}, NULL},
@@ -585,6 +589,7 @@ int Xfxrtn05_max = sizeof(Xfxrtn05) / sizeof(X32command);
 
 
 X32command Xfxrtn06[] = {
+		{"/fxrtn",							{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/06",						{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/06/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/06/config/name",		{S32}, F_XET, {0}, NULL},
@@ -700,6 +705,7 @@ int Xfxrtn06_max = sizeof(Xfxrtn06) / sizeof(X32command);
 
 
 X32command Xfxrtn07[] = {
+		{"/fxrtn",							{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/07",						{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/07/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/07/config/name",		{S32}, F_XET, {0}, NULL},
@@ -815,6 +821,7 @@ int Xfxrtn07_max = sizeof(Xfxrtn07) / sizeof(X32command);
 
 
 X32command Xfxrtn08[] = {
+		{"/fxrtn",							{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/08",						{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/08/config",				{BSCO}, F_FND, {0}, NULL},
 		{"/fxrtn/08/config/name",		{S32}, F_XET, {0}, NULL},
