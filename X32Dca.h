@@ -67,6 +67,6 @@ X32command Xdca[] = {
 		{"/dca/8/config/icon",		{I32}, F_XET, {0}, NULL},
 		{"/dca/8/config/color",		{E32}, F_XET, {0}, Xcolors},
 };
-int Xdca_max = sizeof(Xdca) / sizeof(X32command);
+int Xdca_max = sizeof(Xdca) / sizeof(X32command); 
 
 #endif /* X32DCA_H_ */
