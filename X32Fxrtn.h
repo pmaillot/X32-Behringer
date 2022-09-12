@@ -937,7 +937,6 @@ int Xfxrtn08_max = sizeof(Xfxrtn08) / sizeof(X32command);
 X32command	*Xfxrtnset[8] = {
 		Xfxrtn01, Xfxrtn02, Xfxrtn03, Xfxrtn04,
 		Xfxrtn05, Xfxrtn06, Xfxrtn07, Xfxrtn08,
-};
-
+}; 
 
 #endif /* X32FXRTN_H_ */
