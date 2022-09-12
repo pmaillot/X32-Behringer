@@ -327,7 +327,7 @@ X32command Xmisc[] = {
 		{"/-ha/38/index",	{I32}, F_XET, {0}, NULL},
 		{"/-ha/39/index",	{I32}, F_XET, {0}, NULL},
 
-};
+}; 
 int Xmisc_max = sizeof(Xmisc) / sizeof(X32command);
 
 #endif /* X32MISC_H_ */
