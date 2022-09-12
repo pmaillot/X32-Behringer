@@ -7316,7 +7316,7 @@ X32command Xsnippet[] = {
 		{"/-show/showfile/snippet/099/auxbuses",	{P32}, F_XET, {0}, NULL},
 		{"/-show/showfile/snippet/099/maingrps",	{P32}, F_XET, {0}, NULL},
 		{"/-show/showfile/snippet/099/hasdata",		{I32}, F_XET, {0}, NULL},
-};
+}; 
 int Xsnippet_max = sizeof(Xsnippet) / sizeof(X32command);
 
 #endif /* X32SHOW_H_ */
