@@ -962,6 +962,6 @@ int Xauxin08_max = sizeof(Xauxin08) / sizeof(X32command);
 X32command	*Xauxinset[8] = {
 		Xauxin01, Xauxin02, Xauxin03, Xauxin04,
 		Xauxin05, Xauxin06, Xauxin07, Xauxin08,
-};
+}; 
 
 #endif /* X32AUXIN_H_ */
