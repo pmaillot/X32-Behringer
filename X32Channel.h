@@ -5298,8 +5298,6 @@ X32command	*Xchannelset[32] = {
 		Xchannel21, Xchannel22, Xchannel23, Xchannel24,
 		Xchannel25, Xchannel26, Xchannel27, Xchannel28,
 		Xchannel29, Xchannel30, Xchannel31, Xchannel32,
-};
-
-
+}; 
 
 #endif /* X32CHANNEL_H_ */
