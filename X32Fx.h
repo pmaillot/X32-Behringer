@@ -854,7 +854,7 @@ int Xfx8_max = sizeof(Xfx8) / sizeof(X32command);
 
 X32command	*Xfxset[8] = {
 		Xfx1, Xfx2, Xfx3, Xfx4, Xfx5, Xfx6, Xfx7, Xfx8,
-};
+}; 
 
 
 #endif /* X32FX_H_ */
