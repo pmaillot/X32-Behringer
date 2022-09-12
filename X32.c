@@ -33,6 +33,7 @@
 // 0.82: added some elements related to 4.06 (/-stat/dcaspill)
 // 0.83: fixed bugs in FX parameters lists and ranges
 // 0.84: additional controls on strip parameter ranges to avoid seg faults.
+// 0.85: Fixed parameter type s in /mtx/../dyn/thr and .../dyn/filter/f
 //
 #ifdef __WIN32__
 #include <windows.h>
@@ -939,7 +940,7 @@ int main(int argc, char **argv) {
 #endif
 //
 	r_len = 0;
-	printf("X32 - v0.84 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.85 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
 	//
 	// Get or use IP address
 	if (noIP) {
@@ -1108,6 +1109,8 @@ void getmyIP() {
  //printf("\tInterface : <%s>\n",ifa->ifa_name );
  //printf("\t Address : <%s>\n", r_buf);
 					strcpy(Xip_str, r_buf); // update Xip_str
+					freeifaddrs(ifaddr);
+					return;
 				}
 			}
 		}
