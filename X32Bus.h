@@ -1693,5 +1693,5 @@ X32command	*Xbusset[16] = {
 		Xbus05, Xbus06, Xbus07, Xbus08,
 		Xbus09, Xbus10, Xbus11, Xbus12,
 		Xbus13, Xbus14, Xbus15, Xbus16,
-};
+}; 
 #endif /* X32BUS_H_ */
