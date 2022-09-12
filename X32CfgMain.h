@@ -446,6 +446,9 @@ X32command Xmain[] = {
 		{"/main/st/mix/06",					{CHME}, F_FND, {0}, NULL},
 		{"/main/st/mix/06/on",			{E32}, F_XET, {0}, OffOn},
 		{"/main/st/mix/06/level",		{F32}, F_XET, {0}, NULL},
+		{"/main/st/grp",					{CHGRP}, F_FND, {0}, NULL},
+		{"/main/st/grp/dca",			{P32}, F_XET, {0}, NULL},
+		{"/main/st/grp/mute",			{P32}, F_XET, {0}, NULL},
 
 		{"/main/m",							{BSCO}, F_FND, {0}, NULL},
 		{"/main/m/config",					{BSCO}, F_FND, {0}, NULL},
@@ -534,6 +537,9 @@ X32command Xmain[] = {
 		{"/main/m/mix/06",					{CHME}, F_FND, {0}, NULL},
 		{"/main/m/mix/06/on",			{E32}, F_XET, {0}, OffOn},
 		{"/main/m/mix/06/level",		{F32}, F_XET, {0}, NULL},
+		{"/main/m/grp",						{CHGRP}, F_FND, {0}, NULL},
+		{"/main/m/grp/dca",				{P32}, F_XET, {0}, NULL},
+		{"/main/m/grp/mute",			{P32}, F_XET, {0}, NULL},
 };
 int Xmain_max = sizeof(Xmain) / sizeof(X32command);
 
