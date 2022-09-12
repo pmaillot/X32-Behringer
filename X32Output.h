@@ -319,7 +319,7 @@ X32command Xoutput[] = {
 		{"/outputs/rec/02/pos",			{E32}, F_XET, {0}, Xotpos},
 		{"/outputs/rec/02/invert",		{E32}, F_XET, {0}, OffOn},
 
-};
+}; 
 int Xoutput_max = sizeof(Xoutput) / sizeof(X32command);
 
 
