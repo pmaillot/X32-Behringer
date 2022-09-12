@@ -1848,7 +1848,7 @@ X32command Xlibsf[] = {
 			{"/-libs/fx/100/type",				{I32}, F_XET, {0}, NULL},
 			{"/-libs/fx/100/flags",				{P32}, F_XET, {0}, NULL},
 			{"/-libs/fx/100/hasdata",			{I32}, F_XET, {0}, NULL},
-};
+}; 
 int Xlibsf_max = sizeof(Xlibsf) / sizeof(X32command);
 
 #endif /* X32LIBS_H_ */
