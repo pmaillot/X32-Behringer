@@ -666,6 +666,6 @@ X32command	*Xheadmpset[128] = {
 		Xheadamp100, Xheadamp101, Xheadamp102, Xheadamp103, Xheadamp104, Xheadamp105, Xheadamp106, Xheadamp107, Xheadamp108, Xheadamp109,
 		Xheadamp110, Xheadamp111, Xheadamp112, Xheadamp113, Xheadamp114, Xheadamp115, Xheadamp116, Xheadamp117, Xheadamp118, Xheadamp119,
 		Xheadamp120, Xheadamp121, Xheadamp122, Xheadamp123, Xheadamp124, Xheadamp125, Xheadamp126, Xheadamp127,
-};
+}; 
 
 #endif /* X32HEADAMP_H_ */
