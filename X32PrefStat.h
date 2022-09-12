@@ -719,7 +719,7 @@ X32command Xurec[] = {
 		{"/-urec/marker/099/time",		{I32}, F_XET, {0}, NULL},
 		{"/-urec/marker/100/time",		{I32}, F_XET, {0}, NULL},
 
-};
+}; 
 int 	Xurec_max = sizeof(Xurec) / sizeof(X32command);
 
 
