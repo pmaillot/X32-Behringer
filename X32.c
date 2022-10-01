@@ -34,6 +34,7 @@
 // 0.83: fixed bugs in FX parameters lists and ranges
 // 0.84: additional controls on strip parameter ranges to avoid seg faults.
 // 0.85: Fixed parameter type s in /mtx/../dyn/thr and .../dyn/filter/f
+// 0.86: Fixed missing comma in XiQeq[] definitions
 //
 #ifdef __WIN32__
 #include <windows.h>
@@ -383,7 +384,7 @@ char*   Xotpos[] = {"IN/LC", "IN/LC+M", "<-EQ", "<-EQ+M", "EQ->", "EQ->+M", "PRE
 
 char*  XiQgrp[] = {" OFF", " A", " B", ""};
 char*  XiQspk[] = {" none", " iQ8", " iQ10", " iQ12", " iQ15", " iQ15B", " iQ18B", ""};
-char*   XiQeq[] = {" Linear" " Live", " Speech", " Playback", " User", ""};
+char*   XiQeq[] = {" Linear", " Live", " Speech", " Playback", " User", ""};
 char* Psource[] = {" INT", " AES50A", " AES50B", " Exp Card", ""};
 char*  PSCont[] = {" CUES", " SCENES", " SNIPPETS", ""};
 char*   PRpro[] = {" MC", " HUI", " CC", ""};
@@ -940,7 +941,7 @@ int main(int argc, char **argv) {
 #endif
 //
 	r_len = 0;
-	printf("X32 - v0.85 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.86 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
 	//
 	// Get or use IP address
 	if (noIP) {
