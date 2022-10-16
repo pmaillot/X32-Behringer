@@ -731,7 +731,7 @@ int main(int argc, char **argv) {
 				break;
 			default:
 			case 'h':
-				printf("X32Xlive_Wav - ver 0.44 - (c)2018 - Patrick-Gilles Maillot\n\n");
+				printf("X32Xlive_Wav - ver 0.44 - ©2018 - Patrick-Gilles Maillot\n\n");
 				printf("usage: X32Xlive_wav [-g 0/1: 0 means command-line mode, 1 is Windows GUI]\n");
 				printf("                    [-d dir [./]: Mono wave files path]\n");
 				printf("                    [-m name []: Sets or Replaces Session name read from source]\n");
