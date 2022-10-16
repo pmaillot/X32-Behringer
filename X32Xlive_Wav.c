@@ -3,7 +3,7 @@
  *
  *  Created on: Jan 24, 2018
  *
- * ©2018 - Patrick-Gilles Maillot
+ * Â©2018 - Patrick-Gilles Maillot
  *
  *
  * X32Xlive_Wav - Command-line / Windows application for exploding X-Live! multi-channel
@@ -62,6 +62,7 @@
  *	ver. 0.41: bug in management of -p option in command line version
  *	ver. 0.42: now accepting a -g 0/1 option to run in command line mode under Windows too
  *	ver. 0.43: now accepting a -u 0/1 option to use upper case (.WAV), rather than lower case (.wav)
+ *	ver. 0.44: changed UI on the number of channels choice per user feedback
  *
  */
 
@@ -260,10 +261,11 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 		hwndDestin = CreateWindow("Edit", NULL,
 				WS_CHILD | WS_VISIBLE | WS_BORDER, 285, 3*LINEHI, 256, 20, hwnd, (HMENU )0, NULL, NULL);
 
-		hwndNbChan = CreateWindow("button", "Nb of Channels",
-				WS_VISIBLE | WS_CHILD, 128, 4*LINEHI, 120, 20, hwnd, (HMENU )5, NULL, NULL);
 		hwndChannels = CreateWindow("Edit", NULL,
-				WS_CHILD | WS_VISIBLE | WS_BORDER, 255, 4*LINEHI, 23, 20, hwnd, (HMENU )0, NULL, NULL);
+				WS_CHILD | WS_VISIBLE | WS_BORDER, 128, 4*LINEHI, 23, 20, hwnd, (HMENU )0, NULL, NULL);
+		hwndNbChan = CreateWindow("button", "Nb of Channels",
+				WS_VISIBLE | WS_CHILD, 158, 4*LINEHI, 120, 20, hwnd, (HMENU )5, NULL, NULL);
+
 		hwndsample = CreateWindowW(L"COMBOBOX", NULL, CBS_DROPDOWN | WS_CHILD | WS_VISIBLE,
 				359, 4*LINEHI-2, 40, 80, hwnd, (HMENU)0, NULL, NULL);
 		for (i = 0; i < 4; i++) {
@@ -313,7 +315,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.43 - ©2018 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.44 - Â©2018 - Patrick-Gilles Maillot"));
 
 		DeleteObject(htmp);
 		DeleteObject(hfont);
@@ -729,7 +731,7 @@ int main(int argc, char **argv) {
 				break;
 			default:
 			case 'h':
-				printf("X32Xlive_Wav - ver 0.43 - ©2018 - Patrick-Gilles Maillot\n\n");
+				printf("X32Xlive_Wav - ver 0.44 - (c)2018 - Patrick-Gilles Maillot\n\n");
 				printf("usage: X32Xlive_wav [-g 0/1: 0 means command-line mode, 1 is Windows GUI]\n");
 				printf("                    [-d dir [./]: Mono wave files path]\n");
 				printf("                    [-m name []: Sets or Replaces Session name read from source]\n");
