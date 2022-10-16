@@ -63,6 +63,7 @@
  *	ver. 0.42: now accepting a -g 0/1 option to run in command line mode under Windows too
  *	ver. 0.43: now accepting a -u 0/1 option to use upper case (.WAV), rather than lower case (.wav)
  *	ver. 0.44: changed UI on the number of channels choice per user feedback
+ *	ver. 0.45: Added a silent mode flag (for non-error messages)
  *
  */
 
@@ -136,7 +137,8 @@ OPENFILENAME	ofn;       			// common dialog box structure
 BROWSEINFO 		bi;					// Windows Shell structure
 ITEMIDLIST 		*pidl;				// dir item list
 unsigned int	smplstep;			// progress bar update
-int 			GUI = 1;
+int 			GUI = 1;			// Windows GUI of = 1
+int 			Silent = 0;			// Silent mode if = 1 (command line mode only)
 
 #endif
 //
@@ -315,8 +317,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.44 - ©2018 - Patrick-Gilles Maillot"));
-
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Xlive_Wav - ver 0.45 - ©2018 - Patrick-Gilles Maillot"));
 		DeleteObject(htmp);
 		DeleteObject(hfont);
 
@@ -661,7 +662,7 @@ int main(int argc, char **argv) {
 	// manage command-line parameters
 	nchange = -1;
 	strcpy(Xdpath, "./");
-	while ((input_intch = getopt(argc, argv, "g:d:m:n:p:c:s:w:h")) != -1) {
+	while ((input_intch = getopt(argc, argv, "g:d:m:n:p:c:s:w:Sh")) != -1) {
 		switch ((char)input_intch) {
 			case 'g':
 				sscanf(optarg, "%d", &GUI);
@@ -729,9 +730,12 @@ int main(int argc, char **argv) {
 				if (strlen(str1) > 12) str1[12] = 0;
 				strcpy(ChNamTable + i * NAMSIZ, str1);
 				break;
+			case 'S':
+				Silent = 1;
+				break;
 			default:
 			case 'h':
-				printf("X32Xlive_Wav - ver 0.44 - ©2018 - Patrick-Gilles Maillot\n\n");
+				printf("X32Xlive_Wav - ver 0.45 - ©2018 - Patrick-Gilles Maillot\n\n");
 				printf("usage: X32Xlive_wav [-g 0/1: 0 means command-line mode, 1 is Windows GUI]\n");
 				printf("                    [-d dir [./]: Mono wave files path]\n");
 				printf("                    [-m name []: Sets or Replaces Session name read from source]\n");
@@ -740,7 +744,8 @@ int main(int argc, char **argv) {
 				printf("                    [-s file []: optional scene file]\n");
 				printf("                    [-w #,name, [,]: ch. number ',' followed by respective wave file name]\n");
 				printf("                    [-u 0/1: use uppercase (.WAV) rather than lowercase (.wav) in file names]\n");
-				printf("                    [-p 0/1 [0]: prepends number in front of the channel name]\n\n");
+				printf("                    [-p 0/1 [0]: prepends number in front of the channel name]\n");
+				printf("                    [-S: run in silent mode (only for non-error messages)\n\n");
 				printf("                    Xlive! Session\n");
 				printf("       X32Xlive_wav will take into account all command-line parameter and run its\n");
 				printf("       'magic', generating mono-wave files from the XLive! session given as input.\n");
@@ -794,11 +799,15 @@ int main(int argc, char **argv) {
 			if (nchange >= 0) {
 				fflush(SBIN);
 				fwrite(Sname, 16, 1, SBIN);
-				printf("Session Name set to: \"%s\"\n",Sname);
+				if (!Silent) {
+					printf("Session Name set to: \"%s\"\n",Sname);
+				}
 			} else {
 				fread(Sname, 16, 1, SBIN);
 				if (Sname[0]) {
-					printf("Session Name: %s\n",Sname);
+					if (!Silent) {
+						printf("Session Name: %s\n",Sname);
+					}
 				} else {
 					for (i = 0; i < 8; i++) str0[i] = str1[strlen(str1) - 8 + i];
 					sscanf(str0, "%8x", &session_uint);
@@ -811,7 +820,9 @@ int main(int argc, char **argv) {
 					session_time.tm_sec =  (int)((session_uint & 0x1F) << 1);
 					sprintf(str1, "%02d-%02d-%02d %02d:%02d:%02d", session_time.tm_year, session_time.tm_mon,
 							session_time.tm_mday, session_time.tm_hour, session_time.tm_min, session_time.tm_sec);
-					printf("Session Name: %s\n",str1);
+					if (!Silent) {
+						printf("Session Name: %s\n",str1);
+					}
 				}
 			}
 			return (ExplodeWavFile());
@@ -1198,7 +1209,9 @@ FILE			*Sfile;
 	ftime (&end);
 	k = (int)(1000.0 * (end.time - start.time) + (end.millitm - start.millitm));
 //	sprintf(str1, "Elapsed time: %dms, op level: %d", k, op);
-	sprintf(str1, "Elapsed time: %dms", k);
-	MESSAGE(str1, "Done!");
+	if (!Silent) {
+		sprintf(str1, "Elapsed time: %dms", k);
+		MESSAGE(str1, "Done!");
+	}
 	return 0;
 }
