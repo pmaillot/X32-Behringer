@@ -10,7 +10,7 @@
  * 				WAV files into standard (mono-channel) WAV files
  *
  * Working principles:
- * 		-1- user chooses a source directory with an XLive! recording session [mandatory]
+ * 		-1- user chooses a source directory with an XLive recording session [mandatory]
  * 		-2- user decides on a destination directory where files will be saved [default is ./]
  * 		Sessions can have several 4GB (up to) files. Each is a 8 to 32 multi-channel wav file
  * 		The actual destination file names is set by the user and individual names can be
@@ -38,7 +38,7 @@
  * In case of inconsistencies or errors, messages are reported to the GUI level.
  * Upon termination, the time needed to explode files is provided. Be patient...
  * Exploding multi-channel wav files takes time, even with optimizations
- * 		for ex ~22s for extracting 5 24bit channels out of a 5.2GB 8-channel XLive! Session
+ * 		for ex ~22s for extracting 5 24bit channels out of a 5.2GB 8-channel XLive Session
  *
  *
  * Command-line case explanation: see -h option in the code below for explanations
@@ -745,10 +745,10 @@ int main(int argc, char **argv) {
 				printf("                    [-w #,name, [,]: ch. number ',' followed by respective wave file name]\n");
 				printf("                    [-u 0/1: use uppercase (.WAV) rather than lowercase (.wav) in file names]\n");
 				printf("                    [-p 0/1 [0]: prepends number in front of the channel name]\n");
-				printf("                    [-S: run in silent mode (only for non-error messages)\n\n");
-				printf("                    Xlive! Session\n");
+				printf("                    [-S: run in silent mode (only for non-error messages)]\n");
+				printf("                    Xlive Session\n\n");
 				printf("       X32Xlive_wav will take into account all command-line parameter and run its\n");
-				printf("       'magic', generating mono-wave files from the XLive! session given as input.\n");
+				printf("       'magic', generating mono-wave files from the XLive session given as input.\n");
 				printf("       Sample size conversion may take place depending on the -c option.\n");
 				printf("       Channel/Wave or file names can be set all at once if a scene file is provided\n");
 				printf("       using the -f parameter, or set one at a time or edited if parameters -1...-32\n");
@@ -756,12 +756,12 @@ int main(int argc, char **argv) {
 				printf("       Note: option -n must appear before any -w or -s options.\n\n");
 				printf("       Examples:\n");
 				printf("       X32Xlive_wav -g 0 -n 3 -d ~ -c 16 -s ~/myscene -w 3,new_name ~/ABCD12345678\n");
-				printf("         will extract as 16bit samples the first 3 channels contained in XLive! session\n");
+				printf("         will extract as 16bit samples the first 3 channels contained in XLive session\n");
 				printf("         ABCD12345678 in the home directory, into 3 separate wave files placed in the home\n");
 				printf("         directory with names taken from the X32 scene file 'myscene', and setting or overriding\n");
 				printf("         the 3rd wave file name with 'new_name'\n\n");
 				printf("       X32Xlive_wav -g 0 -n 8 -d ~ ~/ABCD12345678\n");
-				printf("         will extract as 24bit samples the first 8 channels contained in XLive! session\n");
+				printf("         will extract as 24bit samples the first 8 channels contained in XLive session\n");
 				printf("         ABCD12345678 in the home directory, into 8 separate wave files placed in the home\n");
 				printf("         directory with names Xlive_Wav_1.wav to Xlive_Wav_8.wav\n\n");
 				return(0);
