@@ -3,7 +3,7 @@
  *
  *  Created on: Sep 13, 2017
  *
- * ©2017 - Patrick-Gilles Maillot
+ * Â©2017 - Patrick-Gilles Maillot
  *
  * X32Wav_Xlive - a Windows application for merging single WAV files into X-Live! compatible
  * 			   multi-channel WAV files
@@ -39,6 +39,7 @@
  *	ver 1.26: ?
  *	ver 1.27: set session directory text Read Only
  *	ver 1.28: changed mask on audio_bytes trimming to 32kB boundary
+ *	ver 1.29: Added a silent mode flag (for non-error messages)
  *
  */
 //
@@ -190,6 +191,9 @@ unsigned int	Blnk = BLNK;			// "    " on one unsigned int
 //
 long long		audio_bytes;			// size of audio data (multi channels)
 unsigned int	r_audio_bytes;			// audio data remainder on 32bits for file writing
+int 			GUI = 1;				// Windows GUI of = 1
+int 			Silent = 0;				// Silent mode if = 1 (command line mode only)
+//
 #if defined(_WIN32)
 //
 // Windows main function and main loop
@@ -276,7 +280,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 			DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 			ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 1.28 - ©2017-22 - Patrick-Gilles Maillot"));
+		TextOut(hdc, 128, 3, str1, wsprintf(str1, "X32Wav_Xlive - ver 1.29 - Â©2017-22 - Patrick-Gilles Maillot"));
 		TextOut(hdc, 128, 57, str1, wsprintf(str1, "Session Name:"));
 		TextOut(hdc, 128, 90, str1, wsprintf(str1, "Markers:"));
 		DeleteObject(htmp);
@@ -416,8 +420,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 //
 //
 int main(int argc, char **argv) {
-	int GUI = 1;
-#if defined(_WIN32)
+	//
+	#if defined(_WIN32)
 	HINSTANCE hPrevInstance = 0;
 	PWSTR pCmdLine = 0;
 	int nCmdFile = 0;
@@ -467,16 +471,20 @@ int main(int argc, char **argv) {
 			case 'm':
 				sscanf(optarg, "%f", &marker_vec[no_markers++]);
 				break;
+			case 'S':
+				Silent = 1;
+				break;
 			default:
 			case 'h':
-				printf("X32Wav_Xlive - ver 1.28 - ©2018-22 - Patrick-Gilles Maillot\n\n");
+				printf("X32Wav_Xlive - ver 1.29 - Â©2018-22 - Patrick-Gilles Maillot\n\n");
 				printf("usage: X32Wav_Xlive [-g 0/1: 0 means command-line mode, 1 is Windows GUI]\n");
 				printf("                    [-f Marker file []: file containing markers]\n");
 				printf("                    [-m marker, [,]: marker time in increasing order values]\n");
 				printf("                    [-u 0/1: use uppercase (.WAV) rather than lowercase (.wav) in file names]\n");
+				printf("                    [-S: run in silent mode (only for non-error messages)]\n");
 				printf("                    <Session dir> [<Session name>]\n\n");
 				printf("       X32Wav_Xlive will take into account all command-line parameters and run its\n");
-				printf("       'magic', generating XLive! session files from the wav data given as input.\n\n");
+				printf("       'magic', generating XLive session files from the wav data given as input.\n\n");
 				printf("       Many restrictions take place: all wav data must be similar in specs:\n");
 				printf("         - same sample rate (48k or 44.1k\n");
 				printf("         - same length\n");
@@ -484,14 +492,14 @@ int main(int argc, char **argv) {
 				printf("         - wav files have to be named ch_1.wav to ch_32.wav\n\n");
 				printf("       Examples:\n");
 				printf("       X32Wav_Xlive -g 0 -m 1.2 -m 15 ./ \"new session\"\n");
-				printf("         creates as XLive! session directory in ./ based on the date and time,\n");
-				printf("         and creates a session displayed as \"new session\" when loaded into XLive! card\n");
+				printf("         creates as XLive session directory in ./ based on the date and time,\n");
+				printf("         and creates a session displayed as \"new session\" when loaded into XLive card\n");
 				printf("         containing a number of multi-channel wav files respective of the number of \n");
 				printf("         channels found in the source directory. Markers, if present, will be added to\n");
 				printf("         the created session\n\n");
 				printf("       X32Wav_Xlive -g 0 .\n");
-				printf("         creates an XLive! session directory in . based on the date and time;\n");
-				printf("         the session is named after as its creation time stamp when loaded into XLive! card\n");
+				printf("         creates an XLive session directory in . based on the date and time;\n");
+				printf("         the session is named after as its creation time stamp when loaded into XLive card\n");
 				printf("         and contains a number of multi-channel wav files respective of the number of \n");
 				printf("         channels found in the source directory.\n");
 				return(0);
@@ -516,8 +524,10 @@ int main(int argc, char **argv) {
 		Xspath[slen++] = '/';
 		if (argv[++optind]) strcpy(str1, argv[optind]);
 		if ((i = MergeWavFiles(no_markers, marker_vec)) > 0) {
-			sprintf(str1, "Elapsed time: %dms", i);
-			MESSAGE(str1, "Done!");
+			if (!Silent) {
+				sprintf(str1, "Elapsed time: %dms", i);
+				MESSAGE(str1, "Done!");
+			}
 		} else {
 			MESSAGE1("Something went wrong!");
 		}
@@ -563,7 +573,9 @@ int	MergeWavFiles(int num_markers, float* markers) {
 		} else {
 			numb_chls = 32;	// limit to 32 channels
 			fill_chls = 0;
-			printf("More than 32 channels found, exceeding channels will be ignored!\n");
+			if (!Silent) {
+				printf("More than 32 channels found, exceeding channels will be ignored!\n");
+			}
 		}
 	} else {
 		numb_chls = 32;
