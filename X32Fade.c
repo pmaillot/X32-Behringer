@@ -19,6 +19,7 @@
 //      v1.00: refactoring of code, passing some calls into extern modules
 //      v1.01: preventing Windows resizing
 //      v1.02: small changes to GUI geometry
+//      v2.00: Introduced MIDI control for Fade IN, Fade OUT and STOP on user bank C, buttons 5,6,7 (see Xmidi)
 //
 //
 #ifdef __WIN32__
@@ -82,8 +83,10 @@
 void				Fader_init();
 void 				Fader_update(int len, int f_index, int v_index, int dir);
 void 				Fader_read(int len, int f_index, int v_index);
+void				XFade_in();
+void				XFade_out();
 //
-extern int			X32Connect(int Xconnected, char* Xip_str, int btime);
+extern int			X32Connect(int Xconnected, char* Xip_str, char* port, int btime);
 extern int			validateIP4Dotted(const char *s);
 extern int 			Xsprint(char *bd, int index, char format, void *bs);
 extern int 			Xfprint(char *bd, int index, char* text, char format, void *bs);
@@ -94,6 +97,7 @@ WINBASEAPI HWND WINAPI	GetConsoleWindow(VOID);
 LRESULT CALLBACK		WndProc(HWND, UINT, WPARAM, LPARAM);
 
 HINSTANCE	hInstance = 0;
+HWND		hwndipaddr, hwndfdin, hwndfdout, hwndfdstp, hwndxbank;
 
 HMENU		hipedit = (HMENU)199;
 HWND		hwndcheck[80];
@@ -117,6 +121,7 @@ int		check[80];
 wchar_t	W32_ip_str[20], W32_fd_in[8], W32_fd_out[8], W32_fd_stp[8];
 char	Xip_str[20], Xfd_in[8], Xfd_out[8], Xfd_stp[8];
 int		Xconnected = 0;
+char	Xport[]= "10023";
 
 int		ck_all[5] = {0, 0, 0, 0, 0};
 int		ck_for[6] = {0, 16, 32, 48, 64, 80};
@@ -127,6 +132,7 @@ char	*Xmsg[8] = {	"/ch/00/mix/fader", "/bus/00/mix/fader",
 						"/auxin/00/mix/fader", "/fxrtn/00/mix/fader",
 						"/dca/0/fader", "/mtx/00/mix/fader",
 						"/main/m/mix/fader", "/main/st/mix/fader"};
+char	XRemote[12] = "/xremote";	// OSC data sent every 9..10 seconds to keep receiving X32 notifications
 int		ind_num[8] = {4, 5, 7, 7, 5, 5, 0, 0};
 int		ind_len[8] = {2, 2, 2, 2, 1, 2, 0, 0};
 int		ind_pos[8] = {24,24,24,24,20,24,24,24};
@@ -139,8 +145,10 @@ int		FadeOut_time = 0;
 int		Fade_out = 0;
 int		FadeIn_time = 0;
 int		Fade_in = 0;
+int		XMidi = 0;
+//
 int					Xverbose, Xdebug;
-
+//
 int					Xfd;				// our socket
 struct sockaddr_in	Xip;
 struct sockaddr		*Xip_addr = (struct sockaddr*)&Xip;
@@ -156,7 +164,8 @@ socklen_t			Xip_len = sizeof(Xip);	// length of addresses
 #endif
 //
 struct timeval		Tstart, Tstep, Tnow;
-//
+time_t  			X32RemBfr;				// 'before' time value for Xremote controls (seconds)
+time_t  			X32RemNow;				// 'now' time value for Xremote controls (seconds)//
 FILE 				*res_file;
 int					r_status;
 //
@@ -200,6 +209,44 @@ int	i, j;
 			TranslateMessage(&msg);
 			DispatchMessage(&msg);
 		}
+		// Something from the X32? (resulting from MIDI messages)
+		if (XMidi) {
+			X32RemNow = time(NULL);				// Get current time
+			if (X32RemNow > X32RemBfr) { 		// Need to keep xremote alive?
+				if (sendto(Xfd, XRemote, 12, 0, Xip_addr, Xip_len) < 0) {
+					perror ("Can't send data to X/M32\n");
+					exit(EXIT_FAILURE);
+				}
+				X32RemBfr = X32RemNow + 9;
+			}
+			RPOLL;
+			if (p_status < 0) {
+				perror("Polling for data failed");
+				Fade_in = Fade_out = 0; // stop fade
+			} else if (p_status > 0) {
+			// We have received data - process it!
+				r_len = recvfrom(Xfd, r_buf, BSIZE, 0, 0, 0); //(struct sockaddr *)&Xip, &Xip_len);
+				//
+				if (strcmp(r_buf, "/-stat/userpar/17/value") == 0) {
+					// button C-17 pressed or released - FADE IN
+					if (r_buf[31]) {
+						XFade_in();
+					}
+				}
+				if (strcmp(r_buf, "/-stat/userpar/18/value") == 0) {
+					// button C-18 pressed or released - FADE OUT
+					if (r_buf[31]) {
+						XFade_out();
+					}
+				}
+				if (strcmp(r_buf, "/-stat/userpar/19/value") == 0) {
+					// button C-19 pressed or released - STOP
+					if (r_buf[31]) {
+						Fade_on = Fade_in = Fade_out = 0;
+					}
+				}
+			}
+		}
 		if (Fade_on) {
 			if (More_steps) {
 				gettimeofday(&Tnow, NULL);				// get precise time
@@ -229,10 +276,93 @@ int	i, j;
 	return (int) msg.wParam;
 }
 
+void XFade_in() {
+	sscanf(Xfd_stp, "%d", &Fsteps);
 
-
+	if (Fsteps < 1) {
+		Fsteps = 1;
+		sprintf(Xfd_stp, "%d", Fsteps);
+		SetWindowText(hwndfdstp, (LPSTR)Xfd_stp);
+	} else 	if (Fsteps > 128) {
+		Fsteps = 128;
+		sprintf(Xfd_stp, "%d", Fsteps);
+		SetWindowText(hwndfdstp, (LPSTR)Xfd_stp);
+	}
+	More_steps = Fsteps;
+	len = GetWindowTextLengthW(hwndfdin) + 1;
+	GetWindowTextW(hwndfdin, W32_fd_in, len);
+	WideCharToMultiByte(CP_ACP, 0, W32_fd_in, len, Xfd_in, len, NULL, NULL);
+	sscanf(Xfd_in, "%d", &FadeIn_time);
+	Fade_out = 0;
+	Fade_in = 1;
+	Fade_on = 1;
+	if (Xdebug) {printf("Fade IN: %s, steps: %s\n", Xfd_in, Xfd_stp); fflush(stdout);}
+	gettimeofday(&Tstart, NULL);						// get precise time
+	if (FadeIn_time > 0) {
+		if (FadeIn_time > 120) {
+			FadeIn_time = 120;
+			sprintf(Xfd_in, "%d", FadeIn_time);
+			SetWindowText(hwndfdin, (LPSTR)Xfd_in);
+		}
+		Tstep.tv_sec = 0;
+		Tstep.tv_usec = FadeIn_time * 1000000 / Fsteps;
+		while (Tstep.tv_usec > 1000000) {
+			Tstep.tv_sec++;
+			Tstep.tv_usec -= 1000000;
+		}
+	} else {					// set default time-step for Fade time = 0
+		Tstep.tv_sec = 0;
+		Tstep.tv_usec = 1000;
+		FadeIn_time = 0;
+		sprintf(Xfd_in, "%d", FadeIn_time);
+		SetWindowText(hwndfdin, (LPSTR)Xfd_in);
+	}
+}
+//
+//
+void XFade_out() {
+	sscanf(Xfd_stp, "%d", &Fsteps);
+	if (Fsteps < 1) {
+		Fsteps = 1;
+		sprintf(Xfd_stp, "%d", Fsteps);
+		SetWindowText(hwndfdstp, (LPSTR)Xfd_stp);
+	} else 	if (Fsteps > 128) {
+		Fsteps = 128;
+		sprintf(Xfd_stp, "%d", Fsteps);
+		SetWindowText(hwndfdstp, (LPSTR)Xfd_stp);
+	}
+	More_steps = Fsteps;
+	len = GetWindowTextLengthW(hwndfdout) + 1;
+	GetWindowTextW(hwndfdout, W32_fd_out, len);
+	WideCharToMultiByte(CP_ACP, 0, W32_fd_out, len, Xfd_out, len, NULL, NULL);
+	sscanf(Xfd_out, "%d", &FadeOut_time);
+	Fade_in = 0;
+	Fade_out = 1;
+	Fade_on = 1;
+	if (Xdebug) {printf("Fade OUT: %s, steps: %s\n", Xfd_out, Xfd_stp); fflush(stdout);}
+	gettimeofday(&Tstart, NULL);						// get precise time
+	if (FadeOut_time > 0) {
+		if (FadeOut_time > 120) {
+			FadeOut_time = 120;
+			sprintf(Xfd_out, "%d", FadeOut_time);
+			SetWindowText(hwndfdout, (LPSTR)Xfd_out);
+		}
+		Tstep.tv_sec = 0;
+		Tstep.tv_usec = FadeOut_time * 1000000 / Fsteps;
+		while (Tstep.tv_usec > 1000000) {
+			Tstep.tv_sec++;
+			Tstep.tv_usec -= 1000000;
+		}
+	} else {					// set default time-step for Fade time = 0
+		Tstep.tv_sec = 0;
+		Tstep.tv_usec = 1000;
+		FadeOut_time = 0;
+		sprintf(Xfd_out, "%d", FadeOut_time);
+		SetWindowText(hwndfdout, (LPSTR)Xfd_out);
+	}
+}
+//
 LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-static HWND hwndipaddr, hwndfdin, hwndfdout, hwndfdstp;
 int 	i;
 char 	str1[8];
 
@@ -243,6 +373,11 @@ char 	str1[8];
 				125, 35, 150, 20, hwnd, hipedit, NULL, NULL);
 		hwndfdact[0] = CreateWindowW(L"button", L"Connect", WS_VISIBLE | WS_CHILD,
 				280, 35, 80, 20, hwnd, (HMENU)200, NULL, NULL);
+		//
+		hwndxbank = CreateWindowW(L"button", L"MIDI OFF", WS_VISIBLE | WS_CHILD,
+				280, 15, 80, 20, hwnd, (HMENU)206, NULL, NULL);
+		//
+
 		for (len = 1; len < 6; len++) {
 			hwndfdact[len] = CreateWindowW(L"button", txt_fdact[len], WS_VISIBLE | WS_CHILD,
 					465 + 87 * len, 7, 80, 50, hwnd,
@@ -293,8 +428,8 @@ char 	str1[8];
 		DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 		ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 150, 20, "Enter X32 IP below:", 19);
-		TextOut(hdc, 315, 20, "ver. 1.02", 9);
+		TextOut(hdc, 125, 20, "Enter X32 IP below:", 19);
+		TextOut(hdc, 240, 20, "v. 2.00", 9);
 		DeleteObject(htmp);
 		DeleteObject(hfont);
 //
@@ -302,7 +437,7 @@ char 	str1[8];
 		DEFAULT_CHARSET, OUT_OUTLINE_PRECIS, CLIP_DEFAULT_PRECIS,
 		ANTIALIASED_QUALITY, VARIABLE_PITCH, TEXT("Arial"));
 		htmp = (HFONT) SelectObject(hdc, hfont);
-		TextOut(hdc, 125, 0, "X32Fade - ©2015 - Patrick-Gilles Maillot", 40);
+		TextOut(hdc, 125, 0, "X32Fade -2015- Patrick-Gilles Maillot", 40);
 		DeleteObject(htmp);
 		DeleteObject(hfont);
 //
@@ -369,7 +504,7 @@ char 	str1[8];
 					WideCharToMultiByte(CP_ACP, 0, W32_ip_str, len, Xip_str, len, NULL, NULL);
 					if (Xdebug) {printf("IP = %s\n", Xip_str); fflush(stdout);}
 					if (validateIP4Dotted(Xip_str)) {
-						Xconnected = X32Connect(Xconnected, Xip_str, 5000);
+						Xconnected = X32Connect(Xconnected, Xip_str, Xport, 5000);
 						if (Xconnected)	SetWindowTextW(hwndfdact[0], L"Connected");
 						else			SetWindowTextW(hwndfdact[0], L"Connect");
 					} else {
@@ -385,7 +520,7 @@ char 	str1[8];
 							r_status = fscanf(res_file, "%08x ", &mm.i);
 							fader_values[i] = deck_values[i] = mm.f;
 						}
-						r_status = fscanf(res_file, "%d %d %d %s", &FadeOut_time, &FadeIn_time, &Fsteps, Xip_str);
+						r_status = fscanf(res_file, "%d %d %d %17s", &FadeOut_time, &FadeIn_time, &Fsteps, Xip_str);
 						SetWindowText(hwndipaddr, (LPSTR)Xip_str);
 						sprintf(Xfd_in, "%d", FadeIn_time);
 						SetWindowText(hwndfdin, (LPSTR)Xfd_in);
@@ -458,45 +593,7 @@ char 	str1[8];
 						len = GetWindowTextLengthW(hwndfdstp) + 1;
 						GetWindowTextW(hwndfdstp, W32_fd_stp, len);
 						WideCharToMultiByte(CP_ACP, 0, W32_fd_stp, len, Xfd_stp, len, NULL, NULL);
-						sscanf(Xfd_stp, "%d", &Fsteps);
-						if (Fsteps < 1) {
-							Fsteps = 1;
-							sprintf(Xfd_stp, "%d", Fsteps);
-							SetWindowText(hwndfdstp, (LPSTR)Xfd_stp);
-						} else 	if (Fsteps > 128) {
-							Fsteps = 128;
-							sprintf(Xfd_stp, "%d", Fsteps);
-							SetWindowText(hwndfdstp, (LPSTR)Xfd_stp);
-						}
-						More_steps = Fsteps;
-						len = GetWindowTextLengthW(hwndfdin) + 1;
-						GetWindowTextW(hwndfdin, W32_fd_in, len);
-						WideCharToMultiByte(CP_ACP, 0, W32_fd_in, len, Xfd_in, len, NULL, NULL);
-						sscanf(Xfd_in, "%d", &FadeIn_time);
-						Fade_out = 0;
-						Fade_in = 1;
-						Fade_on = 1;
-						if (Xdebug) {printf("Fade IN: %s, steps: %s\n", Xfd_in, Xfd_stp); fflush(stdout);}
-						gettimeofday(&Tstart, NULL);						// get precise time
-						if (FadeIn_time > 0) {
-							if (FadeIn_time > 120) {
-								FadeIn_time = 120;
-								sprintf(Xfd_in, "%d", FadeIn_time);
-								SetWindowText(hwndfdin, (LPSTR)Xfd_in);
-							}
-							Tstep.tv_sec = 0;
-							Tstep.tv_usec = FadeIn_time * 1000000 / Fsteps;
-							while (Tstep.tv_usec > 1000000) {
-								Tstep.tv_sec++;
-								Tstep.tv_usec -= 1000000;
-							}
-						} else {					// set default time-step for Fade time = 0
-							Tstep.tv_sec = 0;
-							Tstep.tv_usec = 1000;
-							FadeIn_time = 0;
-							sprintf(Xfd_in, "%d", FadeIn_time);
-							SetWindowText(hwndfdin, (LPSTR)Xfd_in);
-						}
+						XFade_in();
 					} else {
 						perror ("Not connected to X32!");
 					}
@@ -507,45 +604,7 @@ char 	str1[8];
 						len = GetWindowTextLengthW(hwndfdstp) + 1;
 						GetWindowTextW(hwndfdstp, W32_fd_stp, len);
 						WideCharToMultiByte(CP_ACP, 0, W32_fd_stp, len, Xfd_stp, len, NULL, NULL);
-						sscanf(Xfd_stp, "%d", &Fsteps);
-						if (Fsteps < 1) {
-							Fsteps = 1;
-							sprintf(Xfd_stp, "%d", Fsteps);
-							SetWindowText(hwndfdstp, (LPSTR)Xfd_stp);
-						} else 	if (Fsteps > 128) {
-							Fsteps = 128;
-							sprintf(Xfd_stp, "%d", Fsteps);
-							SetWindowText(hwndfdstp, (LPSTR)Xfd_stp);
-						}
-						More_steps = Fsteps;
-						len = GetWindowTextLengthW(hwndfdout) + 1;
-						GetWindowTextW(hwndfdout, W32_fd_out, len);
-						WideCharToMultiByte(CP_ACP, 0, W32_fd_out, len, Xfd_out, len, NULL, NULL);
-						sscanf(Xfd_out, "%d", &FadeOut_time);
-						Fade_in = 0;
-						Fade_out = 1;
-						Fade_on = 1;
-						if (Xdebug) {printf("Fade OUT: %s, steps: %s\n", Xfd_out, Xfd_stp); fflush(stdout);}
-						gettimeofday(&Tstart, NULL);						// get precise time
-						if (FadeOut_time > 0) {
-							if (FadeOut_time > 120) {
-								FadeOut_time = 120;
-								sprintf(Xfd_out, "%d", FadeOut_time);
-								SetWindowText(hwndfdout, (LPSTR)Xfd_out);
-							}
-							Tstep.tv_sec = 0;
-							Tstep.tv_usec = FadeOut_time * 1000000 / Fsteps;
-							while (Tstep.tv_usec > 1000000) {
-								Tstep.tv_sec++;
-								Tstep.tv_usec -= 1000000;
-							}
-						} else {					// set default time-step for Fade time = 0
-							Tstep.tv_sec = 0;
-							Tstep.tv_usec = 1000;
-							FadeOut_time = 0;
-							sprintf(Xfd_out, "%d", FadeOut_time);
-							SetWindowText(hwndfdout, (LPSTR)Xfd_out);
-						}
+						XFade_out();
 					} else {
 						perror ("Not connected to X32!");
 					}
@@ -553,6 +612,44 @@ char 	str1[8];
 				case 205:		// STOP button hit
 					if (Xdebug) {printf("STOP button hit\n"); fflush(stdout);}
 					Fade_on = Fade_in = Fade_out = 0;
+					break;
+				case 206:		// MIDI button
+					if (Xconnected) {
+						XMidi ^= 1;
+						if (XMidi) {
+							SetWindowTextW(hwndxbank, L"MIDI ON");
+							// program USER keys in bank C depending on Xbank value
+							s_len = Xfprint(s_buf, 0, "/config/userctrl/C/btn/5", 's', "MC16012");
+							if (sendto(Xfd, s_buf, s_len, 0, Xip_addr, Xip_len) < 0) {
+								perror("Error sending data");
+							}
+							s_len = Xfprint(s_buf, 0, "/config/userctrl/C/btn/6", 's', "MC16013");
+							if (sendto(Xfd, s_buf, s_len, 0, Xip_addr, Xip_len) < 0) {
+								perror("Error sending data");
+							}
+							s_len = Xfprint(s_buf, 0, "/config/userctrl/C/btn/7", 's', "MC16014");
+							if (sendto(Xfd, s_buf, s_len, 0, Xip_addr, Xip_len) < 0) {
+								perror("Error sending data");
+							}
+						} else {
+							SetWindowTextW(hwndxbank, L"MIDI OFF");
+							// Erase USER keys
+							s_len = Xfprint(s_buf, 0, "/config/userctrl/C/btn/5", 's', "");
+							if (sendto(Xfd, s_buf, s_len, 0, Xip_addr, Xip_len) < 0) {
+								perror("Error sending data");
+							}
+							s_len = Xfprint(s_buf, 0, "/config/userctrl/C/btn/6", 's', "");
+							if (sendto(Xfd, s_buf, s_len, 0, Xip_addr, Xip_len) < 0) {
+								perror("Error sending data");
+							}
+							s_len = Xfprint(s_buf, 0, "/config/userctrl/C/btn/7", 's', "");
+							if (sendto(Xfd, s_buf, s_len, 0, Xip_addr, Xip_len) < 0) {
+								perror("Error sending data");
+							}
+						}
+					} else {
+						perror ("Not connected to X32!");
+					}
 					break;
 				}
 			}
