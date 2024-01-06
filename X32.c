@@ -4809,31 +4809,35 @@ int function_headamp() {
 //
 //
 void Xprepmeter(int i, int l, char *buf, int n) {
-	// prepare (fake) meters/0 command reply
+	// prepare (fake) meters/i command reply
 	ZMemory(&Xbuf_meters[i][0], 512);			// Prepare buffer (set to all 0's)
-	endian.ii = l + 4;
 	memcpy(&Xbuf_meters[i][0], buf, 16);
+
+	endian.ii = (l + 1) * 4;		// actual blob content length (in bytes)
 	Xbuf_meters[i][16] = endian.cc[3];
 	Xbuf_meters[i][17] = endian.cc[2];
 	Xbuf_meters[i][18] = endian.cc[1];
 	Xbuf_meters[i][19] = endian.cc[0];
-	endian.ii -= 4;
+
+	Lbuf_meters[i] = endian.ii + 20;		// length of the whole message (in bytes)
+
+	endian.ii = l; // number of floats (32-bit)
 	Xbuf_meters[i][20] = endian.cc[0];
 	Xbuf_meters[i][21] = endian.cc[1];
 	Xbuf_meters[i][22] = endian.cc[2];
 	Xbuf_meters[i][23] = endian.cc[3];
-	Lbuf_meters[i] = endian.ii * 4 + 12;		// actual blob length
+
 	gettimeofday (&XTimerMeters[i], NULL);		// get time
 	XInterMeters[i] = XTimerMeters[i];			// keep initial time for inter-timers
 	XTimerMeters[i].tv_sec += 10;				// keep valid for 10s
 	XActiveMeters |= (1 << i);					// set meter to active
 	XClientMeters[i] = *Client_ip_pt;			// remember requesting IP client TODO: not the right approach
 												//									   if several clients request meters
-	if (n == 1) {								// special case of a single shot for meters/0
+	if (n == 1) {								// special case of a single shot for meters/i
 		XDeltaMeters[i] = 50000;				// set meter interval at 50ms
 		return; 								// meters/i set only to requesting client
 	} else {
-		// get time factor at end of command /meters ,si /meters/i [k]
+		// get time factor at end of command /meters ,si /meters/i [k] //TODO: this won't work with meters/5 and meters/6
 		// manage values < 1 and > 99 by setting interval to 50ms
 		endian.cc[3] = r_buf[24];
 		endian.cc[2] = r_buf[25];
@@ -4855,7 +4859,7 @@ int function_meters() {
 	n = strlen(r_buf + 9);			// counting the number of parameters
 	i = 0;
 	while (i < Xmeters_max) {
-		if (strcmp(r_buf + ((9 + n + 3) & ~3), Xmeters[i].command) == 0) {
+		if (strcmp(r_buf + ((9 + n + 4) & ~3), Xmeters[i].command) == 0) {
 			// found command at index i
 			break;
 		}
