@@ -35,6 +35,7 @@
 // 0.84: additional controls on strip parameter ranges to avoid seg faults.
 // 0.85: Fixed parameter type s in /mtx/../dyn/thr and .../dyn/filter/f
 // 0.86: Fixed missing comma in XiQeq[] definitions
+// 0.87: Partial fix for /meters command
 //
 #ifdef __WIN32__
 #include <windows.h>
@@ -941,7 +942,7 @@ int main(int argc, char **argv) {
 #endif
 //
 	r_len = 0;
-	printf("X32 - v0.86 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.87 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
 	//
 	// Get or use IP address
 	if (noIP) {
