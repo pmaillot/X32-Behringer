@@ -36,6 +36,7 @@
 // 0.85: Fixed parameter type s in /mtx/../dyn/thr and .../dyn/filter/f
 // 0.86: Fixed missing comma in XiQeq[] definitions
 // 0.87: Partial fix for /meters command
+// 0.88: Fix for /meters/5 and /meter/6 timefactor control
 //
 #ifdef __WIN32__
 #include <windows.h>
@@ -307,7 +308,7 @@ char* REnum(X32command* command, char* str_pt_in, char* str_enum[]);
 int function_node_single();
 void GetFxPar1(X32command* command, char* buf, int ipar, int type);
 void SetFxPar1(X32command* command, char* str_pt_in, int ipar, int type);
-void Xprepmeter(int i, int l, char *buf, int n);
+void Xprepmeter(int i, int l, char *buf, int n, int k);
 
 char snode_str[32]; // used to temporarily save a string in node and FX commands
 char*	OffOn[] = {" OFF", " ON", ""};
@@ -942,7 +943,7 @@ int main(int argc, char **argv) {
 #endif
 //
 	r_len = 0;
-	printf("X32 - v0.87 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
+	printf("X32 - v0.88 - An X32 Emulator - (c)2014-2019 Patrick-Gilles Maillot\n");
 	//
 	// Get or use IP address
 	if (noIP) {
@@ -4809,7 +4810,7 @@ int function_headamp() {
 
 //
 //
-void Xprepmeter(int i, int l, char *buf, int n) {
+void Xprepmeter(int i, int l, char *buf, int n, int k) {
 	// prepare (fake) meters/i command reply
 	ZMemory(&Xbuf_meters[i][0], 512);			// Prepare buffer (set to all 0's)
 	memcpy(&Xbuf_meters[i][0], buf, 16);
@@ -4838,12 +4839,13 @@ void Xprepmeter(int i, int l, char *buf, int n) {
 		XDeltaMeters[i] = 50000;				// set meter interval at 50ms
 		return; 								// meters/i set only to requesting client
 	} else {
-		// get time factor at end of command /meters ,si /meters/i [k] //TODO: this won't work with meters/5 and meters/6
+		// get time factor at end of command /meters ,si /meters/i [tf]
 		// manage values < 1 and > 99 by setting interval to 50ms
-		endian.cc[3] = r_buf[24];
-		endian.cc[2] = r_buf[25];
-		endian.cc[1] = r_buf[26];
-		endian.cc[0] = r_buf[27];
+		// k represents an index afetr 24 where to find the time factor data
+		endian.cc[3] = r_buf[k + 24];
+		endian.cc[2] = r_buf[k + 25];
+		endian.cc[1] = r_buf[k + 26];
+		endian.cc[0] = r_buf[k + 27];
 		if ((endian.ii < 1) || (endian.ii > 99)) endian.ii = 1;
 		XDeltaMeters[i] = 50000 * endian.ii;	// set meter interval at 50ms x time factor
 		return; 								// meters/i set only to requesting client
@@ -4868,55 +4870,55 @@ int function_meters() {
 	}
 	if (i < Xmeters_max) switch(i) {
 		case 0:
-			Xprepmeter(0, 70, "/meters/0\0\0\0,b\0\0", n);
+			Xprepmeter(0, 70, "/meters/0\0\0\0,b\0\0", n, 0);
 			break;
 		case 1:
-			Xprepmeter(1, 96, "/meters/1\0\0\0,b\0\0", n);
+			Xprepmeter(1, 96, "/meters/1\0\0\0,b\0\0", n, 0);
 			break;
 		case 2:
-			Xprepmeter(2, 49, "/meters/2\0\0\0,b\0\0", n);
+			Xprepmeter(2, 49, "/meters/2\0\0\0,b\0\0", n, 0);
 			break;
 		case 3:
-			Xprepmeter(3, 22, "/meters/3\0\0\0,b\0\0", n);
+			Xprepmeter(3, 22, "/meters/3\0\0\0,b\0\0", n, 0);
 			break;
 		case 4:
-			Xprepmeter(4, 82, "/meters/4\0\0\0,b\0\0", n);
+			Xprepmeter(4, 82, "/meters/4\0\0\0,b\0\0", n, 0);
 			break;
 		case 5:
-			Xprepmeter(5, 27, "/meters/5\0\0\0,b\0\0", n);
+			Xprepmeter(5, 27, "/meters/5\0\0\0,b\0\0", n, 12);
 			break;
 		case 6:
-			Xprepmeter(6, 4, "/meters/6\0\0\0,b\0\0", n);
+			Xprepmeter(6, 4, "/meters/6\0\0\0,b\0\0", n, 8);
 			break;
 		case 7:
-			Xprepmeter(7, 16, "/meters/7\0\0\0,b\0\0", n);
+			Xprepmeter(7, 16, "/meters/7\0\0\0,b\0\0", n, 0);
 			break;
 		case 8:
-			Xprepmeter(8, 6, "/meters/8\0\0\0,b\0\0", n);
+			Xprepmeter(8, 6, "/meters/8\0\0\0,b\0\0", n, 0);
 			break;
 		case 9:
-			Xprepmeter(9, 32, "/meters/9\0\0\0,b\0\0", n);
+			Xprepmeter(9, 32, "/meters/9\0\0\0,b\0\0", n, 0);
 			break;
 		case 10:
-			Xprepmeter(10, 32, "/meters/10\0\0,b\0\0", n);
+			Xprepmeter(10, 32, "/meters/10\0\0,b\0\0", n, 0);
 			break;
 		case 11:
-			Xprepmeter(11, 5, "/meters/11\0\0,b\0\0", n);
+			Xprepmeter(11, 5, "/meters/11\0\0,b\0\0", n, 0);
 			break;
 		case 12:
-			Xprepmeter(12, 4, "/meters/12\0\0,b\0\0", n);
+			Xprepmeter(12, 4, "/meters/12\0\0,b\0\0", n, 0);
 			break;
 		case 13:
-			Xprepmeter(13, 48, "/meters/13\0\0,b\0\0", n);
+			Xprepmeter(13, 48, "/meters/13\0\0,b\0\0", n, 0);
 			break;
 		case 14:
-			Xprepmeter(14, 80, "/meters/14\0\0,b\0\0", n);
+			Xprepmeter(14, 80, "/meters/14\0\0,b\0\0", n, 0);
 			break;
 		case 15:
-			Xprepmeter(15, 50, "/meters/15\0\0,b\0\0", n);
+			Xprepmeter(15, 50, "/meters/15\0\0,b\0\0", n, 0);
 			break;
 		case 16:
-			Xprepmeter(16, 48, "/meters/16\0\0,b\0\0", n);
+			Xprepmeter(16, 48, "/meters/16\0\0,b\0\0", n, 0);
 			break;
 		default:
 			break;
