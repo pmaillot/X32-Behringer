@@ -1052,10 +1052,12 @@ int main(int argc, char **argv) {
 			// Done receiving/managing command parameters;
 			Xsend(whoto);
 		}
+#ifdef __linux__
 		else
 		{
 			usleep( 10 );
 		}
+#endif
 		//
 		// Update current client with data to be sent, or meters & subscribes?
 //		if (whoto == 0) {  // Meters or other data to send?
