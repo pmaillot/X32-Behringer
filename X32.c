@@ -868,15 +868,15 @@ socklen_t Client_ip_len = sizeof(Client_ip);	// length of addresses
 
 int main(int argc, char **argv) {
 	int i, whoto, noIP;
-	char input_ch;
+	int input_intch;
 	struct addrinfo hints;
 	struct addrinfo *result, *rp;
 //
 // Manage arguments
 	fflush(stdout);
 	noIP = 1;
-	while ((input_ch = getopt(argc, argv, "i:d:v:x:b:f:r:m:h")) != -1) {
-		switch (input_ch) {
+	while ((input_intch = getopt(argc, argv, "i:d:v:x:b:f:r:m:h")) != -1) {
+		switch ((char)input_intch) {
 		case 'i':
 			strcpy(Xip_str, optarg );
 			noIP = 0;

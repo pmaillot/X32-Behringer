@@ -756,12 +756,12 @@ main(int argc, char **argv)
 	HINSTANCE hPrevInstance = 0;
 	PWSTR pCmdLine = 0;
 	int		nCmdShow = 0;
-	char	input_ch;
+	int	input_intch;
 
 	Xverbose = Xdebug = 0;
 	// Manage arguments
-	while ((input_ch = getopt(argc, argv, "i:d:v:h")) != -1) {
-		switch (input_ch) {
+	while ((input_intch = getopt(argc, argv, "i:d:v:h")) != -1) {
+		switch ((char)input_intch) {
 		case 'd':
 			sscanf(optarg, "%d", &Xdebug);
 			break;
