@@ -450,7 +450,7 @@ int main(int argc, char **argv) {
 	wheader.Junk_bytes= 32716;
 	//
 	// manage command-line parameters
-	while ((input_intch = getopt(argc, argv, "g:f:m:h")) != -1) {
+	while ((input_intch = getopt(argc, argv, "g:f:m:h:S")) != -1) {
 		switch ((char)input_intch) {
 			case 'g':
 				sscanf(optarg, "%i", &GUI);
@@ -512,7 +512,7 @@ int main(int argc, char **argv) {
 		ShowWindow(GetConsoleWindow(), SW_HIDE); // Hide console window
 		wWinMain(hInstance, hPrevInstance, pCmdLine, nCmdFile);
 #else
-		prinft("GUI mode not supported outside of WIndows\n");
+		printf("GUI mode not supported outside of Windows\n");
 #endif
 		return 0;
 	}
